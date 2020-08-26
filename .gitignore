@@ -1,0 +1,14 @@
+/MIraiKUgua/obj
+/MIraiKUgua/*.user
+/MIraiKUgua/bin/Debug/MIraiKUgua.exe
+/MIraiKUgua/bin/Debug/MIraiKUgua.exe.config
+/MIraiKUgua/bin/Debug/MIraiKUgua.pdb
+/MIraiKUgua/bin/Debug/Newtonsoft.Json.dll
+/MIraiKUgua/bin/Debug/Newtonsoft.Json.xml
+/MIraiKUgua/bin/Debug/money
+/MIraiKUgua/bin/Debug/plugin
+/MIraiKUgua/bin/Debug/HtmlAgilityPack.dll
+/MIraiKUgua/bin/Debug/HtmlAgilityPack.pdb
+/MIraiKUgua/bin/Debug/HtmlAgilityPack.xml
+/.vs
+/packages
