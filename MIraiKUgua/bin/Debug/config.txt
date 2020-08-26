@@ -1,0 +1,17 @@
+﻿qq=2103806696
+passwd=no
+key=WoCaoEsuAWoCaoEsuA
+host=127.0.0.1
+port=14514
+master=287859992
+groupmsgbuff=0
+starttime=2020/08/27 01:50:03
+startnum=110
+playtimeprivate=3764
+playtimegroup=96730
+errtime=0
+askname=我苦
+money=比特币
+ignoreall=0
+testonly=0
+version=v 0.0.1
