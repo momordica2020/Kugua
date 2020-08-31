@@ -35,25 +35,25 @@ namespace MMDK.Plugins
         {
             //msg.toGroup = 735545947;// msg.fromGroup;
             string cmd = BOT.getAskCmd(msg);
-            if (!string.IsNullOrWhiteSpace(cmd))
-            {
-                string res = getRollString(msg.str.Substring(2));
-                if (!string.IsNullOrWhiteSpace(res))
-                {
-                    msg.str = res;
-                    msg.toGroup = msg.fromGroup;
-                    msg.to = msg.from;
-                    msg.imgs.Clear();
-                    msg.ats.Clear();
-                    if (msg.fromGroup > 0)
-                    {
-                        msg.ats.Add(new MessageAt(msg.from, $"@{msg.fromName}"));
-                        //msg.str = " " + msg.str;
-                    }
-                    BOT.send(msg);
-                }
+            if (string.IsNullOrWhiteSpace(cmd)) return;
 
+            string res = getRollString(cmd);
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                msg.str = res;
+                msg.toGroup = msg.fromGroup;
+                msg.to = msg.from;
+                msg.imgs.Clear();
+                msg.ats.Clear();
+                if (msg.fromGroup > 0)
+                {
+                    msg.ats.Add(new MessageAt(msg.from, $"@{msg.fromName}"));
+                    //msg.str = " " + msg.str;
+                }
+                BOT.send(msg);
             }
+
+            
         }
 
 
@@ -108,6 +108,11 @@ namespace MMDK.Plugins
             if (DiceNum == 1) resdesc = $"{res}";
             else resdesc = $"{string.Join("+", ress)} = {res}";
             return res;
+        }
+
+        public override void Dispose()
+        {
+            
         }
     }
 }

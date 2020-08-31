@@ -509,6 +509,10 @@ namespace MMDK.Util
                     MemoryStream ms = new MemoryStream(1024);
                     try
                     {
+                        if (!ISLINK)
+                        {
+                            break;
+                        }
                         WebSocketReceiveResult result;
                         while (!(result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None)).EndOfMessage)
                         {
@@ -607,7 +611,7 @@ namespace MMDK.Util
                                     //var msgs = j["messageChain"].ToArray();
                                     Message msg = new Message();
                                     msg.id = long.Parse(j["messageId"].ToString());
-                                    msg.to = long.Parse(j["authorid"].ToString());
+                                    msg.to = long.Parse(j["authorId"].ToString());
                                     //msg.time = long.Parse(j["time"].ToString());
                                     msg.from = long.Parse(j["operator"]["id"].ToString());
                                     msg.fromName = j["operator"]["memberName"].ToString();
@@ -626,7 +630,7 @@ namespace MMDK.Util
                                 {
                                     Message msg = new Message();
                                     msg.id = long.Parse(j["messageId"].ToString());
-                                    msg.to = long.Parse(j["authorid"].ToString());
+                                    msg.to = long.Parse(j["authorId"].ToString());
                                     //msg.time = long.Parse(j["time"].ToString());
                                     msg.from = long.Parse(j["operator"]["id"].ToString());
                                     msg.fromName = j["operator"]["memberName"].ToString();
@@ -819,12 +823,15 @@ namespace MMDK.Util
             }
             else
             {
+
                 var res = postRelease(SESSION, QQ);
                 if(GetReturnCode(res) == MiraiReturnCode.Success)
                 {
                     // release success
+                    ISLINK = false;
                     return true;
                 }
+                ISLINK = false;
                 return false;
             }
         }

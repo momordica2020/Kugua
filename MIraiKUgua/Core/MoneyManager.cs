@@ -10,7 +10,7 @@ namespace MMDK.Core
     /// <summary>
     /// 金融系统
     /// </summary>
-    class MoneyManager
+    public class MoneyManager
     {
         string path = "";
         string walletf = "btclist.txt";
@@ -217,65 +217,65 @@ namespace MMDK.Core
             return res;
         }
 
-        ///// <summary>
-        ///// 富人榜
-        ///// </summary>
-        ///// <returns></returns>
-        //public string showRichest()
-        //{
-        //    try
-        //    {
-        //        StringBuilder sb = new StringBuilder();
-        //        int maxnum = 10;
-        //        var users = this.users.Values.ToList();
-        //        users.Sort((left, right) =>
-        //        {
-        //            return -1 * left.Money.CompareTo(right.Money);
-        //        });
+        /// <summary>
+        /// 富人榜
+        /// </summary>
+        /// <returns></returns>
+        public string showRichest()
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                int maxnum = 10;
+                var users = this.users.Values.ToList();
+                users.Sort((left, right) =>
+                {
+                    return -1 * left.Money.CompareTo(right.Money);
+                });
 
-        //        sb.Append("富 豪 榜 \r\n");
-        //        for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
-        //        {
-        //            sb.Append($"{i + 1}:{getQQNick(users[i].UserId)},{users[i].Money}枚\r\n");
-        //        }
-        //        return sb.ToString();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        FileHelper.Log(ex);
-        //        return "";
-        //    }
-        //}
+                sb.Append("富 豪 榜 \r\n");
+                for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
+                {
+                    sb.Append($"{i + 1}:{users[i].UserName},{users[i].Money}枚\r\n");
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                FileHelper.Log(ex);
+                return "";
+            }
+        }
 
-        ///// <summary>
-        ///// 穷人榜
-        ///// </summary>
-        ///// <returns></returns>
-        //public string showPoorest()
-        //{
-        //    try
-        //    {
-        //        StringBuilder sb = new StringBuilder();
-        //        int maxnum = 10;
-        //        var users = this.users.Values.ToList();
-        //        users.Sort((left, right) =>
-        //        {
-        //            return left.Money.CompareTo(right.Money);
-        //        });
+        /// <summary>
+        /// 穷人榜
+        /// </summary>
+        /// <returns></returns>
+        public string showPoorest()
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                int maxnum = 10;
+                var users = this.users.Values.ToList();
+                users.Sort((left, right) =>
+                {
+                    return left.Money.CompareTo(right.Money);
+                });
 
-        //        sb.Append("穷 人 榜 \r\n");
-        //        for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
-        //        {
-        //            sb.Append($"{i + 1}:{getQQNick(users[i].UserId)},{users[i].Money}枚\r\n");
-        //        }
-        //        return sb.ToString();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        FileHelper.Log(ex);
-        //        return "";
-        //    }
-        //}
+                sb.Append("穷 人 榜 \r\n");
+                for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
+                {
+                    sb.Append($"{i + 1}:{users[i].UserName},{users[i].Money}枚\r\n");
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                FileHelper.Log(ex);
+                return "";
+            }
+        }
 
         public string getUserInfo(long userqq)
         {
@@ -284,7 +284,7 @@ namespace MMDK.Core
         }
     }
 
-    class BTCWallet
+    public class BTCWallet
     {
         public long uid = -1;
 
@@ -335,9 +335,10 @@ namespace MMDK.Core
 
     }
 
-    class BTCUser
+    public class BTCUser
     {
         long qq = -1;
+        string nickname;
         object moneyMutex = new object();
 
         public BTCWallet _wallet = new BTCWallet();
@@ -348,6 +349,23 @@ namespace MMDK.Core
             get
             {
                 return qq;
+            }
+        }
+
+        public string UserName
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(nickname))
+                {
+                    // TODO
+                    nickname = qq.ToString();
+                }
+                return nickname;
+            }
+            set
+            {
+                nickname = value;
             }
         }
 
@@ -429,7 +447,7 @@ namespace MMDK.Core
     }
 
 
-    class BTCBenefit
+    public class BTCBenefit
     {
         public long uid;
         public long sum;

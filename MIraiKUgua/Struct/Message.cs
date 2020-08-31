@@ -78,6 +78,8 @@ namespace MMDK.Struct
 
         public long to = 0;
         public long toGroup = 0;
+
+        
         
 
         public DateTime time;
@@ -89,6 +91,7 @@ namespace MMDK.Struct
         public string xml;
         public Message quote = null;
 
+        //public bool isPrivate = false;
         public bool isTempMsg = false;
         public bool isRecall = false;
 

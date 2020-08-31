@@ -19,6 +19,7 @@ namespace MMDK.Core
         string getAskCmd(Message msg);
         void send(Message msg);
         void sendBack(Message msg, bool beginWithAt = false);
+        void log(string msg);
         void accept(EventAddFriend e);
         void deny(EventAddFriend e);
         void accept(EventAddGroup e);
@@ -32,6 +33,10 @@ namespace MMDK.Core
         void banCancel(long group, long qq);
         void banCancel(long group);
         void quit(long group);
+        int getGroupNum();
+        int getFriendNum();
+        MoneyManager getMoneyManager();
+        HistoryManager GetHistoryManager();
 
     }
     class MainProcess : IGlobalFunc
@@ -42,15 +47,16 @@ namespace MMDK.Core
         public static string ConfigFile = "./config.txt";
         public static string PluginPath = "./plugin/";
         public static string MoneyPath = "./money/";
+        public static string HistoryPath;
 
+        MiraiInfo minfo = new MiraiInfo();
         public Config config;
-        public MoneyManager money;
-        List<Plugin> plugins = new List<Plugin>();
+        public MoneyManager money = new MoneyManager();
+        public HistoryManager history = new HistoryManager();
 
-       
+        Dictionary<string, Plugin> plugins = new Dictionary<string, Plugin>();
 
-
-        public Dictionary<long, UserInfo> users = new Dictionary<long, UserInfo>();
+        public Dictionary<long, UserInfo> friends = new Dictionary<long, UserInfo>();
         public Dictionary<long, GroupInfo> groups = new Dictionary<long, GroupInfo>();
 
 
@@ -58,6 +64,75 @@ namespace MMDK.Core
         {
 
         }
+
+        /// <summary>
+        /// 初始化各组件
+        /// </summary>
+        /// <param name="_config"></param>
+        /// <param name="_minfo"></param>
+        public void Init(Config _config, MiraiInfo _minfo)
+        {
+            minfo = _minfo;
+            config = _config;
+
+            money = new MoneyManager();
+            money.init(config["money"], MoneyPath);
+
+            
+            if(config["historySave"] == "1")
+            {
+                // 打开历史记录，不会是真的吧
+                HistoryPath = Path.GetFullPath(config["historyPath"]);
+                if (!Directory.Exists(HistoryPath)) Directory.CreateDirectory(HistoryPath);
+                processOutput?.Invoke($"历史记录保存在 {HistoryPath} 里");
+                history.init(HistoryPath);
+            } else
+            {
+                processOutput?.Invoke($"历史记录不会有记录");
+            }
+            
+
+            //LoadConfig();
+            LoadMirai();
+
+            LoadGroupAndFriendList();
+
+            LoadPlugins();
+
+        }
+
+        public void LoadGroupAndFriendList()
+        {
+            try
+            {
+                // init data
+                var us = MiraiHelper.getFriendList();
+                foreach (var u in us)
+                {
+                    friends[u.qq] = u;
+                }
+                var gs = MiraiHelper.getGroupList();
+                foreach (var g in gs)
+                {
+                    groups[g.id] = g;
+                }
+            }catch(Exception ex)
+            {
+                FileHelper.Log(ex);
+            }
+
+        }
+
+        public void Exit()
+        {
+            foreach(var plugin in plugins.Values)
+            {
+                plugin.Dispose();
+            }
+            history.run = false;
+            MiraiHelper.Exit();
+        }
+
 
         public void LoadConfig()
         {
@@ -71,7 +146,12 @@ namespace MMDK.Core
         public void LoadMirai()
         {
             processOutput?.Invoke($"开始启动Mirai http 连接");
-            var res = MiraiHelper.Link(config["host"], int.Parse(config["port"]), config["key"], long.Parse(config["qq"]));
+            var res = MiraiHelper.Link(minfo.host, minfo.port, minfo.authKey, long.Parse(config["qq"]));
+            if (!res)
+            {
+                processOutput?.Invoke($"连接Mirai 失败");
+                return;
+            }
             MiraiHelper.handleMiraiMsg += new HandleMiraiMsg(RecvMessage);
             MiraiHelper.handleAddFriend += new HandleEventAddFriend(accept);
             MiraiHelper.handleAddGroup += new HandleEventAddGroup(accept);
@@ -84,6 +164,7 @@ namespace MMDK.Core
         {
             processMessage += new HandleProcessMessage(p.HandleMessage);
             p.Init(this, config, PluginPath);
+            plugins[p.PluginName] = p;
         }
 
         public void LoadPlugins()
@@ -92,68 +173,86 @@ namespace MMDK.Core
 
             if (!Directory.Exists(PluginPath)) Directory.CreateDirectory(PluginPath);
             if (!Directory.Exists(MoneyPath)) Directory.CreateDirectory(MoneyPath);
+           
+
+            List<Plugin> plist = new List<Plugin>();
             
+            plist.Add(new DicePlugin());
+            plist.Add(new BilibiliPlugin());
+            plist.Add(new DivinationPlugin());
+            plist.Add(new TranslatePlugin());
+            plist.Add(new RaceHorsePlugin());
+            plist.Add(new ModePlugin());
 
 
-            InitPlugin(new ModePlugin());
-
-            InitPlugin(new DicePlugin());
-
-            InitPlugin(new BilibiliPlugin());
-
-
+            foreach (var p in plist)
+            {
+                processOutput?.Invoke($"开始加载插件 ： {p.PluginName}");
+                InitPlugin(p);
+            }
 
             processOutput?.Invoke($"插件加载完毕");
 
         }
 
 
-        public void Init(Config _config)
-        {
-
-            config = _config;
-            money = new MoneyManager();
-            money.init(config["money"], MoneyPath);
-            //LoadConfig();
-            LoadMirai();
-
-
-            // init data
-            var us = MiraiHelper.getFriendList();
-            foreach(var u in us)
-            {
-                users[u.qq] = u;
-            }
-            var gs = MiraiHelper.getGroupList();
-            foreach(var g in gs)
-            {
-                groups[g.id] = g;
-            }
-
-            LoadPlugins();
-
-        }
+        
 
         public void RecvMessage(Message msg)
         {
-            processOutput?.Invoke($"{msg.ToString()}");
+            if (config["debug"] == "1")
+            {
+                processOutput?.Invoke($"{msg.ToString()}");
+            }
+            if(config["historySave"] == "1")
+            {
+                history.saveMsg(msg.fromGroup, msg.from, msg.str);
+            }
+            if(msg.fromGroup <= 0)
+            {
+                // private
+                config.setInt("playtimeprivate", config.getInt("playtimeprivate"));
+            }
+            else
+            {
+                // group.
+                config.setInt("playtimegroup", config.getInt("playtimegroup"));
+            }
             processMessage(msg);
         }
 
         public void send(Message msg)
         {
+            if (config["historySave"] == "1")
+            {
+                history.saveMsg(msg.toGroup, msg.to, msg.str);
+            }
             MiraiHelper.sendMessage(msg);
         }
+
+        /// <summary>
+        /// 原路发回给消息发送者。
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="beginWithAt"></param>
         public void sendBack(Message msg, bool beginWithAt = false)
         {
-            if (beginWithAt)
+            if(msg.fromGroup <= 0)
             {
-                msg.ats.Clear();
-                MessageAt at = new MessageAt(msg.from, $"@{msg.fromName}");
+                // from private.
+                if (msg.to <= 0) msg.to = msg.from;
             }
-            if (msg.to == 0) msg.to = msg.from;
-            if (msg.toGroup == 0) msg.toGroup = msg.fromGroup;
-
+            else
+            {
+                // from group.
+                if (beginWithAt)
+                {
+                    msg.ats.Clear();
+                    MessageAt at = new MessageAt(msg.from, $"@{msg.fromName}");
+                }
+                if (msg.to <= 0) msg.to = msg.from;
+                if (msg.toGroup <= 0) msg.toGroup = msg.fromGroup;
+            }
             send(msg);
         }
         public void accept(EventAddFriend e)
@@ -180,9 +279,9 @@ namespace MMDK.Core
 
         public UserInfo getUserInfo(long qq)
         {
-            if (users.ContainsKey(qq))
+            if (friends.ContainsKey(qq))
             {
-                return users[qq];
+                return friends[qq];
             }
             return null;
         }
@@ -242,7 +341,11 @@ namespace MMDK.Core
             {
                 res = true;
             }
-
+            if (msg.fromGroup <= 0)
+            {
+                // private
+                res = true;
+            }
 
             if (res)
             {
@@ -257,6 +360,11 @@ namespace MMDK.Core
             if (!isAskme(msg))
             {
                 return "";
+            }
+            if (msg.fromGroup <= 0)
+            {
+                // private
+                return msg.str;
             }
             if (msg.str.StartsWith(config["askname"]))
             {
@@ -275,6 +383,33 @@ namespace MMDK.Core
             }
 
             return "";
+        }
+
+        public MoneyManager getMoneyManager()
+        {
+            return money;
+        }
+
+        public HistoryManager GetHistoryManager()
+        {
+            return history;
+        }
+
+        public void log(string msg)
+        {
+            processOutput?.Invoke($"{DateTime.Now.ToString("G")}:{msg}");
+        }
+
+        public int getGroupNum()
+        {
+            LoadGroupAndFriendList();
+            return groups.Count;
+        }
+
+        public int getFriendNum()
+        {
+            
+            return friends.Count;
         }
     }
 }

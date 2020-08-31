@@ -26,16 +26,17 @@ namespace MMDKMonitor
     public partial class Form1 : Form
     {
         string libPath = "./lib";
-        string dataPath = "./data";
+        string configPath = "config.txt";
+
         string httpConfigPath = "plugins/MiraiAPIHTTP/setting.yml";
         string miraiPath = "miraiOK_windows_386.exe";
-        string configPath = "config.txt";
+        string miraiKey = "WocaoEsuAAAAAAAAA!";
 
         DateTime beginTime;
 
         Process MiraiProcess;
         MainProcess bot;
-
+        MiraiInfo miraiInfo;
         Config config;
 
         runState _state;
@@ -50,12 +51,11 @@ namespace MMDKMonitor
                     {
                         case runState.stop: text = "已停止"; break;
                         case runState.miraiInit: text = "正在启动Mirai"; break;
-                        case runState.mmdkInit: text = "正在启动bot"; break;
+                        case runState.mmdkInit: text = "正在启动Bot"; break;
                         case runState.ok: text = "正在运行"; break;
                         default: break;
                     }
                     Invoke(new EventHandler(delegate{
-
                         lbState.Text = text;
                     }));
                 }
@@ -74,37 +74,68 @@ namespace MMDKMonitor
         {
             InitializeComponent();
 
-            config = new Config(configPath);
-            checkAndSetConfigValid();
-            refreshMiraiHttpPluginYml();
-
-            new Thread(workMonitor).Start();
+            
         }
 
         
-
-        void checkAndSetConfigValid()
+        /// <summary>
+        /// 检查并初始化配置
+        /// </summary>
+        /// <returns></returns>
+        bool checkAndSetConfigValid()
         {
             try
             {
-                if (config == null) return;
-                if (string.IsNullOrWhiteSpace(config["qq"])) config["qq"] = "0";
-                if (string.IsNullOrWhiteSpace(config["version"])) config["version"] = "v 0.0.1";
-                if (string.IsNullOrWhiteSpace(config["passwd"])) config["passwd"] = "pwd";
+                if (config == null)
+                {
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(config["version"])) config["version"] = "v0.0.1";
+                if (string.IsNullOrWhiteSpace(config["debug"])) config["debug"] = "0";
+
+                // qq info
+                if (string.IsNullOrWhiteSpace(config["qq"])) config["qq"] = "00000";
+                if (string.IsNullOrWhiteSpace(config["passwd"])) config["passwd"] = "nopasswd";
+
+                // mirai config
                 if (string.IsNullOrWhiteSpace(config["host"])) config["host"] = "127.0.0.1";
                 if (string.IsNullOrWhiteSpace(config["port"])) config["port"] = "9999";
-                if (string.IsNullOrWhiteSpace(config["key"])) config["key"] = "null";
+                //if (string.IsNullOrWhiteSpace(config["key"])) config["key"] = "null";
+                miraiInfo = new MiraiInfo();
+                miraiInfo.authKey = miraiKey;
+                miraiInfo.port = int.Parse(config["port"]);
+                miraiInfo.host = config["host"];
+                refreshMiraiHttpPluginYml();
 
                 beginTime = DateTime.Now;
                 config["starttime"] = beginTime.ToString("G");
+                if (string.IsNullOrWhiteSpace(config["historySave"])) config["historySave"] = "0";
+                if (string.IsNullOrWhiteSpace(config["historyPath"])) config["historyPath"] = "./history/";
+                if (string.IsNullOrWhiteSpace(config["startnum"])) config["startnum"] = "0";
+                config.setInt("startnum", config.getInt("startnum") + 1); 
+                if (string.IsNullOrWhiteSpace(config["playtimeprivate"])) config["playtimeprivate"] = "0";
+                if (string.IsNullOrWhiteSpace(config["playtimegroup"])) config["playtimegroup"] = "0";
+                if (string.IsNullOrWhiteSpace(config["errtime"])) config["errtime"] = "0";
+                if (string.IsNullOrWhiteSpace(config["askname"])) config["askname"] = ".";
+                if (string.IsNullOrWhiteSpace(config["money"])) config["money"] = "比特币";
+                if (string.IsNullOrWhiteSpace(config["ignoreall"])) config["ignoreall"] = "0";
+                if (string.IsNullOrWhiteSpace(config["testonly"])) config["testonly"] = "0";
+                if (string.IsNullOrWhiteSpace(config["master"])) config["master"] = "0";
+                if (string.IsNullOrWhiteSpace(config["groupmsgbuff"])) config["groupmsgbuff"] = "0";
             }
             catch (Exception ex)
             {
                 FileHelper.Log(ex);
+                return false;
             }
+
+            return true;
         }
 
-
+        /// <summary>
+        /// 更新mirai的插件配置文件
+        /// </summary>
         void refreshMiraiHttpPluginYml()
         {
             try
@@ -124,15 +155,15 @@ namespace MMDKMonitor
                             }
                             else if (line.StartsWith("host:"))
                             {
-                                sb.AppendLine($"host: '{config["host"]}'");
+                                sb.AppendLine($"host: '{miraiInfo.host}'");
                             }
                             else if (line.StartsWith("port:"))
                             {
-                                sb.AppendLine($"port: {config["port"]}");
+                                sb.AppendLine($"port: {miraiInfo.port}");
                             }
-                            else if (line.StartsWith("host:"))
+                            else if (line.StartsWith("authKey:"))
                             {
-                                sb.AppendLine($"authKey: {config["authKey"]}");
+                                sb.AppendLine($"authKey: {miraiInfo.authKey}");
                             }
                             else
                             {
@@ -268,7 +299,7 @@ namespace MMDKMonitor
 
                 bot = new MainProcess();
                 bot.processOutput += new processOutputHandler(logMMDK);
-                bot.Init(config);
+                bot.Init(config, miraiInfo);
 
                 State = runState.ok;
                 logMMDK($"bot启动完成，开始接受数据。");
@@ -303,7 +334,7 @@ namespace MMDKMonitor
                         lbUseNum.Text = $"{config["playtimegroup"]}";
                         if (bot != null)
                         {
-                            lbFriendNum.Text = $"{bot.users.Count}";
+                            lbFriendNum.Text = $"{bot.friends.Count}";
                             lbGroupNum.Text = $"{bot.groups.Count}";
                         }
                         
@@ -318,7 +349,7 @@ namespace MMDKMonitor
 
                
 
-                Thread.Sleep(1000);     // 1s
+                Thread.Sleep(500);     // 1s
             }
         }
 
@@ -333,21 +364,12 @@ namespace MMDKMonitor
 
         private void tbMmdk_MouseDown(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Right)
-            {
-                contextMenuStrip1.Show(MousePosition);
 
-            }
-            
         }
 
         private void tbMirai_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-                contextMenuStrip2.Show(MousePosition);
-            }
-                
+
         }
 
         private void 清空日志ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -367,6 +389,7 @@ namespace MMDKMonitor
                 config.save();
                 if (MiraiProcess != null)
                 {
+                    bot.Exit();
                     SystemInfo.EndProcess(MiraiProcess.ProcessName);
                     SystemInfo.EndProcess("java");
                     MiraiProcess.Dispose();
@@ -383,6 +406,24 @@ namespace MMDKMonitor
             {
 
             }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            logMMDK("开始初始化配置文件。");
+
+            config = new Config(configPath);
+            bool isValid = checkAndSetConfigValid();
+            if (!isValid)
+            {
+                logMMDK("配置文件读取失败，中止运行");
+                return;
+            }
+
+
+            logMMDK("配置文件读取完毕。");
+
+            new Thread(workMonitor).Start();
         }
     }
 }

@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tbMmdk = new System.Windows.Forms.TextBox();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.清空日志ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.button1 = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -60,10 +62,9 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tbMirai = new System.Windows.Forms.TextBox();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.清空日志ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.清空日志ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -72,13 +73,13 @@
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            this.contextMenuStrip1.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tbMmdk
             // 
             this.tbMmdk.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.tbMmdk.ContextMenuStrip = this.contextMenuStrip1;
             this.tbMmdk.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tbMmdk.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.tbMmdk.Location = new System.Drawing.Point(3, 3);
@@ -86,9 +87,22 @@
             this.tbMmdk.Multiline = true;
             this.tbMmdk.Name = "tbMmdk";
             this.tbMmdk.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.tbMmdk.Size = new System.Drawing.Size(577, 479);
+            this.tbMmdk.Size = new System.Drawing.Size(579, 479);
             this.tbMmdk.TabIndex = 0;
-            this.tbMmdk.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbMmdk_MouseDown);
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.清空日志ToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(125, 26);
+            // 
+            // 清空日志ToolStripMenuItem
+            // 
+            this.清空日志ToolStripMenuItem.Name = "清空日志ToolStripMenuItem";
+            this.清空日志ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.清空日志ToolStripMenuItem.Text = "清空日志";
+            this.清空日志ToolStripMenuItem.Click += new System.EventHandler(this.清空日志ToolStripMenuItem_Click);
             // 
             // button1
             // 
@@ -119,8 +133,9 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.tabControl1);
-            this.splitContainer1.Size = new System.Drawing.Size(800, 511);
+            this.splitContainer1.Size = new System.Drawing.Size(801, 511);
             this.splitContainer1.SplitterDistance = 205;
+            this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 2;
             // 
             // tableLayoutPanel1
@@ -434,7 +449,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(591, 511);
+            this.tabControl1.Size = new System.Drawing.Size(593, 511);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -443,7 +458,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(583, 485);
+            this.tabPage1.Size = new System.Drawing.Size(585, 485);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "苦瓜日志";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -454,7 +469,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(583, 485);
+            this.tabPage2.Size = new System.Drawing.Size(585, 485);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Mirai日志";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -462,6 +477,7 @@
             // tbMirai
             // 
             this.tbMirai.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.tbMirai.ContextMenuStrip = this.contextMenuStrip2;
             this.tbMirai.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tbMirai.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.tbMirai.Location = new System.Drawing.Point(3, 3);
@@ -469,23 +485,8 @@
             this.tbMirai.Multiline = true;
             this.tbMirai.Name = "tbMirai";
             this.tbMirai.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.tbMirai.Size = new System.Drawing.Size(577, 479);
+            this.tbMirai.Size = new System.Drawing.Size(579, 479);
             this.tbMirai.TabIndex = 1;
-            this.tbMirai.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbMirai_MouseDown);
-            // 
-            // contextMenuStrip1
-            // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.清空日志ToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(125, 26);
-            // 
-            // 清空日志ToolStripMenuItem
-            // 
-            this.清空日志ToolStripMenuItem.Name = "清空日志ToolStripMenuItem";
-            this.清空日志ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.清空日志ToolStripMenuItem.Text = "清空日志";
-            this.清空日志ToolStripMenuItem.Click += new System.EventHandler(this.清空日志ToolStripMenuItem_Click);
             // 
             // contextMenuStrip2
             // 
@@ -505,13 +506,16 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 511);
+            this.ClientSize = new System.Drawing.Size(801, 511);
             this.Controls.Add(this.splitContainer1);
+            this.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(600, 500);
+            this.MinimumSize = new System.Drawing.Size(601, 500);
             this.Name = "Form1";
             this.Text = "MIraiKUgua";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -523,7 +527,6 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
-            this.contextMenuStrip1.ResumeLayout(false);
             this.contextMenuStrip2.ResumeLayout(false);
             this.ResumeLayout(false);
 

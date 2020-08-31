@@ -15,8 +15,8 @@ namespace MMDK.Struct
 
     public abstract class Plugin
     {
-        protected string PluginName = "";
-        protected string PluginPath = "";
+        public string PluginName = "";
+        public string PluginPath = "";
 
         protected Config config;
         protected IGlobalFunc BOT;
@@ -44,6 +44,8 @@ namespace MMDK.Struct
 
             InitSource();
         }
+
+        public abstract void Dispose();
 
         public abstract void InitSource();
 

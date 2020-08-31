@@ -96,6 +96,7 @@ namespace MMDK.Plugins
         public override void HandleMessage(Message msg)
         {
             string cmd = BOT.getAskCmd(msg);
+            if (string.IsNullOrWhiteSpace(cmd)) return;
 
             Regex bsearchreg = new Regex("(\\S+)区有多少(\\S+)");
             var bseatchres = bsearchreg.Match(cmd);
@@ -173,7 +174,21 @@ namespace MMDK.Plugins
             {
                 BOT.sendBack(msg, true);
             }
-           
+
+
+            // 才八点
+            if (msg.str.StartsWith("现在几点") || msg.str.StartsWith("几点了"))
+            {
+                try
+                {
+                    string res = $"现在是{getNowClockCountry(20)}";
+                    msg.str = res;
+                    BOT.sendBack(msg);
+                }
+                catch { }
+            }
+
+
             return;
         }
 
@@ -578,6 +593,11 @@ namespace MMDK.Plugins
             }
             return sb.ToString();
 
+        }
+
+        public override void Dispose()
+        {
+            
         }
     }
 }

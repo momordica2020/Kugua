@@ -29,7 +29,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -37,6 +37,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -71,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\HistoryManager.cs" />
     <Compile Include="Core\MainProcess.cs" />
     <Compile Include="FormMonitor.cs">
       <SubType>Form</SubType>
@@ -81,7 +83,9 @@
     <Compile Include="Core\MoneyManager.cs" />
     <Compile Include="Plugins\BilibiliPlugin.cs" />
     <Compile Include="Plugins\DicePlugin.cs" />
+    <Compile Include="Plugins\DivinationPlugin.cs" />
     <Compile Include="Plugins\ModePlugin.cs" />
+    <Compile Include="Plugins\RaceHorsePlugin.cs" />
     <Compile Include="Plugins\TranslatePlugin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -93,7 +97,9 @@
     <Compile Include="Core\Config.cs" />
     <Compile Include="Struct\UserInfo.cs" />
     <Compile Include="Util\FileHelper.cs" />
+    <Compile Include="Util\MessageHistory.cs" />
     <Compile Include="Util\MiraiHelper.cs" />
+    <Compile Include="Util\MiraiInfo.cs" />
     <Compile Include="Util\SystemInfo.cs" />
     <Compile Include="Util\UtilHelper.cs" />
     <Compile Include="Util\WebHelper.cs" />
