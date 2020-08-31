@@ -12,3 +12,7 @@
 /MIraiKUgua/bin/Debug/HtmlAgilityPack.xml
 /.vs
 /packages
+/MIraiKUgua/*.csproj
+/MIraiKUgua/bin/Debug/history
+/MIraiKUgua/bin/Debug/lib/log
+/MIraiKUgua/bin/Debug/lib/plugins/MiraiAPIHTTP/setting.yml
