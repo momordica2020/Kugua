@@ -191,7 +191,11 @@ namespace MMDKMonitor
                     tbMmdk.AppendText(str + "\r\n");
                     tbMmdk.ScrollToCaret();
                 }));
-                FileHelper.Log($"[MMDK]{str}");
+                if (config["debug"] == "1")
+                {
+                    FileHelper.Log($"[MMDK]{str}");
+                }
+               
             }
             catch (Exception ex)
             {
@@ -208,8 +212,11 @@ namespace MMDKMonitor
                 {
                     tbMirai.AppendText(str + "\r\n");
                     tbMirai.ScrollToCaret();
-                }));
-                FileHelper.Log($"[Mirai]{str}");
+                })); 
+                if (config["debug"] == "1")
+                {
+                    FileHelper.Log($"[Mirai]{str}");
+                }
             }
             catch (Exception ex)
             {
