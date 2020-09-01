@@ -37,6 +37,7 @@ namespace MMDK.Core
         int getFriendNum();
         MoneyManager getMoneyManager();
         HistoryManager GetHistoryManager();
+        long getID(string nickName, long group = -1);
 
     }
     class MainProcess : IGlobalFunc
@@ -179,6 +180,7 @@ namespace MMDK.Core
             List<Plugin> plist = new List<Plugin>();
             
             plist.Add(new DicePlugin());
+            plist.Add(new BankPlugin());
             plist.Add(new BilibiliPlugin());
             plist.Add(new DivinationPlugin());
             plist.Add(new TranslatePlugin());
@@ -418,6 +420,26 @@ namespace MMDK.Core
         {
             
             return friends.Count;
+        }
+
+        public long getID(string nickName, long group = -1)
+        {
+            if(group>0 && groups.ContainsKey(group))
+            {
+                MiraiHelper.getGroupDetail(groups[group]);
+                
+                // group nick.
+                foreach(var mb in groups[group].members)
+                {
+                    MiraiHelper.getGroupMemberDetail(mb, group);
+                    if (mb.remarkInGroup.ContainsKey(group) && mb.remarkInGroup[group] == nickName)
+                    {
+                        return mb.qq;
+                    }
+                }
+            }
+            return 0;
+            //if(frien)
         }
     }
 }

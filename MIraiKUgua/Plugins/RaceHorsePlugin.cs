@@ -87,7 +87,7 @@ namespace MMDK.Plugins
 
                 if (cmd == "个人信息")
                 {
-                    string res = $"{BOT.getUserInfo(msg.from)}\r\n{getRHInfo(msg.from)}\r\n{BOT.getUserInfo(msg.from)}";
+                    string res = $"{money.getUserInfo(msg.from)}\r\n{getRHInfo(msg.from)}";
                     if (!string.IsNullOrWhiteSpace(res))
                     {
                         msg.str = res;

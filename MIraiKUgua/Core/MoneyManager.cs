@@ -134,30 +134,30 @@ namespace MMDK.Core
             }
         }
 
-        ///// <summary>
-        ///// 每日签到，领取低保
-        ///// </summary>
-        ///// <param name="group"></param>
-        ///// <param name="userqq"></param>
-        //public void dailyAttendance(long group, long userqq)
-        //{
-        //    var u = getUser(userqq);
-        //    if (u._benefit.getDailyBenefit())
-        //    {
-        //        int maxmoney = 114;
-        //        int minmoney = 30;
-        //        // success
-        //        long money = rand.Next(minmoney, maxmoney);
-        //        money = u.addMoney(money);
+        /// <summary>
+        /// 每日签到，领取低保
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="userqq"></param>
+        public string dailyAttendance(long group, long userqq)
+        {
+            var u = getUser(userqq);
+            if (u._benefit.getDailyBenefit())
+            {
+                int maxmoney = 114;
+                int minmoney = 30;
+                // success
+                long money = rand.Next(minmoney, maxmoney);
+                money = u.addMoney(money);
+                save();
+                return $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money}枚";
 
-        //        outputMessage(group, userqq, $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money}枚");
-        //        save();
-        //    }
-        //    else
-        //    {
-        //        outputMessage(group, userqq, $"在？领过了");
-        //    }
-        //}
+            }
+            else
+            {
+                return $"在？领过了";
+            }
+        }
 
         /// <summary>
         /// 转账

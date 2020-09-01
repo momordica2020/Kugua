@@ -361,25 +361,33 @@ namespace MMDK.Util
         public static void getGroupDetail(GroupInfo group)
         {
             string url = $"http://{HOST}:{PORT}/memberList?sessionKey={SESSION}&target={group.id}";
-            JObject res = WebHelper.getJson(url);
+            JArray res = WebHelper.getJsonArray(url);
             group.members = new List<UserInfo>();
-            foreach (JToken token in res.Values().ToArray())
+            foreach (JToken token in res)
             {
                 UserInfo user = new UserInfo();
                 user.qq = long.Parse(token["id"].ToString());
                 user.name = token["memberName"].ToString();
-                user.remark = token["remark"].ToString();
+                //if (token["remark"] == null)
+                //{
+                //    user.remark = user.name;
+                //}
+                //else
+                //{
+                //    user.remark = token["remark"].ToString();
+                //}
+                
                 group.members.Add(user);
             }
 
 
             url = $"http://{HOST}:{PORT}/groupConfig?sessionKey={SESSION}&target={group.id}";
-            res = WebHelper.getJson(url);
-            group.announcement = res["announcement"].ToString();
-            group.allowMemberInvite = bool.Parse(res["allowMemberInvite"].ToString());
-            group.confessTalk = bool.Parse(res["confessTalk"].ToString());
-            group.autoApprove = bool.Parse(res["autoApprove"].ToString());
-            group.anonymousChat = bool.Parse(res["anonymousChat"].ToString());
+            var res2 = WebHelper.getJson(url);
+            group.announcement = res2["announcement"].ToString();
+            group.allowMemberInvite = bool.Parse(res2["allowMemberInvite"].ToString());
+            group.confessTalk = bool.Parse(res2["confessTalk"].ToString());
+            group.autoApprove = bool.Parse(res2["autoApprove"].ToString());
+            group.anonymousChat = bool.Parse(res2["anonymousChat"].ToString());
         }
 
         public static void setGroupDetail(GroupInfo group)
@@ -410,6 +418,7 @@ namespace MMDK.Util
 
             user.remarkInGroup[group] = res["name"].ToString();
             user.titleInGroup[group] = res["specialTitle"].ToString();
+            if (user.remarkInGroup[group].Length <= 0) user.remarkInGroup[group] = user.name;
         }
 
         public static void setGroupMemberDetail(long group, UserInfo user)
