@@ -338,7 +338,7 @@ namespace MMDKMonitor
                         lbVersion.Text = $"{config["version"]}";
                         lbFriendNum.Text = $"{config["friendnum"]}";
                         lbGroupNum.Text = $"{config["groupnum"]}";
-                        lbUseNum.Text = $"{config["playtimegroup"]}";
+                        lbUseNum.Text = $"{config.getInt("playtimegroup") + config.getInt("playtimeprivate")}";
                         if (bot != null)
                         {
                             lbFriendNum.Text = $"{bot.friends.Count}";

@@ -211,16 +211,20 @@ namespace MMDK.Core
             {
                 history.saveMsg(msg.fromGroup, msg.from, msg.str);
             }
-            if(msg.fromGroup <= 0)
+            if (isAskme(msg))
             {
-                // private
-                config.setInt("playtimeprivate", config.getInt("playtimeprivate"));
+                if (msg.fromGroup <= 0)
+                {
+                    // private
+                    config.setInt("playtimeprivate", config.getInt("playtimeprivate"));
+                }
+                else
+                {
+                    // group.
+                    config.setInt("playtimegroup", config.getInt("playtimegroup"));
+                }
             }
-            else
-            {
-                // group.
-                config.setInt("playtimegroup", config.getInt("playtimegroup"));
-            }
+
             foreach(var plugin in plugins)
             {
                 if(plugin.Value.HandleMessage(msg) == true)
@@ -356,12 +360,6 @@ namespace MMDK.Core
                 // private
                 res = true;
             }
-
-            if (res)
-            {
-                config.setInt("playtimegroup", config.getInt("playtimegroup") + 1);
-            }
-
             return res;
         }
 
