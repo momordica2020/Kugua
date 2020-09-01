@@ -367,16 +367,17 @@ namespace MMDK.Core
         {
             if (!isAskme(msg))
             {
+                // not ask me.
                 return "";
             }
             if (msg.fromGroup <= 0)
             {
                 // private
-                return msg.str;
+                return msg.str.Trim();
             }
             if (msg.str.StartsWith(config["askname"]))
             {
-                return msg.str.Substring(config["askname"].Length);
+                return msg.str.Substring(config["askname"].Length).Trim();
             }
             if (msg.isAtMe(config.getInt("qq")))
             {
@@ -386,8 +387,8 @@ namespace MMDK.Core
                         msg.ats.RemoveAt(i);
                         break;
                     }
-                } 
-                return msg.str;
+                }
+                return msg.str.Trim();
             }
 
             return "";
