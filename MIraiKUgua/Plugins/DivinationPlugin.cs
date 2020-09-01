@@ -20,12 +20,12 @@ namespace MMDK.Plugins
         {
 
         }
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             try
             {
                 string cmd = BOT.getAskCmd(msg);
-                if (string.IsNullOrWhiteSpace(cmd)) return;
+                if (string.IsNullOrWhiteSpace(cmd)) return false;
                 if (cmd.StartsWith("占卜"))
                 {
                     string res = getZhouYi();
@@ -33,6 +33,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg, true);
+                        return true;
                     }
                 }
             }
@@ -40,10 +41,12 @@ namespace MMDK.Plugins
             {
                 FileHelper.Log(ex);
             }
+
+            return false;
             
         }
 
-        public override void InitSource()
+        protected override void InitSource()
         {
             rand = new Random();
             var lines = FileHelper.readLines(PluginPath + zhouyiName);

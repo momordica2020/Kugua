@@ -12,7 +12,7 @@ using MMDK.Util;
 namespace MMDK.Core
 {
     public delegate void processOutputHandler(string str);
-    public delegate void HandleProcessMessage(Message msg);
+    public delegate bool HandleProcessMessage(Message msg);
 
     public interface IGlobalFunc {
         bool isAskme(Message msg);
@@ -42,7 +42,7 @@ namespace MMDK.Core
     class MainProcess : IGlobalFunc
     {
         public event processOutputHandler processOutput;
-        public event HandleProcessMessage processMessage;
+        //public event HandleProcessMessage processMessage;
 
         public static string ConfigFile = "./config.txt";
         public static string PluginPath = "./plugin/";
@@ -55,6 +55,7 @@ namespace MMDK.Core
         public HistoryManager history = new HistoryManager();
 
         Dictionary<string, Plugin> plugins = new Dictionary<string, Plugin>();
+        
 
         public Dictionary<long, UserInfo> friends = new Dictionary<long, UserInfo>();
         public Dictionary<long, GroupInfo> groups = new Dictionary<long, GroupInfo>();
@@ -162,7 +163,7 @@ namespace MMDK.Core
 
         public void InitPlugin(Plugin p)
         {
-            processMessage += new HandleProcessMessage(p.HandleMessage);
+            //processMessage += new HandleProcessMessage(p.HandleMessage);
             p.Init(this, config, PluginPath);
             plugins[p.PluginName] = p;
         }
@@ -218,7 +219,14 @@ namespace MMDK.Core
                 // group.
                 config.setInt("playtimegroup", config.getInt("playtimegroup"));
             }
-            processMessage(msg);
+            foreach(var plugin in plugins)
+            {
+                if(plugin.Value.HandleMessage(msg) == true)
+                {
+                    // finish.
+                    break;
+                }
+            }
         }
 
         public void send(Message msg)

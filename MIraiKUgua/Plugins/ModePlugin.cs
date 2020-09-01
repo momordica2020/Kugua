@@ -75,7 +75,7 @@ namespace MMDK.Plugins
         {
 
         }
-        public override void InitSource()
+        protected override void InitSource()
         {
             try
             {
@@ -173,7 +173,7 @@ namespace MMDK.Plugins
                 FileHelper.Log(e.Message + "\r\n" + e.StackTrace);
             }
         }
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             string question = BOT.getAskCmd(msg);
             //if (string.IsNullOrWhiteSpace(question)) return;
@@ -186,7 +186,7 @@ namespace MMDK.Plugins
             {
                 msg.str = getWelcomeString();
                 BOT.sendBack(msg, true);
-                return;
+                return true;
             }
 
             if (question.StartsWith("设置") && config.personIs(user, "管理员") && msg.fromGroup > 0)
@@ -203,7 +203,7 @@ namespace MMDK.Plugins
                         BOT.sendBack(msg);
                         config["ignoreall"] = "1";
                         config.save();
-                        return;
+                        return true;
                     }
                     else if (cmd.StartsWith("恢复"))
                     {
@@ -212,7 +212,7 @@ namespace MMDK.Plugins
                         msg.str = $"Hello, Tencent.";
                         BOT.sendBack(msg);
                         config.save();
-                        return;
+                        return true;
                     }
                     else if (cmd.StartsWith("封闭"))
                     {
@@ -223,9 +223,9 @@ namespace MMDK.Plugins
                         msg.str = $"Closing myself.";
                         BOT.sendBack(msg);
                         config.save();
-                        return;
+                        return true;
                     }
-                    return;
+                    return true;
                 }
 
 
@@ -240,7 +240,7 @@ namespace MMDK.Plugins
                         msg.str = $"已添加群tag:{newmode}";
                         BOT.sendBack(msg);
                         config.save();
-                        return;
+                        return true;
 
                     }
                     else if (cmd.StartsWith("-") || cmd.StartsWith("减"))
@@ -251,7 +251,7 @@ namespace MMDK.Plugins
                         msg.str = $"已删除群tag:{newmode}";
                         BOT.sendBack(msg);
                         config.save();
-                        return;
+                        return true;
                     }
                 }
 
@@ -282,7 +282,7 @@ namespace MMDK.Plugins
 
                             msg.str = $"已处理{targetUser}";
                             BOT.sendBack(msg);
-                            return;
+                            return true;
                         }
                     }
                     else if (cmd.StartsWith("-") || cmd.StartsWith("减"))
@@ -296,7 +296,7 @@ namespace MMDK.Plugins
 
                             msg.str = $"已处理{targetUser}";
                             BOT.sendBack(msg);
-                            return;
+                            return true;
                         }
                     }
                 }
@@ -311,6 +311,7 @@ namespace MMDK.Plugins
                 //}
 
 
+
             }
 
 
@@ -322,7 +323,7 @@ namespace MMDK.Plugins
                 modeindexs += "~输入“xx模式on”即可切换模式~";
                 msg.str = modeindexs;
                 BOT.sendBack(msg, true);
-                return;
+                return true;
             }
             Regex modereg = new Regex("(\\S+)模式\\s*(on|off)", RegexOptions.IgnoreCase);
             var moderes = modereg.Match(question);
@@ -354,7 +355,7 @@ namespace MMDK.Plugins
 
                             msg.str = modeindexs;
                             BOT.sendBack(msg, true);
-                            return;
+                            return true;
                         }
                     }
                     if(msg.fromGroup > 0)
@@ -370,7 +371,7 @@ namespace MMDK.Plugins
                     msg.str = $"~{config["askname"]}的{mode}模式启动~";
 
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
                 catch { }
             }
@@ -400,7 +401,7 @@ namespace MMDK.Plugins
                 {
                     msg.str = res;
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
             }
 
@@ -414,7 +415,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg, true);
-                        return;
+                        return true;
                     }
                 }
                 catch
@@ -437,7 +438,7 @@ namespace MMDK.Plugins
                         res = res.Replace("【D】", config["qq"]).Replace("【C】", config["askname"]);
                         msg.str = res;
                         BOT.sendBack(msg, true);
-                        return;
+                        return true;
 
                     }
                 }
@@ -467,7 +468,7 @@ namespace MMDK.Plugins
                     }
                     msg.str = res;
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
                 catch
                 {
@@ -488,7 +489,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg, true);
-                        return;
+                        return true;
                     }
                 }
                 catch
@@ -508,7 +509,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg, true);
-                        return;
+                        return true;
                     }
                 }
                 catch
@@ -554,7 +555,7 @@ namespace MMDK.Plugins
                 }
                 msg.str = res;
                 BOT.sendBack(msg, true);
-                return;
+                return true;
             }
 
             // 攻受
@@ -569,7 +570,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg, true);
-                        return;
+                        return true;
 
                     }
                 }
@@ -598,7 +599,7 @@ namespace MMDK.Plugins
 
                 msg.str = rmsg;
                 BOT.sendBack(msg, true);
-                return;
+                return true;
             }
 
             // 特殊符号操作
@@ -609,7 +610,7 @@ namespace MMDK.Plugins
                 {
                     msg.str = res;
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
             }
             catch
@@ -640,8 +641,8 @@ namespace MMDK.Plugins
                     case "正常":
                     case "混沌": answer += getAnswerChaos(user, question); break;
                     case "小万邦": answer += getGong(); break;
-                    case "喷人": answer += getPen(group, user); return; break;
-                    case "测试": answer += getHistoryReact(group, user); return; break;
+                    case "喷人": answer += getPen(group, user); return true; break;
+                    case "测试": answer += getHistoryReact(group, user); return true; break;
                     case "云杰": answer += getZYJ(question); break;
                     default: answer += getAnswerWithMode(user, question, modeName); break;
                 }
@@ -649,13 +650,13 @@ namespace MMDK.Plugins
                 {
                     msg.str = answer;
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
 
 
             }
 
-
+            return false;
 
         }
 

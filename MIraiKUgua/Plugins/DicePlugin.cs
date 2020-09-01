@@ -19,7 +19,7 @@ namespace MMDK.Plugins
 
         }
 
-        public override void InitSource()
+        protected override void InitSource()
         {
             try
             {
@@ -31,11 +31,11 @@ namespace MMDK.Plugins
             }
         }
 
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             //msg.toGroup = 735545947;// msg.fromGroup;
             string cmd = BOT.getAskCmd(msg);
-            if (string.IsNullOrWhiteSpace(cmd)) return;
+            if (string.IsNullOrWhiteSpace(cmd)) return false;
 
             string res = getRollString(cmd);
             if (!string.IsNullOrWhiteSpace(res))
@@ -51,8 +51,10 @@ namespace MMDK.Plugins
                     //msg.str = " " + msg.str;
                 }
                 BOT.send(msg);
+                return true;
             }
 
+            return false;
             
         }
 

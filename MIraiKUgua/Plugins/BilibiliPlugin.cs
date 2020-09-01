@@ -43,7 +43,7 @@ namespace MMDK.Plugins
         {
             
         }
-        public override void InitSource()
+        protected override void InitSource()
         {
             var lines = FileHelper.readLines(PluginPath + nameDictName);
             nameDict = new Dictionary<string, string>();
@@ -93,10 +93,10 @@ namespace MMDK.Plugins
                 }
             }
         }
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             string cmd = BOT.getAskCmd(msg);
-            if (string.IsNullOrWhiteSpace(cmd)) return;
+            if (string.IsNullOrWhiteSpace(cmd)) return false;
 
             Regex bsearchreg = new Regex("(\\S+)区有多少(\\S+)");
             var bseatchres = bsearchreg.Match(cmd);
@@ -111,7 +111,7 @@ namespace MMDK.Plugins
                     string res = getTitleSearch(barea, btar);
                     msg.str = res;
                     BOT.sendBack(msg, true);
-                    return;
+                    return true;
                 }
                 catch
                 {
@@ -173,23 +173,25 @@ namespace MMDK.Plugins
             if (matchSuccess)
             {
                 BOT.sendBack(msg, true);
+                return true;
             }
 
 
             // 才八点
-            if (msg.str.StartsWith("现在几点") || msg.str.StartsWith("几点了"))
+            if (cmd.StartsWith("现在几点") || cmd.StartsWith("几点了"))
             {
                 try
                 {
                     string res = $"现在是{getNowClockCountry(20)}";
                     msg.str = res;
                     BOT.sendBack(msg);
+                    return true;
                 }
                 catch { }
             }
 
 
-            return;
+            return false;
         }
 
        

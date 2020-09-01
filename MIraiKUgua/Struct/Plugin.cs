@@ -10,9 +10,6 @@ using MMDK.Core;
 
 namespace MMDK.Struct
 {
-    public delegate string GetNickNameHandler(long qq);
-    public delegate void SendMessageHandler(Message msg);
-
     public abstract class Plugin
     {
         public string PluginName = "";
@@ -45,14 +42,13 @@ namespace MMDK.Struct
             InitSource();
         }
 
+       
+
+        protected abstract void InitSource();
+
+        public abstract bool HandleMessage(Message msg);
+
         public abstract void Dispose();
-
-        public abstract void InitSource();
-
-        public abstract void HandleMessage(Message msg);
-        
-        
-
 
 
     }

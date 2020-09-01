@@ -44,12 +44,12 @@ namespace MMDK.Plugins
         {
 
         }
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             try
             {
                 string cmd = BOT.getAskCmd(msg);
-                if (string.IsNullOrWhiteSpace(cmd)) return;
+                if (string.IsNullOrWhiteSpace(cmd)) return false;
                 bool isGroup = msg.fromGroup > 0 ? true : false;
                 //string uid = msg.from.ToString();
                 long group = msg.fromGroup;
@@ -61,7 +61,7 @@ namespace MMDK.Plugins
                 {
                     msg.str = getIntroduction();
                     BOT.sendBack(msg);
-                    return;
+                    return true;
                 }
                 if (cmd == "富豪榜" || cmd == "富人榜")
                 {
@@ -70,7 +70,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg);
-                        return;
+                        return true;
                     }
                 }
 
@@ -81,7 +81,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg);
-                        return;
+                        return true;
                     }
                 }
 
@@ -92,7 +92,7 @@ namespace MMDK.Plugins
                     {
                         msg.str = res;
                         BOT.sendBack(msg);
-                        return;
+                        return true;
                     }
 
                 }
@@ -101,25 +101,25 @@ namespace MMDK.Plugins
                     int num = 5;
                     if (!matches.ContainsKey(group)) matches[group] = new RHMatch(group, this);
                     matches[group].begin(num, 100);
-                    return ;
+                    return true;
                 }
                 else if (cmd == "胜率榜")
                 {
                     msg.str = showBigWinner();
                     BOT.sendBack(msg);
-                    return;
+                    return true;
                 }
                 else if (cmd == "败率榜")
                 {
                     msg.str = showBigLoser();
                     BOT.sendBack(msg);
-                    return;
+                    return true;
                 }
                 else if (cmd == "赌狗榜")
                 {
                     msg.str = showMostPlayTime();
                     BOT.sendBack(msg);
-                    return;
+                    return true;
                 }
                 else
                 {
@@ -131,7 +131,7 @@ namespace MMDK.Plugins
                             int roadnum = int.Parse(trygetbet.Groups[1].ToString());
                             int money = int.Parse(trygetbet.Groups[2].ToString());
                             addBet(group, user, roadnum, money);
-                            return;
+                            return true;
                         }
                         catch (Exception ex)
                         {
@@ -146,9 +146,11 @@ namespace MMDK.Plugins
             {
                 FileHelper.Log(ex);
             }
+
+            return false;
         }
 
-        public override void InitSource()
+        protected override void InitSource()
         {
             lock (matchMutex)
             {

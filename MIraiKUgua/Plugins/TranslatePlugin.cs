@@ -32,7 +32,7 @@ namespace MMDK.Plugins
 
         }
 
-        public override void InitSource()
+        protected override void InitSource()
         {
             try
             {
@@ -50,12 +50,12 @@ namespace MMDK.Plugins
             }
         }
 
-        public override void HandleMessage(Message msg)
+        public override bool HandleMessage(Message msg)
         {
             try
             {
                 string cmd = BOT.getAskCmd(msg);
-                if (string.IsNullOrWhiteSpace(cmd)) return;
+                if (string.IsNullOrWhiteSpace(cmd)) return false;
                 // 翻译
                 Regex transreg = new Regex("(\\S+)译(\\S+)\\s+");
                 var transmatch = transreg.Match(cmd);
@@ -73,6 +73,7 @@ namespace MMDK.Plugins
                         }
                         msg.str = res;
                         BOT.sendBack(msg, true);
+                        return true;
                     }
                 }
             }
@@ -80,6 +81,7 @@ namespace MMDK.Plugins
             {
                 FileHelper.Log(ex);
             }
+            return false;
         }
 
         string getTranslateUrl(string from, string to)
