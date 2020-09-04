@@ -184,11 +184,16 @@ namespace MMDKMonitor
 
         public void logMMDK(string str)
         {
+            int maxlen = 100000;
             try
             {
                 Invoke(new EventHandler(delegate
                 {
                     tbMmdk.AppendText(str + "\r\n");
+                    if (tbMmdk.TextLength > maxlen)
+                    {
+                        tbMmdk.Text = tbMmdk.Text.Substring(tbMmdk.TextLength - maxlen);
+                    }
                     tbMmdk.ScrollToCaret();
                 }));
                 if (config!=null && config["debug"] == "1")
@@ -206,11 +211,17 @@ namespace MMDKMonitor
 
         public void logMirai(string str)
         {
+            int maxlen = 100000;
             try
             {
                 Invoke(new EventHandler(delegate
                 {
                     tbMirai.AppendText(str + "\r\n");
+                    if (tbMirai.TextLength > maxlen)
+                    {
+                        tbMirai.Text = tbMirai.Text.Substring(tbMirai.TextLength - maxlen);
+                    }
+
                     tbMirai.ScrollToCaret();
                 })); 
                 if (config != null && config["debug"] == "1")
