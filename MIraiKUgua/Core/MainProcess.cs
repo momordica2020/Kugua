@@ -347,6 +347,7 @@ namespace MMDK.Core
         public bool isAskme(Message msg)
         {
             bool res = false;
+            if (msg.str == null) return false;
             if (msg.str.StartsWith(config["askname"]))
             {
                 res = true;

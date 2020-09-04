@@ -1,10 +1,15 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -18,13 +23,13 @@ namespace MMDK.Util
     /// </summary>
     class WebHelper
     {
-        
+
         /// <summary>
-         /// 通过post方式发送数据
-         /// </summary>
-         /// <param name="postString"></param>
-         /// <param name="url"></param>
-         /// <returns></returns>
+        /// 通过post方式发送数据
+        /// </summary>
+        /// <param name="postString"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public static string postData(string postString, string url)
         {
             WebClient client = new WebClient();
@@ -228,7 +233,7 @@ namespace MMDK.Util
             httpWebRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3";
             httpWebRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36";
             httpWebRequest.ContentType = json ? "application/json" : "text/html";
-            httpWebRequest.Method = post?"POST":"GET";
+            httpWebRequest.Method = post ? "POST" : "GET";
             httpWebRequest.Timeout = 20000;
             httpWebRequest.Headers.Add("Cookie", cookie);
             //httpWebRequest.KeepAlive = false;
@@ -310,12 +315,104 @@ namespace MMDK.Util
                 var responseString = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8")).ReadToEnd();
                 JObject res = JObject.Parse(responseString);
                 return res;
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 FileHelper.Log($"url={url}\r\n{ex.Message}\r\n{ex.StackTrace}");
                 return null;
             }
 
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="session">已经激活的Session</param>
+        /// <param name="type">"friend" 或 "group" 或 "temp"</param>
+        /// <param name="imgStream">图片流</param>
+        /// <returns></returns>
+        public static async Task<JObject> postImageAsync(string url, string session, string type, Stream imgStream)
+        {
+            try
+            {
+
+                // (imgfile, FileMode.Open);
+                HttpContent sessionKeyContent = new StringContent(session);
+                sessionKeyContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "sessionKey"
+                };
+                HttpContent typeContent = new StringContent(type.ToLower());
+                typeContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "type"
+                };
+                string format;
+                using (Image img = Image.FromStream(imgStream))
+                {
+                    format = img.RawFormat.ToString();
+                    switch (format)
+                    {
+                        case nameof(ImageFormat.Jpeg):
+                        case nameof(ImageFormat.Png):
+                        case nameof(ImageFormat.Gif):
+                            {
+                                format = format.ToLower();
+                                break;
+                            }
+                        default: // 不是以上三种类型的图片就强转为Png
+                            {
+                                MemoryStream ms = new MemoryStream();
+                                img.Save(ms, ImageFormat.Png);
+                                imgStream.Dispose();
+                                imgStream = ms;
+                                format = "png";
+                                break;
+                            }
+                    }
+                }
+                imgStream.Seek(0, SeekOrigin.Begin);
+                HttpContent imageContent = new StreamContent(imgStream);
+                imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "img",
+                    FileName = $"{Guid.NewGuid():n}.{format}"
+                };
+                imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/" + format);
+                HttpContent[] contents = new HttpContent[]
+                {
+                sessionKeyContent,
+                typeContent,
+                imageContent
+                };
+
+
+                HttpWebRequest request = WebRequest.CreateHttp(url);
+                request.Method = "POST";
+                request.ContentType = "multipart/form-data; boundary=MiraiCSharp";
+                using (MultipartFormDataContent multipart = new MultipartFormDataContent("MiraiCSharp"))
+                {
+                    foreach (HttpContent content in contents)
+                    {
+                        multipart.Add(content);
+                    }
+                    Stream stream = request.GetRequestStream();
+                    Stream multipartStream = await multipart.ReadAsStreamAsync();
+                    await multipartStream.CopyToAsync(stream);
+                }
+                var response = request.GetResponse();
+                var responseString = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8")).ReadToEnd();
+                JObject res = JObject.Parse(responseString);
+                return res;
+
+            }
+            catch (Exception ex)
+            {
+                FileHelper.Log(ex);
+            }
+            return null;
         }
     }
 

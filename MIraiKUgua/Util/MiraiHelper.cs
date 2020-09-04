@@ -257,11 +257,26 @@ namespace MMDK.Util
             }
             foreach(var img in msg.imgs)
             {
+                var realimg = img;
+                if (string.IsNullOrWhiteSpace(img.url))
+                {
+                    // local file. need upload first.
+                    try
+                    {
+                        string type = "group";
+                        if (msg.toGroup <= 0) type = "friend";
+                        if (msg.isTempMsg) type = "temp";
+                        realimg = uploadImage(type, img.path);
+                    }catch(Exception ex)
+                    {
+                        FileHelper.Log(ex);
+                    }
+                }
                 jobj = new JObject();
                 jobj.Add("type", "Image");
-                jobj.Add("imageId", img.id);
-                jobj.Add("url", img.url);
-                jobj.Add("path", img.path);
+                jobj.Add("imageId", realimg.id);
+                jobj.Add("url", realimg.url);
+                jobj.Add("path", realimg.path);
                 chain.Add(jobj);
             }
             foreach(var face in msg.faces)
@@ -846,6 +861,36 @@ namespace MMDK.Util
         }
 
 
+
+        public static MessageImage uploadImage(string type, string imgfile)
+        {
+            FileStream fs = new FileStream(imgfile, FileMode.Open);
+            BinaryReader sr = new BinaryReader(fs);
+            MemoryStream imgStream = new MemoryStream(sr.ReadBytes((int)(fs.Length)));
+            return uploadImage(type, imgStream);
+        }
+
+        public static MessageImage uploadImage(string type, Stream imgstream)
+        {
+            try
+            {
+                Task<JObject> json = WebHelper.postImageAsync($"http://{HOST}:{PORT}/uploadImage", SESSION, type, imgstream);
+                json.Wait();
+                string imageId = json.Result["imageId"].ToString();
+                string url = json.Result["url"].ToString();
+                string path = json.Result["path"].ToString();
+                MessageImage img = new MessageImage();
+                img.id = imageId;
+                img.path = path;
+                img.url = url;
+                return img;
+            }
+            catch (Exception ex)
+            {
+                FileHelper.Log(ex);
+                return null;
+            }
+        }
 
 
         public static bool SendFriendMessage(Message msg)

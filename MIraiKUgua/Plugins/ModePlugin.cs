@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +23,8 @@ namespace MMDK.Plugins
         string modePrivateName = "_mode_private.txt";
         string modeGroupName = "_mode_group.txt";
         string defaultAnswerName = "_defaultanswer.txt";
+
+
 
         string sstvName = "sstv.jpg";
         public List<string> sstv = new List<string>();
@@ -71,6 +76,11 @@ namespace MMDK.Plugins
 
         string symbolf = "symboltemplate.txt";
         Dictionary<string, List<string>> symbollist = new Dictionary<string, List<string>>();
+
+
+        string picsave = "picsave.txt";
+        string piclingtang = "lingtang.jpg";
+        List<string> pics = new List<string>();
         public ModePlugin() : base("Mode")
         {
 
@@ -164,6 +174,9 @@ namespace MMDK.Plugins
 
                 // sstv
                 sstv = FileHelper.readLines(PluginPath + sstvName).ToList();
+
+                // pics
+                pics = FileHelper.readLines(PluginPath + picsave).ToList();
 
 
                 new Thread(workInitModes).Start();
@@ -602,6 +615,40 @@ namespace MMDK.Plugins
                 return true;
             }
 
+            if (question.StartsWith("赛博灵堂") && config.groupIs(group, "测试"))
+            {
+                if (msg.imgs.Count > 0)
+                {
+                    string url = msg.imgs[0].url;
+                    string localpath = Path.GetFullPath($"{PluginPath}{msg.from}_tmp.jpg");
+                    Bitmap b = new Bitmap(PluginPath + piclingtang);
+                    Graphics g = Graphics.FromImage(b);
+                    
+                    WebClient wc = new WebClient();
+
+                    wc.DownloadFile(url, localpath);
+                    Bitmap get = new Bitmap(localpath);
+                    ImageHelper.setGray(get);
+                    g.DrawImage(get, new Rectangle(230, 70, 50, 70), new Rectangle(0, 0, get.Width, get.Height),GraphicsUnit.Pixel);
+                    get.Dispose();
+                    msg.imgs.Clear();
+                    MessageImage msgimg = new MessageImage();
+                    msgimg.path = localpath;
+                    msg.imgs.Add(msgimg);
+                    g.Dispose();
+                    b.Save(localpath);
+                    msg.str = "";
+                    msg.ats.Clear();
+                    msg.faces.Clear();
+                    BOT.sendBack(msg);
+                }
+                else
+                {
+                    msg.str = "输入 赛博灵堂 后面跟一张图片，即可生成赛博灵堂，转载请注明“独人13”，谢谢，，，";
+                    BOT.sendBack(msg);
+                }
+            }
+
             // 特殊符号操作
             try
             {
@@ -617,6 +664,8 @@ namespace MMDK.Plugins
             {
 
             }
+
+
 
 
 
@@ -644,6 +693,14 @@ namespace MMDK.Plugins
                     case "喷人": answer += getPen(group, user); return true; break;
                     case "测试": answer += getHistoryReact(group, user); return true; break;
                     case "云杰": answer += getZYJ(question); break;
+                    case "图图":
+                        {
+                            savePic(msg); 
+                            getRandomPic(msg);
+                            BOT.sendBack(msg, true);
+                            return true;
+                            break;
+                        }
                     default: answer += getAnswerWithMode(user, question, modeName); break;
                 }
                 if (!string.IsNullOrWhiteSpace(answer))
@@ -660,6 +717,24 @@ namespace MMDK.Plugins
 
         }
 
+        public void getRandomPic(Message msg)
+        {
+            msg.imgs.Clear();
+            MessageImage img = new MessageImage();
+            img.url = pics[rand.Next(pics.Count)];
+            msg.imgs.Add(img);
+            msg.str = "";
+            msg.ats.Clear();
+            msg.faces.Clear();
+        }
+
+        public void savePic(Message msg)
+        {
+            foreach(var img in msg.imgs)
+            {
+                pics.Add(img.url);
+            }
+        }
 
         /// <summary>
         /// bot的欢迎文本
@@ -1961,7 +2036,14 @@ namespace MMDK.Plugins
 
         public override void Dispose()
         {
-
+            try
+            {
+                FileHelper.writeLines(PluginPath + picsave, pics);
+            }catch(Exception ex)
+            {
+                FileHelper.Log(ex);
+            }
+            
         }
     }
 
