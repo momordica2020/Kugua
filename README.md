@@ -1,22 +1,26 @@
-# MIraiKUgua
+# MiraiKugua 苦 音 未 来
 
-基于 Mirai QQ bot 框架的聊天机器人。
+一款基于 Mirai 框架的QQ聊天机器人。
 
-## 概览
+> *超绝重构中！ 2024.10.26*
 
-- 本系统内置[Mirai机器人框架](https://github.com/mamoe/mirai) 和 [Mirai-api-http插件](https://github.com/project-mirai/mirai-api-http) ，因此在使用时无需安装和启动额外的聊天机器人框架程序。
-- 功能实现基于[OpenMomordica](https://github.com/hontsev/OpenMomordica) 
+![我苦](https://img.moegirl.org.cn/common/8/86/%E8%A5%BF%E6%96%B9%E8%8B%A6%E7%93%9C%E4%BA%BA%E8%AE%BE.png)
+
+------
 
 ## 依赖
 
-- 本程序主要使用`C#`开发，你的系统需要是`Windows`并安装`.Net Framework 4.5.1`及以上框架
-- 本程序的内核`Mirai`框架是基于`Java`语言的实现，所以你的系统还需要安装`Java Runtime Environment(JRE)`
+- 本程序主要使用`C Sharp`开发，你的操作系统需要是`Windows 10+`并安装`.Net 8.0`运行环境。
+- 本bot的运行依赖[Mirai机器人框架](https://github.com/mamoe/mirai)，启动我之前请先启动该框架（我用的是[mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)），并按其要求配置端口等字段。目前采用mirai-api-http的websocket模式连接。
+- 代码中与Mirai通讯的框架依赖于C#的库[MeowMiraiLib](https://github.com/DavidSciMeow/MeowMiraiLib)
+- bot功能实现基于[OpenMomordica](https://github.com/hontsev/OpenMomordica) 并做了大幅改动。
 
 ## 使用方法
 
-- 在程序路径下的`config.txt`文件中修改配置，将您准备挂载本bot的QQ账号信息写入，并设置呼唤词等
-- 启动主程序`MIraiKUgua.exe`
+- 在程序路径下的`config.json`文件中修改配置，将您准备挂载本bot的QQ账号信息写入，并设置呼唤词等。（我有空写个文档。？）
+- 启动主程序`MiraiKugua.exe`
 
 ## 技术支持
 
 - QQ讨论群：`588084085`
+- EMail: `287859992@qq.com`

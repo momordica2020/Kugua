@@ -1,0 +1,65 @@
+{
+  "Version": "0.1.0",
+  "LateUpdated": "2024-10-24T15:10:00",
+  "ResourcePath": "RunningData",
+  "Avatar": {
+    "myQQ": 2963959417,
+    "myName": "西方苦瓜",
+    "askName": "我苦",
+    "answerState": 3,
+    "adminQQ": 287859992,
+    "adminGroup": 0
+  },
+  "IO": {
+    "MiraiRun": true,
+    "MiraiWS": "ws://localhost",
+    "MiraiPort": 8080,
+    "BilibiliRun": false,
+    "BKeySecret": "",
+    "BKeyId": "",
+    "BAppId": "",
+    "BUId": ""
+  },
+  "Log": {
+    "StartTime": "2024-10-26T16:06:05.7110728+08:00",
+    "playTimePrivate": 249,
+    "playTimeGroup": 182,
+    "beginTimes": 26,
+    "errTimes": 0,
+    "numGroup": 1
+  },
+  "Resources": {
+    "HistoryPath": {
+      "Type": 1,
+      "Path": "History"
+    },
+    "Player": {
+      "Type": 0,
+      "Path": "data_player.json"
+    },
+    "Playgroup": {
+      "Type": 0,
+      "Path": "data_playgroup.json"
+    },
+    "Zhouyi": {
+      "Type": 0,
+      "Path": "data_zhouyi.txt"
+    },
+    "Bihua": {
+      "Type": 0,
+      "Path": "data_bihua.txt"
+    },
+    "Sensitive": {
+      "Type": 0,
+      "Path": "sstv.data"
+    },
+    "ModeConfig": {
+      "Type": 0,
+      "Path": "config_mode.txt"
+    },
+    "ModePath": {
+      "Type": 1,
+      "Path": "Mode"
+    }
+  }
+}
