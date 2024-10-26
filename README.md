@@ -4,7 +4,7 @@
 
 > *超绝重构中！ 2024.10.26*
 
-![我苦](https://img.moegirl.org.cn/common/8/86/%E8%A5%BF%E6%96%B9%E8%8B%A6%E7%93%9C%E4%BA%BA%E8%AE%BE.png)
+![我苦](https://s3.bmp.ovh/imgs/2024/10/26/7c122c98a1627ffb.png)
 
 ------
 
