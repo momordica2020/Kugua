@@ -8,7 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{00828A53-0BB0-41DA-9D33-2A6BAF905D27}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		MMDK-o1\.gitignore = MMDK-o1\.gitignore
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{FB485D52-9471-47E1-9FFF-65B44067BEF9}"
