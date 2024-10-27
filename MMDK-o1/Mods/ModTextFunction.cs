@@ -226,12 +226,30 @@ namespace MMDK.Mods
                             // 彻底打乱
                             results.Add(ShuffleString(param.First()));
                             return true;
-                        }else if(param.Count == 2)
+                        }else if(param.Count == 3)
+                        {
+                            // K切多次
+                            int runTime = 0;
+                            int cutNum = 0;
+                            if (!int.TryParse(param[1], out cutNum)) return false;
+                            if (cutNum < 1) return false;
+                            if (!int.TryParse(param[2], out runTime)) return false;
+                            if (runTime < 1) return false;
+                            runTime = Math.Min(runTime, 5);
+                            for(int i = 0; i < runTime; i++)
+                            {
+                                results.Add(ShuffleString(param[0], cutNum));
+                            }
+                            
+                            return true;
+                        }
+                        else if (param.Count == 2)
                         {
                             // K切
-                            int cutTime = 0;
-                            int.TryParse(param[1], out cutTime);
-                            results.Add(ShuffleString(param.First(), cutTime));
+                            int cutNum = 0;
+                            if (!int.TryParse(param[1], out cutNum)) return false;
+                            if (cutNum < 1) return false;
+                            results.Add(ShuffleString(param[0], cutNum));
                             return true;
                         }
                         return false;
@@ -398,20 +416,32 @@ namespace MMDK.Mods
             }
 
             // k切
+            reg = new Regex(@"(\d+)切(\d+)次(.+)", RegexOptions.Singleline);
+            match = reg.Match(input);
+            if (match.Success)
+            {
+                string sTarget = match.Groups[3].Value.Trim();
+                string sTime = match.Groups[2].Value.Trim();
+                string sNum = match.Groups[1].Value.Trim();
+                param.Add(sTarget);
+                param.Add(sNum);
+                param.Add(sTime);
+                commandType = CommandType.Shuffle;
+                return true;
+            }
             reg = new Regex(@"(\d+)切(.+)", RegexOptions.Singleline);
             match = reg.Match(input);
             if (match.Success)
             {
 
-                string sA = match.Groups[2].Value.Trim();
-                string sB = match.Groups[1].Value.Trim();
-                param.Add(sA);
-                param.Add(sB);
+                string sTarget = match.Groups[2].Value.Trim();
+                string sNum = match.Groups[1].Value.Trim();
+                param.Add(sTarget);
+                param.Add(sNum);
                 commandType = CommandType.Shuffle;
                 return true;
 
             }
-
             // - 符号类
 
 
