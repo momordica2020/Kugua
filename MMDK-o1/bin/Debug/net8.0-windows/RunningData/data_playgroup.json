@@ -70,5 +70,11 @@
     "Type": 0,
     "UseTimes": 0,
     "Tag": "正常"
+  },
+  "-1": {
+    "Name": "",
+    "Type": 0,
+    "UseTimes": 0,
+    "Tag": ""
   }
 }

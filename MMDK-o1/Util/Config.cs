@@ -10,7 +10,31 @@ using System.Threading.Tasks;
 
 namespace MMDK.Util
 {
+    public interface Mod
+    {
+        /// <summary>
+        /// Mod初始化，只调用一次
+        /// </summary>
+        /// <param name="args">可选的传入参数</param>
+        /// <returns></returns>
+        public bool Init(string[] args);
 
+
+        /// <summary>
+        /// Mod退出清理，在bot关闭时调用一次
+        /// </summary>
+        public void Exit();
+
+        /// <summary>
+        /// Mod的文本处理接口
+        /// </summary>
+        /// <param name="userId">用户QQ</param>
+        /// <param name="groupId">群QQ</param>
+        /// <param name="message">输入的文本内容</param>
+        /// <param name="results">传出返回文本序列</param>
+        /// <returns>返回是否已处理，true表示该模块已经对信息进行了处理并截断后续其他模块的处理流程</returns>
+        public bool HandleText(long userId, long groupId, string message, List<string> results);
+    }
 
     public class AppConfigs
     {
@@ -129,6 +153,45 @@ namespace MMDK.Util
         public long Money { get; set; }
         public DateTime LastSignTime { get; set; }
         public long SignTimes {  get; set; }
+
+        public void SetTag(string tag)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tag)) return;
+                if (!Is(tag))
+                {
+                    if (string.IsNullOrWhiteSpace(Tag))Tag = $"{tag},";
+                    else Tag += $"{tag},";
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+        }
+        public void DeleteTag(string tag)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tag)) return;
+                if (Is(tag)) Tag = Tag.Replace($"{tag},", "");
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+        }
+
+
+        public bool Is(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            if (!string.IsNullOrWhiteSpace(Tag) && Tag.Contains($"{tag},")) return true;
+            return false;
+        }
     }
 
     public enum PlaygroupType
@@ -149,25 +212,65 @@ namespace MMDK.Util
 
 
         public string Tag { get; set; }
+
+
+
+        public void SetTag(string tag)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tag)) return;
+                tag = tag.Trim();
+                if (string.IsNullOrWhiteSpace(Tag)) Tag = $"{tag},";
+                else if (!Tag.Contains(tag)) Tag += $"{tag},";
+
+
+                // Save();
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+        }
+        public void DeleteTag(string tag)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tag)) return;
+                tag = tag.Trim();
+                if (!string.IsNullOrWhiteSpace(Tag) && Tag.Contains(tag)) Tag = Tag.Replace($"{tag},", "");
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+        }
+        public bool Is(string tag)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tag)) return false;
+                return Tag.Contains($"{tag},");
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            return false;
+        }
     }
 
 
     public class Config
     {
         private static readonly Lazy<Config> instance = new Lazy<Config>(() => new Config());
-        private static readonly object lockObject = new object(); // 用于线程安全
 
         bool isLoaded;
         string configFile;
 
-        public AppConfigs appConfig;
+        public AppConfigs App;
         public Dictionary<long, Player> players;
         public Dictionary<long, Playgroup> playgroups;
-        
-
-        //public Dictionary<long, List<string>> groupLevel;
-        //public Dictionary<long, List<string>> personLevel;
-        //public List<string[]> sstvs;
 
         private Config()
         {
@@ -175,7 +278,6 @@ namespace MMDK.Util
             isLoaded = false;
         }
 
-        // 公共静态属性获取实例
         public static Config Instance => instance.Value;
 
         public bool Load()
@@ -189,11 +291,11 @@ namespace MMDK.Util
                     CreateDefaultConfig();
                 }
                 string jsonString = File.ReadAllText(configFile);
-                appConfig = JsonConvert.DeserializeObject<AppConfigs>(jsonString);
+                App = JsonConvert.DeserializeObject<AppConfigs>(jsonString);
                 //SaveConfig();
 
 
-                string rootPath = Path.GetDirectoryName(appConfig.ResourcePath);
+                string rootPath = Path.GetDirectoryName(App.ResourcePath);
                 if (!string.IsNullOrEmpty(rootPath) && !Directory.Exists(rootPath))
                 {
                     Logger.Instance.Log($"新建路径{rootPath}", LogType.Debug);
@@ -248,11 +350,11 @@ namespace MMDK.Util
         {
             try
             {
-                if (appConfig != null && appConfig.Resources != null)
+                if (App != null && App.Resources != null)
                 {
-                    if (appConfig.Resources.TryGetValue(Name, out Resource res))
+                    if (App.Resources.TryGetValue(Name, out Resource res))
                     {
-                        return $"{Directory.GetCurrentDirectory()}/{appConfig.ResourcePath}/{res.Path}";
+                        return $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
                     }
                     else
                     {
@@ -265,14 +367,14 @@ namespace MMDK.Util
                 Logger.Instance.Log(ex);
             }
 
-            return $"{Directory.GetCurrentDirectory()}/{appConfig.ResourcePath}";
+            return $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}";
         }
 
         public bool Save()
         {
             try
             {
-                string jsonString = JsonConvert.SerializeObject(appConfig, Formatting.Indented);
+                string jsonString = JsonConvert.SerializeObject(App, Formatting.Indented);
                 File.WriteAllText(configFile, jsonString);
 
                 string path = ResourceFullPath("Player");
@@ -322,7 +424,7 @@ namespace MMDK.Util
         /// <returns></returns>
         public bool isAskMe(string msg)
         {
-            if (msg != null && msg.Length > 0 && msg.StartsWith(appConfig.Avatar.askName))
+            if (msg != null && msg.Length > 0 && msg.StartsWith(App.Avatar.askName))
             {
                 //msg = msg.Substring(appConfig.Avatar.askName.Length);
                 return true;
@@ -331,26 +433,7 @@ namespace MMDK.Util
         }
 
 
-        public Playgroup GetGroupInfo(long id)
-        {
-            if(playgroups.TryGetValue(id, out Playgroup g))
-            {
-                return g;
-            }
-            else
-            {
-                // create new
-                var p = new Playgroup
-                {
-                    Name = "",
-                    Type = PlaygroupType.Normal,
-                    Tag = "正常",
-                    UseTimes = 0
-                };
-                playgroups.Add(id, p);
-                return p;
-            }
-        }
+        #region 用户Player相关
         public Player GetPlayerInfo(long id)
         {
             if (players.TryGetValue(id, out Player p))
@@ -364,91 +447,34 @@ namespace MMDK.Util
                 {
                     Name = "",
                     Type = PlayerType.Normal,
-                    UseTimes = 0
+                    UseTimes = 0,
+                    Tag= "",
                 };
                 players.Add(id, p2);
                 return p2;
             }
         }
 
-        public bool GroupIs(long group, string state)
-        {
-            try
-            {
-                return GetGroupInfo(group).Tag.Contains(state);
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-            return false;
-        }
-
-
-          public void GroupAddTag(long group, string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                var g = GetGroupInfo(group);
-                tag = tag.Trim();
-                if (string.IsNullOrWhiteSpace(g.Tag)) g.Tag = tag;
-                else if (!g.Tag.Contains(tag)) g.Tag = $"{g.Tag},{tag}";
-
-
-                // Save();
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
-
-        public void groupDeleteTag(long group, string state)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(state)) return;
-                var g = GetGroupInfo(group);
-                state = state.Trim();
-                if (!string.IsNullOrWhiteSpace(g.Tag) && g.Tag.Contains(state)) g.Tag = g.Tag.Replace(state, "");
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
-
-
-        public void PlayerSetTag(long id, string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                var g = GetPlayerInfo(id);
-                tag = tag.Trim();
-                g.Tag = tag;
-                // Save();
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
 
 
         /// <summary>
         /// 判断是否回复特定qq号的消息
         /// 根据personlevel配置来作判断
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        public bool AllowPlayer(long user)
+        public bool AllowPlayer(long id)
         {
             try
             {
-                if (user == appConfig.Avatar.myQQ) return false;   // 不许套娃
-                if (GetPlayerInfo(user).Type != PlayerType.Blacklist) return true;
+                
+                if (id == App.Avatar.myQQ) return false;   // 不许套娃
+                var u = GetPlayerInfo(id);
+                if (u.Type == PlayerType.Blacklist || u.Is("黑名单")) return false;
+                
+
+                return true;
+                
             }
             catch (Exception ex)
             {
@@ -457,6 +483,38 @@ namespace MMDK.Util
             // 默认皆可应答
             return false;
         }
+        #endregion
+
+
+
+
+
+        #region 群组Group相关
+        public Playgroup GetGroupInfo(long id)
+        {
+            if(playgroups.TryGetValue(id, out Playgroup g))
+            {
+                return g;
+            }
+            else
+            {
+                // create new
+                var p = new Playgroup
+                {
+                    Name = "",
+                    Type = PlaygroupType.Normal,
+                    Tag = "",
+                    UseTimes = 0
+                };
+                playgroups.Add(id, p);
+                return p;
+            }
+        }
+
+
+        #endregion
+
+
        
 
     }

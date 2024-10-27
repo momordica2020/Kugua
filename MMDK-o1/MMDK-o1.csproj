@@ -11,13 +11,11 @@
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
+    <UseWPF>True</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Plugins\**" />
     <Compile Remove="Struct\**" />
-    <EmbeddedResource Remove="Plugins\**" />
     <EmbeddedResource Remove="Struct\**" />
-    <None Remove="Plugins\**" />
     <None Remove="Struct\**" />
   </ItemGroup>
   <ItemGroup>

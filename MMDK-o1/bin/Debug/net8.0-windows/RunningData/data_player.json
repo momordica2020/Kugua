@@ -118,5 +118,15 @@
     "Money": 77,
     "LastSignTime": "2024-10-26T15:27:53.4056305+08:00",
     "SignTimes": 1
+  },
+  "-1": {
+    "Name": "",
+    "Mark": null,
+    "Type": 0,
+    "UseTimes": 0,
+    "Tag": "测试模式,",
+    "Money": 0,
+    "LastSignTime": "0001-01-01T00:00:00",
+    "SignTimes": 0
   }
 }

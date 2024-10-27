@@ -10,7 +10,7 @@ namespace MMDK.Util
     /// <summary>
     /// 本地文件管理模块
     /// </summary>
-    class FileUtil
+    class FileManager
     {
         public static Encoding encoding = Encoding.UTF8;
 

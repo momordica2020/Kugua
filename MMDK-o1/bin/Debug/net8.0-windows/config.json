@@ -11,7 +11,7 @@
     "adminGroup": 0
   },
   "IO": {
-    "MiraiRun": true,
+    "MiraiRun": false,
     "MiraiWS": "ws://localhost",
     "MiraiPort": 8080,
     "BilibiliRun": false,
@@ -21,10 +21,10 @@
     "BUId": ""
   },
   "Log": {
-    "StartTime": "2024-10-26T16:06:05.7110728+08:00",
+    "StartTime": "2024-10-27T04:14:01.3767745+08:00",
     "playTimePrivate": 249,
     "playTimeGroup": 182,
-    "beginTimes": 26,
+    "beginTimes": 52,
     "errTimes": 0,
     "numGroup": 1
   },

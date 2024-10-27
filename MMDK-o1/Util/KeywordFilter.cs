@@ -32,7 +32,7 @@ namespace MMDK.Util
             {
                 /// 敏感词过滤
                 keywords = new List<string[]>();
-                var lines = FileUtil.readLines(Config.Instance.ResourceFullPath("Sensitive"));
+                var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Sensitive"));
                 foreach (var line in lines)
                 {
                     var items = line.Split('\t');

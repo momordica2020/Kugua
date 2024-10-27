@@ -34,14 +34,19 @@
             清空日志ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             button1 = new System.Windows.Forms.Button();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
-            button2 = new System.Windows.Forms.Button();
+            flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             textInputTest = new System.Windows.Forms.TextBox();
+            button2 = new System.Windows.Forms.Button();
             textLocalTest = new System.Windows.Forms.TextBox();
+            button3 = new System.Windows.Forms.Button();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            打开ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             bot配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             启动ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            lbUpdateTime = new System.Windows.Forms.Label();
+            label3 = new System.Windows.Forms.Label();
             lbUseNum = new System.Windows.Forms.Label();
             lbGroupNum = new System.Windows.Forms.Label();
             label15 = new System.Windows.Forms.Label();
@@ -64,29 +69,32 @@
             lbCPU = new System.Windows.Forms.Label();
             lbMem = new System.Windows.Forms.Label();
             pbMem = new System.Windows.Forms.ProgressBar();
-            button3 = new System.Windows.Forms.Button();
             contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
+            flowLayoutPanel1.SuspendLayout();
             menuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // tbMmdk
             // 
+            tbMmdk.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             tbMmdk.BorderStyle = System.Windows.Forms.BorderStyle.None;
             tbMmdk.ContextMenuStrip = contextMenuStrip1;
             tbMmdk.Dock = System.Windows.Forms.DockStyle.Right;
             tbMmdk.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            tbMmdk.Location = new System.Drawing.Point(903, 32);
+            tbMmdk.ForeColor = System.Drawing.SystemColors.Window;
+            tbMmdk.Location = new System.Drawing.Point(781, 32);
             tbMmdk.Margin = new System.Windows.Forms.Padding(4);
             tbMmdk.MaxLength = 32767000;
             tbMmdk.Multiline = true;
             tbMmdk.Name = "tbMmdk";
+            tbMmdk.ReadOnly = true;
             tbMmdk.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            tbMmdk.Size = new System.Drawing.Size(497, 734);
+            tbMmdk.Size = new System.Drawing.Size(619, 734);
             tbMmdk.TabIndex = 0;
             // 
             // contextMenuStrip1
@@ -108,10 +116,10 @@
             button1.BackColor = System.Drawing.Color.Red;
             button1.Font = new System.Drawing.Font("宋体", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
             button1.ForeColor = System.Drawing.Color.Yellow;
-            button1.Location = new System.Drawing.Point(13, 79);
+            button1.Location = new System.Drawing.Point(13, 36);
             button1.Margin = new System.Windows.Forms.Padding(4);
             button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(193, 63);
+            button1.Size = new System.Drawing.Size(169, 55);
             button1.TabIndex = 1;
             button1.Text = "波特启动";
             button1.UseVisualStyleBackColor = false;
@@ -128,11 +136,9 @@
             // 
             // splitContainer1.Panel1
             // 
+            splitContainer1.Panel1.Controls.Add(flowLayoutPanel1);
             splitContainer1.Panel1.Controls.Add(button3);
             splitContainer1.Panel1.Controls.Add(tbMmdk);
-            splitContainer1.Panel1.Controls.Add(button2);
-            splitContainer1.Panel1.Controls.Add(textInputTest);
-            splitContainer1.Panel1.Controls.Add(textLocalTest);
             splitContainer1.Panel1.Controls.Add(button1);
             splitContainer1.Panel1.Controls.Add(menuStrip1);
             // 
@@ -143,12 +149,39 @@
             splitContainer1.SplitterDistance = 1400;
             splitContainer1.TabIndex = 2;
             // 
+            // flowLayoutPanel1
+            // 
+            flowLayoutPanel1.Controls.Add(textInputTest);
+            flowLayoutPanel1.Controls.Add(button2);
+            flowLayoutPanel1.Controls.Add(textLocalTest);
+            flowLayoutPanel1.Enabled = false;
+            flowLayoutPanel1.Location = new System.Drawing.Point(202, 36);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new System.Drawing.Size(567, 710);
+            flowLayoutPanel1.TabIndex = 7;
+            flowLayoutPanel1.Visible = false;
+            // 
+            // textInputTest
+            // 
+            textInputTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            textInputTest.ContextMenuStrip = contextMenuStrip1;
+            textInputTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            textInputTest.Location = new System.Drawing.Point(4, 4);
+            textInputTest.Margin = new System.Windows.Forms.Padding(4);
+            textInputTest.MaxLength = 32767000;
+            textInputTest.Multiline = true;
+            textInputTest.Name = "textInputTest";
+            textInputTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            textInputTest.Size = new System.Drawing.Size(567, 148);
+            textInputTest.TabIndex = 4;
+            textInputTest.TextChanged += textInputTest_TextChanged;
+            // 
             // button2
             // 
             button2.BackColor = System.Drawing.Color.CadetBlue;
             button2.Font = new System.Drawing.Font("微软雅黑", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
             button2.ForeColor = System.Drawing.Color.Yellow;
-            button2.Location = new System.Drawing.Point(639, 200);
+            button2.Location = new System.Drawing.Point(4, 160);
             button2.Margin = new System.Windows.Forms.Padding(4);
             button2.Name = "button2";
             button2.Size = new System.Drawing.Size(169, 49);
@@ -157,34 +190,35 @@
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
             // 
-            // textInputTest
-            // 
-            textInputTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            textInputTest.ContextMenuStrip = contextMenuStrip1;
-            textInputTest.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            textInputTest.Location = new System.Drawing.Point(214, 86);
-            textInputTest.Margin = new System.Windows.Forms.Padding(4);
-            textInputTest.MaxLength = 32767000;
-            textInputTest.Multiline = true;
-            textInputTest.Name = "textInputTest";
-            textInputTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textInputTest.Size = new System.Drawing.Size(594, 103);
-            textInputTest.TabIndex = 4;
-            textInputTest.TextChanged += textInputTest_TextChanged;
-            // 
             // textLocalTest
             // 
+            textLocalTest.BackColor = System.Drawing.SystemColors.ActiveCaption;
             textLocalTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
             textLocalTest.ContextMenuStrip = contextMenuStrip1;
-            textLocalTest.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            textLocalTest.Location = new System.Drawing.Point(13, 294);
+            textLocalTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            textLocalTest.Location = new System.Drawing.Point(4, 217);
             textLocalTest.Margin = new System.Windows.Forms.Padding(4);
             textLocalTest.MaxLength = 32767000;
             textLocalTest.Multiline = true;
             textLocalTest.Name = "textLocalTest";
+            textLocalTest.ReadOnly = true;
             textLocalTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textLocalTest.Size = new System.Drawing.Size(800, 449);
+            textLocalTest.Size = new System.Drawing.Size(567, 400);
             textLocalTest.TabIndex = 3;
+            // 
+            // button3
+            // 
+            button3.BackColor = System.Drawing.Color.CadetBlue;
+            button3.Font = new System.Drawing.Font("微软雅黑", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            button3.ForeColor = System.Drawing.Color.Yellow;
+            button3.Location = new System.Drawing.Point(13, 253);
+            button3.Margin = new System.Windows.Forms.Padding(4);
+            button3.Name = "button3";
+            button3.Size = new System.Drawing.Size(169, 49);
+            button3.TabIndex = 7;
+            button3.Text = "储存数据";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
             // 
             // menuStrip1
             // 
@@ -198,9 +232,16 @@
             // 
             // 文件ToolStripMenuItem
             // 
+            文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { 打开ToolStripMenuItem });
             文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             文件ToolStripMenuItem.Size = new System.Drawing.Size(62, 28);
             文件ToolStripMenuItem.Text = "文件";
+            // 
+            // 打开ToolStripMenuItem
+            // 
+            打开ToolStripMenuItem.Name = "打开ToolStripMenuItem";
+            打开ToolStripMenuItem.Size = new System.Drawing.Size(146, 34);
+            打开ToolStripMenuItem.Text = "打开";
             // 
             // bot配置ToolStripMenuItem
             // 
@@ -221,6 +262,8 @@
             tableLayoutPanel1.ColumnCount = 2;
             tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 39.58333F));
             tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60.41667F));
+            tableLayoutPanel1.Controls.Add(lbUpdateTime, 1, 2);
+            tableLayoutPanel1.Controls.Add(label3, 0, 2);
             tableLayoutPanel1.Controls.Add(lbUseNum, 0, 11);
             tableLayoutPanel1.Controls.Add(lbGroupNum, 0, 10);
             tableLayoutPanel1.Controls.Add(label15, 0, 10);
@@ -229,20 +272,20 @@
             tableLayoutPanel1.Controls.Add(label12, 0, 8);
             tableLayoutPanel1.Controls.Add(lbQQ, 0, 8);
             tableLayoutPanel1.Controls.Add(label10, 0, 8);
-            tableLayoutPanel1.Controls.Add(lbTimeSpan, 1, 4);
-            tableLayoutPanel1.Controls.Add(label8, 0, 4);
-            tableLayoutPanel1.Controls.Add(lbBeginTime, 1, 3);
-            tableLayoutPanel1.Controls.Add(label6, 0, 3);
-            tableLayoutPanel1.Controls.Add(lbPort, 1, 2);
-            tableLayoutPanel1.Controls.Add(label4, 0, 2);
+            tableLayoutPanel1.Controls.Add(lbTimeSpan, 1, 5);
+            tableLayoutPanel1.Controls.Add(label8, 0, 5);
+            tableLayoutPanel1.Controls.Add(lbBeginTime, 1, 4);
+            tableLayoutPanel1.Controls.Add(label6, 0, 4);
+            tableLayoutPanel1.Controls.Add(lbPort, 1, 3);
+            tableLayoutPanel1.Controls.Add(label4, 0, 3);
             tableLayoutPanel1.Controls.Add(lbVersion, 1, 1);
             tableLayoutPanel1.Controls.Add(label2, 0, 1);
             tableLayoutPanel1.Controls.Add(lbState, 1, 0);
             tableLayoutPanel1.Controls.Add(label1, 0, 0);
-            tableLayoutPanel1.Controls.Add(pbCPU, 1, 5);
-            tableLayoutPanel1.Controls.Add(lbCPU, 0, 5);
-            tableLayoutPanel1.Controls.Add(lbMem, 0, 6);
-            tableLayoutPanel1.Controls.Add(pbMem, 1, 6);
+            tableLayoutPanel1.Controls.Add(pbCPU, 1, 6);
+            tableLayoutPanel1.Controls.Add(lbCPU, 0, 6);
+            tableLayoutPanel1.Controls.Add(lbMem, 0, 7);
+            tableLayoutPanel1.Controls.Add(pbMem, 1, 7);
             tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
@@ -251,11 +294,11 @@
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 75F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 63F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 63F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 12F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
@@ -263,15 +306,41 @@
             tableLayoutPanel1.Size = new System.Drawing.Size(416, 766);
             tableLayoutPanel1.TabIndex = 2;
             // 
+            // lbUpdateTime
+            // 
+            lbUpdateTime.AutoSize = true;
+            lbUpdateTime.Dock = System.Windows.Forms.DockStyle.Fill;
+            lbUpdateTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            lbUpdateTime.Location = new System.Drawing.Point(170, 78);
+            lbUpdateTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbUpdateTime.Name = "lbUpdateTime";
+            lbUpdateTime.Size = new System.Drawing.Size(240, 40);
+            lbUpdateTime.TabIndex = 25;
+            lbUpdateTime.Text = "-";
+            lbUpdateTime.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Dock = System.Windows.Forms.DockStyle.Fill;
+            label3.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            label3.Location = new System.Drawing.Point(6, 78);
+            label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(154, 40);
+            label3.TabIndex = 24;
+            label3.Text = "更新日期";
+            label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // lbUseNum
             // 
             lbUseNum.AutoSize = true;
             lbUseNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbUseNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbUseNum.Location = new System.Drawing.Point(170, 548);
+            lbUseNum.Location = new System.Drawing.Point(170, 576);
             lbUseNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbUseNum.Name = "lbUseNum";
-            lbUseNum.Size = new System.Drawing.Size(240, 216);
+            lbUseNum.Size = new System.Drawing.Size(240, 188);
             lbUseNum.TabIndex = 23;
             lbUseNum.Text = "0";
             lbUseNum.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -281,7 +350,7 @@
             lbGroupNum.AutoSize = true;
             lbGroupNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbGroupNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbGroupNum.Location = new System.Drawing.Point(170, 496);
+            lbGroupNum.Location = new System.Drawing.Point(170, 524);
             lbGroupNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbGroupNum.Name = "lbGroupNum";
             lbGroupNum.Size = new System.Drawing.Size(240, 50);
@@ -294,10 +363,10 @@
             label15.AutoSize = true;
             label15.Dock = System.Windows.Forms.DockStyle.Fill;
             label15.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label15.Location = new System.Drawing.Point(6, 548);
+            label15.Location = new System.Drawing.Point(6, 576);
             label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(154, 216);
+            label15.Size = new System.Drawing.Size(154, 188);
             label15.TabIndex = 21;
             label15.Text = "调用次数";
             label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -307,7 +376,7 @@
             lbFriendNum.AutoSize = true;
             lbFriendNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbFriendNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbFriendNum.Location = new System.Drawing.Point(170, 449);
+            lbFriendNum.Location = new System.Drawing.Point(170, 477);
             lbFriendNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbFriendNum.Name = "lbFriendNum";
             lbFriendNum.Size = new System.Drawing.Size(240, 45);
@@ -320,7 +389,7 @@
             label13.AutoSize = true;
             label13.Dock = System.Windows.Forms.DockStyle.Fill;
             label13.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label13.Location = new System.Drawing.Point(6, 496);
+            label13.Location = new System.Drawing.Point(6, 524);
             label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label13.Name = "label13";
             label13.Size = new System.Drawing.Size(154, 50);
@@ -333,7 +402,7 @@
             label12.AutoSize = true;
             label12.Dock = System.Windows.Forms.DockStyle.Fill;
             label12.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label12.Location = new System.Drawing.Point(6, 403);
+            label12.Location = new System.Drawing.Point(6, 431);
             label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label12.Name = "label12";
             label12.Size = new System.Drawing.Size(154, 44);
@@ -346,7 +415,7 @@
             lbQQ.AutoSize = true;
             lbQQ.Dock = System.Windows.Forms.DockStyle.Fill;
             lbQQ.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbQQ.Location = new System.Drawing.Point(170, 403);
+            lbQQ.Location = new System.Drawing.Point(170, 431);
             lbQQ.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbQQ.Name = "lbQQ";
             lbQQ.Size = new System.Drawing.Size(240, 44);
@@ -359,7 +428,7 @@
             label10.AutoSize = true;
             label10.Dock = System.Windows.Forms.DockStyle.Fill;
             label10.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label10.Location = new System.Drawing.Point(6, 449);
+            label10.Location = new System.Drawing.Point(6, 477);
             label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label10.Name = "label10";
             label10.Size = new System.Drawing.Size(154, 45);
@@ -372,7 +441,7 @@
             lbTimeSpan.AutoSize = true;
             lbTimeSpan.Dock = System.Windows.Forms.DockStyle.Fill;
             lbTimeSpan.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbTimeSpan.Location = new System.Drawing.Point(170, 197);
+            lbTimeSpan.Location = new System.Drawing.Point(170, 239);
             lbTimeSpan.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbTimeSpan.Name = "lbTimeSpan";
             lbTimeSpan.Size = new System.Drawing.Size(240, 63);
@@ -385,7 +454,7 @@
             label8.AutoSize = true;
             label8.Dock = System.Windows.Forms.DockStyle.Fill;
             label8.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label8.Location = new System.Drawing.Point(6, 197);
+            label8.Location = new System.Drawing.Point(6, 239);
             label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(154, 63);
@@ -398,7 +467,7 @@
             lbBeginTime.AutoSize = true;
             lbBeginTime.Dock = System.Windows.Forms.DockStyle.Fill;
             lbBeginTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbBeginTime.Location = new System.Drawing.Point(170, 120);
+            lbBeginTime.Location = new System.Drawing.Point(170, 162);
             lbBeginTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbBeginTime.Name = "lbBeginTime";
             lbBeginTime.Size = new System.Drawing.Size(240, 75);
@@ -411,7 +480,7 @@
             label6.AutoSize = true;
             label6.Dock = System.Windows.Forms.DockStyle.Fill;
             label6.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label6.Location = new System.Drawing.Point(6, 120);
+            label6.Location = new System.Drawing.Point(6, 162);
             label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label6.Name = "label6";
             label6.Size = new System.Drawing.Size(154, 75);
@@ -424,7 +493,7 @@
             lbPort.AutoSize = true;
             lbPort.Dock = System.Windows.Forms.DockStyle.Fill;
             lbPort.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbPort.Location = new System.Drawing.Point(170, 78);
+            lbPort.Location = new System.Drawing.Point(170, 120);
             lbPort.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbPort.Name = "lbPort";
             lbPort.Size = new System.Drawing.Size(240, 40);
@@ -437,7 +506,7 @@
             label4.AutoSize = true;
             label4.Dock = System.Windows.Forms.DockStyle.Fill;
             label4.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label4.Location = new System.Drawing.Point(6, 78);
+            label4.Location = new System.Drawing.Point(6, 120);
             label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(154, 40);
@@ -500,7 +569,7 @@
             // pbCPU
             // 
             pbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbCPU.Location = new System.Drawing.Point(170, 266);
+            pbCPU.Location = new System.Drawing.Point(170, 308);
             pbCPU.Margin = new System.Windows.Forms.Padding(4);
             pbCPU.Name = "pbCPU";
             pbCPU.Size = new System.Drawing.Size(240, 55);
@@ -511,7 +580,7 @@
             lbCPU.AutoSize = true;
             lbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
             lbCPU.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbCPU.Location = new System.Drawing.Point(6, 262);
+            lbCPU.Location = new System.Drawing.Point(6, 304);
             lbCPU.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbCPU.Name = "lbCPU";
             lbCPU.Size = new System.Drawing.Size(154, 63);
@@ -524,7 +593,7 @@
             lbMem.AutoSize = true;
             lbMem.Dock = System.Windows.Forms.DockStyle.Fill;
             lbMem.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbMem.Location = new System.Drawing.Point(6, 327);
+            lbMem.Location = new System.Drawing.Point(6, 369);
             lbMem.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             lbMem.Name = "lbMem";
             lbMem.Size = new System.Drawing.Size(154, 60);
@@ -535,25 +604,11 @@
             // pbMem
             // 
             pbMem.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbMem.Location = new System.Drawing.Point(170, 331);
+            pbMem.Location = new System.Drawing.Point(170, 373);
             pbMem.Margin = new System.Windows.Forms.Padding(4);
             pbMem.Name = "pbMem";
             pbMem.Size = new System.Drawing.Size(240, 52);
             pbMem.TabIndex = 9;
-            // 
-            // button3
-            // 
-            button3.BackColor = System.Drawing.Color.CadetBlue;
-            button3.Font = new System.Drawing.Font("微软雅黑", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            button3.ForeColor = System.Drawing.Color.Yellow;
-            button3.Location = new System.Drawing.Point(13, 237);
-            button3.Margin = new System.Windows.Forms.Padding(4);
-            button3.Name = "button3";
-            button3.Size = new System.Drawing.Size(169, 49);
-            button3.TabIndex = 7;
-            button3.Text = "储存数据";
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += button3_Click;
             // 
             // FormMonitor
             // 
@@ -575,6 +630,8 @@
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
+            flowLayoutPanel1.ResumeLayout(false);
+            flowLayoutPanel1.PerformLayout();
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
@@ -620,6 +677,10 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.ToolStripMenuItem 启动ToolStripMenuItem;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.ToolStripMenuItem 打开ToolStripMenuItem;
+        private System.Windows.Forms.Label lbUpdateTime;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
     }
 }
 

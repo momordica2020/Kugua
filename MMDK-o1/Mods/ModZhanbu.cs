@@ -2,71 +2,111 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace MMDK.Util
+using MMDK.Util;
+
+namespace MMDK.Mods
 {
-    class DivinationHelper
+    /// <summary>
+    /// 占卜
+    /// </summary>
+    public class ModZhanbu : Mod
     {
+        Random rand = new Random();
         Dictionary<string, string[]> guaci = new Dictionary<string, string[]>();
         Dictionary<string, string[,]> yaoci = new Dictionary<string, string[,]>();
 
-        Random rand;
 
-        public bool HandleMessage(string cmd, ref List<string> result)
+
+
+
+        public bool Init(string[] args)
         {
             try
             {
-                if (cmd.StartsWith("占卜"))
+                rand = new Random();
+                var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Zhouyi"));
+                string nowGuaNum = "";
+                int nowline = 0;
+                string[] items;
+                foreach (var line in lines)
                 {
+                    nowline += 1;
+                    if (line.StartsWith("0") || line.StartsWith("1"))
+                    {
+                        nowGuaNum = line.Trim();
+                        guaci[nowGuaNum] = new string[7];
+                        yaoci[nowGuaNum] = new string[6, 4];
+                        nowline = 0;
+                    }
+                    else
+                    {
+                        if (nowline == 1)
+                        {
+                            items = line.Trim().Split(' ');
+                            guaci[nowGuaNum][0] = items[0];
+                            guaci[nowGuaNum][1] = items[1];
+                            guaci[nowGuaNum][2] = items[2];
+                        }
+                        else if (nowline == 2) guaci[nowGuaNum][3] = line.Trim().Substring(guaci[nowGuaNum][0].Length + 1);
+                        else if (nowline == 3) guaci[nowGuaNum][4] = line.Trim().Substring(3);
+                        else if (nowline == 4) guaci[nowGuaNum][5] = line.Trim().Substring(3);
+                        else if (nowline == 5) guaci[nowGuaNum][6] = line.Trim().Substring(3);
+                        else if (nowline >= 6) yaoci[nowGuaNum][(nowline - 6) / 4, (nowline - 6) % 4] = line.Trim().Substring(3);
+                    }
+                }
+            }catch(Exception) { }
+            
+
+
+            return true;
+        }
+
+        public void Exit()
+        {
+            
+        }
+
+        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
+            message = message.Trim();
+            try
+            {
+                if (message.StartsWith("占卜"))
+                {
+                    string content = message.Substring(2);
                     string res = getZhouYi();
-                    result.Add(res);
-                    return true;
+                    if (!string.IsNullOrWhiteSpace(res))
+                    {
+                        results.Add(res);
+                        return true;
+                    }
+
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
 
             return false;
-            
         }
 
-        public void Init()
-        {
-            rand = new Random();
-            var lines = FileUtil.readLines(Config.Instance.ResourceFullPath("Zhouyi"));
-            string nowGuaNum = "";
-            int nowline = 0;
-            string[] items;
-            foreach (var line in lines)
-            {
-                nowline += 1;
-                if (line.StartsWith("0") || line.StartsWith("1"))
-                {
-                    nowGuaNum = line.Trim();
-                    guaci[nowGuaNum] = new string[7];
-                    yaoci[nowGuaNum] = new string[6, 4];
-                    nowline = 0;
-                }
-                else
-                {
-                    if (nowline == 1)
-                    {
-                        items = line.Trim().Split(' ');
-                        guaci[nowGuaNum][0] = items[0];
-                        guaci[nowGuaNum][1] = items[1];
-                        guaci[nowGuaNum][2] = items[2];
-                    }
-                    else if (nowline == 2) guaci[nowGuaNum][3] = line.Trim().Substring(guaci[nowGuaNum][0].Length + 1);
-                    else if (nowline == 3) guaci[nowGuaNum][4] = line.Trim().Substring(3);
-                    else if (nowline == 4) guaci[nowGuaNum][5] = line.Trim().Substring(3);
-                    else if (nowline == 5) guaci[nowGuaNum][6] = line.Trim().Substring(3);
-                    else if (nowline >= 6) yaoci[nowGuaNum][(nowline - 6) / 4, (nowline - 6) % 4] = line.Trim().Substring(3);
-                }
-            }
-        }
+
+
+
+
+
+
+
+
+
+
+
+
 
         /// <summary>
         /// 取卦名
@@ -275,4 +315,6 @@ namespace MMDK.Util
             return left + right;
         }
     }
+
+
 }

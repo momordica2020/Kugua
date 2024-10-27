@@ -1,23 +1,43 @@
-﻿using MMDK.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace MMDK.Util
+using MMDK.Util;
+
+namespace MMDK.Mods
 {
-    class DiceHelper
+    /// <summary>
+    /// 随机掷骰子
+    /// </summary>
+    public class ModDice : Mod
     {
         Random rand = new Random();
 
 
 
-        public bool HandleMessage(string cmd, ref List<string> results)
+
+
+
+        public bool Init(string[] args)
         {
+            rand = new Random();
+
+            return true;
+        }
+
+        public void Exit()
+        {
+            
+        }
+
+        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
             Regex reg = new Regex(@"^r(\d*)?d(\d*)?(.*)?$");
-            var result = reg.Match(cmd);
+            var result = reg.Match(message);
             if (result.Success)
             {
                 int dicenum = 1;
@@ -54,6 +74,19 @@ namespace MMDK.Util
             return false;
         }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
         public long getRoll(int faceNum, int DiceNum, out string resdesc)
         {
             long res = 0;
@@ -67,6 +100,7 @@ namespace MMDK.Util
             else resdesc = $"{string.Join("+", ress)} = {res}";
             return res;
         }
-
     }
+
+
 }

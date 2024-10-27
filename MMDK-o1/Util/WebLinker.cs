@@ -21,7 +21,7 @@ namespace MMDK.Util
     /// <summary>
     /// 网络请求处理模块
     /// </summary>
-    class WebHelper
+    class WebLinker
     {
 
         /// <summary>

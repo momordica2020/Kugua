@@ -1,54 +1,60 @@
-﻿using MeowMiraiLib.Msg;
-using Microsoft.VisualBasic.ApplicationServices;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
+using MeowMiraiLib;
+using MMDK.Util;
 
-namespace MMDK.Util
+namespace MMDK.Mods
 {
     /// <summary>
-    /// 金融系统
+    /// 银行
     /// </summary>
-    public class Bank
+    public class ModBank : Mod
     {
-
+        Random rand = new Random();
         public static string unitName = "马币";
-        public static Random rand = new Random();
 
-        object moneyMutex = new object();
-        object recordMutex = new object();
-        //public Dictionary<long, BTCUser> users = new Dictionary<long, BTCUser>();
 
-        public Bank()
+
+
+
+        public bool Init(string[] args)
         {
+            rand = new Random();
 
+            return true;
         }
 
-        public bool HandleMessage(long user, long group, string cmd, ref List<string> results)
+        public void Exit()
         {
+            
+        }
+
+        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
+            message = message.Trim();
             // 货币系统
-            if (cmd.StartsWith("签到"))
+            if (message == "签到")
             {
-                cmd = DailyAttendance(group, user);
+                message = DailyAttendance(groupId, userId);
                 //racehorse.dailyAttendance(group, user);
-                results.Add(cmd);
+                results.Add(message);
                 return true;
             }
 
-            if (cmd == "个人信息")
+            if (message == "个人信息")
             {
-                string res = $"{getUserInfo(user)}";
+                string res = $"{getUserInfo(userId)}";
                 results.Add(res);
                 return true;
             }
 
             Regex zzs = new Regex("给(.+)转(\\d+)");
-            var matchzzs = zzs.Match(cmd);
+            var matchzzs = zzs.Match(message);
             if (matchzzs.Success)
             {
                 try
@@ -69,7 +75,7 @@ namespace MMDK.Util
                     else
                     {
                         long money = long.Parse(matchzzs.Groups[2].ToString());
-                        res = TransMoney(user, targetqq, money);
+                        res = TransMoney(userId, targetqq, money);
 
                     }
                     if (!string.IsNullOrWhiteSpace(res))
@@ -84,10 +90,15 @@ namespace MMDK.Util
             return false;
         }
 
-        public void Init()
-        {
-           
-        }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -100,7 +111,7 @@ namespace MMDK.Util
         public string DailyAttendance(long group, long userqq)
         {
             var u = Config.Instance.GetPlayerInfo(userqq);
-            if(u.LastSignTime < DateTime.Today)
+            if (u.LastSignTime < DateTime.Today)
             {
                 int maxmoney = 114;
                 int minmoney = 30;
@@ -110,7 +121,8 @@ namespace MMDK.Util
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
                 return $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money}枚";
-            } else
+            }
+            else
             {
                 return $"嗨嗨嗨，今天领过了";
             }
@@ -146,7 +158,7 @@ namespace MMDK.Util
                 bool succeed = false;
                 try
                 {
-                    
+
                     checked
                     {
                         user1.Money -= money;
@@ -157,7 +169,7 @@ namespace MMDK.Util
                 catch (OverflowException)
                 {
                     //Console.WriteLine("转账失败：超出 long 数据范围");
-                    string errMsg = $"转账失败：{user1}或{user2}的{Bank.unitName}溢出，所转数额{money}, 自己钱包有{user1.Money}，目标钱包已有{user2.Money}。";
+                    string errMsg = $"转账失败：{user1}或{user2}的{ModBank.unitName}溢出，所转数额{money}, 自己钱包有{user1.Money}，目标钱包已有{user2.Money}。";
                     res += errMsg;
                     Logger.Instance.Log(errMsg);
                     user1.Money = user1oldmoney;
@@ -169,13 +181,13 @@ namespace MMDK.Util
                     //writeRecord(new BankRecord(fromqq, targetqq, realMoney, "转账", realMoney == money ? "成功。"));
 
                 }
-                
+
                 res += $"余额{user1.Money}{unitName}";
             }
             catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
-                res += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.appConfig.Avatar.adminQQ}";
+                res += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
             }
             return res;
         }
@@ -243,16 +255,10 @@ namespace MMDK.Util
         public string getUserInfo(long userqq)
         {
             var u = Config.Instance.GetPlayerInfo(userqq);
-            return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today? "已领取" : "还未领取")}";
+            return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
         }
-    
-
-
 
     }
-
-    
-
 
 
     class BankRecord
@@ -314,8 +320,5 @@ namespace MMDK.Util
         {
             return $"{src}\t{tar}\t{time.ToString("yyyy-MM-dd HH:mm:ss")}\t{money}\t{reason}\t{result}";
         }
-
-
     }
-
 }

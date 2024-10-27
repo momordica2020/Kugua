@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace MMDK.Util
+using MMDK.Util;
+
+namespace MMDK.Mods
 {
+
     /// <summary>
-    /// 恶臭数学论证模块
+    /// 字符串数字论证
     /// </summary>
-    class BeastProofHelper
+    public class ModProof : Mod
     {
+        Random rand = new Random();
+
+
         Dictionary<string, int> bhdict = new Dictionary<string, int>();
         List<double> tbase = new List<double>();
 
@@ -20,23 +25,22 @@ namespace MMDK.Util
         int counter = 0;
 
         List<string> proofres = new List<string>();
-        public string finalproof = "";
-        Random rand = new Random();
+        string finalproof = "";
 
         /* Maintains the number of calculations performed. */
         int calculation = 0;
         double desired = 0;
 
-        object proofLock = new object();
 
 
 
-        public void Init()
+        public bool Init(string[] args)
         {
             try
             {
+                rand = new Random();
                 bhdict = new Dictionary<string, int>();
-                var lines = FileUtil.readLines(Config.Instance.ResourceFullPath("Bihua"));
+                var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Bihua"));
                 foreach (var line in lines)
                 {
                     string[] vitem = line.Split('\t');
@@ -47,7 +51,68 @@ namespace MMDK.Util
             {
                 Logger.Instance.Log(e);
             }
+            return true;
         }
+
+        public void Exit()
+        {
+            
+        }
+
+
+
+
+
+        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
+            if (!message.Trim().StartsWith("数字论证"))
+            {
+                return false;
+            }
+            message = message.Replace("数字论证", "").Trim();
+            long trynum;
+            bool succeed = false;
+            if (long.TryParse(message, out trynum))
+            {
+                succeed = getProof(trynum);
+                if (succeed)
+                {
+                    results.Add(finalproof);
+                    return true;
+                }
+            }
+
+
+            succeed = getProofEngIndex(message);
+            if (succeed)
+            {
+                results.Add(finalproof);
+                return true;
+            }
+
+
+            succeed = getProofBh(message);
+            if (succeed)
+            {
+                results.Add(finalproof);
+                return true;
+            }
+
+
+            if (string.IsNullOrWhiteSpace(finalproof))
+            {
+                results.Add($"论 证 大 失 败");
+                return true;
+            }
+            return false;
+        }
+
+
+
+
+
+
 
         /// <summary>
         /// 获取汉字笔画数
@@ -123,31 +188,7 @@ namespace MMDK.Util
             return false;
         }
 
-        /// <summary>
-        /// 字符串数字论证
-        /// </summary>
-        /// <param name="str1"></param>
-        /// <param name="str2"></param>
-        /// <returns></returns>
-        public bool getProofString(string str1, string str2)
-        {
-            lock (proofLock)
-            {
-                if (!string.IsNullOrWhiteSpace(str1) && string.IsNullOrWhiteSpace(str2))
-                {
-                    long trynum;
-                    if (long.TryParse(str1, out trynum)) return getProof(trynum);
-                    else if (getProofEngIndex(str1)) return true;
-                    else if (getProofBh(str1)) return true;
-
-                }
-                else if (!string.IsNullOrWhiteSpace(str1) && !string.IsNullOrWhiteSpace(str2))
-                {
-
-                }
-            }
-            return false;
-        }
+        
 
         /// <summary>
         /// 数字求和，并打印求和表达式字符串
@@ -178,7 +219,7 @@ namespace MMDK.Util
         public bool getProof(long desired1)
         {
             desired = desired1;
-            string result = "";
+           // string result = "";
 
             if (strongProof() > 0)
             {
@@ -512,9 +553,8 @@ namespace MMDK.Util
             proofres.Add(resstr);
             return $"{desired} = {translate(output)} \r\n";
         }
-    }
+    
 }
 
 
-
-
+}

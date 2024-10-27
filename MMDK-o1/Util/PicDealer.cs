@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MMDK.Util
 {
-    class ImageHelper
+    class PicDealer
     {
         public static void setGray(Bitmap bm)
         {
