@@ -14,17 +14,19 @@
     <UseWPF>True</UseWPF>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="dlls\**" />
     <Compile Remove="Struct\**" />
+    <EmbeddedResource Remove="dlls\**" />
     <EmbeddedResource Remove="Struct\**" />
+    <None Remove="dlls\**" />
     <None Remove="Struct\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="system.management" />
+    <Page Remove="dlls\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 </Project>
