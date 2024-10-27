@@ -14,7 +14,6 @@ namespace MMDK.Mods
     /// </summary>
     public class ModZhanbu : Mod
     {
-        Random rand = new Random();
         Dictionary<string, string[]> guaci = new Dictionary<string, string[]>();
         Dictionary<string, string[,]> yaoci = new Dictionary<string, string[,]>();
 
@@ -26,7 +25,6 @@ namespace MMDK.Mods
         {
             try
             {
-                rand = new Random();
                 var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Zhouyi"));
                 string nowGuaNum = "";
                 int nowline = 0;
@@ -288,7 +286,7 @@ namespace MMDK.Mods
             int middle = 0;
             for (int i = 0; i < allnum; i++)
             {
-                if (rand.Next(100) < 50) left++;
+                if (MyRandom.Next(100) < 50) left++;
                 else right++;
             }
             if (left < minnum)

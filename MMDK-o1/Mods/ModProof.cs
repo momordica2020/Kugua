@@ -15,8 +15,6 @@ namespace MMDK.Mods
     /// </summary>
     public class ModProof : Mod
     {
-        Random rand = new Random();
-
 
         Dictionary<string, int> bhdict = new Dictionary<string, int>();
         List<double> tbase = new List<double>();
@@ -38,7 +36,6 @@ namespace MMDK.Mods
         {
             try
             {
-                rand = new Random();
                 bhdict = new Dictionary<string, int>();
                 var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Bihua"));
                 foreach (var line in lines)
@@ -224,7 +221,7 @@ namespace MMDK.Mods
             if (strongProof() > 0)
             {
                 // have strong.
-                string p1 = proofres[rand.Next(proofres.Count)];
+                string p1 = proofres[MyRandom.Next(proofres.Count)];
                 finalproof = $"{desired} = {p1}\r\nQ.E.D";
                 return true;
             }
@@ -244,7 +241,7 @@ namespace MMDK.Mods
                         finalproof += desc;
                         if (strongProof() > 0)
                         {
-                            string p1 = proofres[rand.Next(proofres.Count)];
+                            string p1 = proofres[MyRandom.Next(proofres.Count)];
                             finalproof += $" = {p1}\r\nQ.E.D";
                             return true;
                         }

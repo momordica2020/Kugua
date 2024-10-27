@@ -14,16 +14,9 @@ namespace MMDK.Mods
     /// </summary>
     public class ModDice : Mod
     {
-        Random rand = new Random();
-
-
-
-
-
 
         public bool Init(string[] args)
         {
-            rand = new Random();
 
             return true;
         }
@@ -93,7 +86,7 @@ namespace MMDK.Mods
             List<long> ress = new List<long>();
             for (int i = 0; i < DiceNum; i++)
             {
-                ress.Add(faceNum > 1 ? rand.Next(faceNum) + 1 : 1);
+                ress.Add(faceNum > 1 ? MyRandom.Next(faceNum) + 1 : 1);
             }
             res = ress.Sum();
             if (DiceNum == 1) resdesc = $"{res}";

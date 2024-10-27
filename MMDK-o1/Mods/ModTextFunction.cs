@@ -17,14 +17,12 @@ namespace MMDK.Mods
     /// </summary>
     public class ModTextFunction : Mod
     {
-        Random rand = new Random();
-
 
         #region 语料
-        string duiP2f = "pairc2.txt";
-        string duiP1f = "pairc.txt";
-        Dictionary<string, string[]> cf = new Dictionary<string, string[]>();
-        Dictionary<string, string[]> cf2 = new Dictionary<string, string[]>();
+        //string duiP2f = "pairc2.txt";
+        //string duiP1f = "pairc.txt";
+        //Dictionary<string, string[]> cf = new Dictionary<string, string[]>();
+        //Dictionary<string, string[]> cf2 = new Dictionary<string, string[]>();
 
         string randomch = "随机-随机汉字.txt";
         string randomChar = "";
@@ -53,7 +51,6 @@ namespace MMDK.Mods
 
         public bool Init(string[] args)
         {
-            rand = new Random();
 
             string PluginPath = Config.Instance.ResourceFullPath("ModePath");
             randomChar = FileManager.readText($"{PluginPath}/{randomch}").Trim();
@@ -127,22 +124,22 @@ namespace MMDK.Mods
             }
 
 
-
-            // duilian
-            var lines = FileManager.readLines($"{PluginPath}/{duiP1f}");
-            foreach (var line in lines)
-            {
-                var items = line.Split('\t');
-                var items2 = items[1].Split(',');
-                cf[items[0]] = items2;
-            }
-            lines = FileManager.readLines($"{PluginPath}/{duiP2f}");
-            foreach (var line in lines)
-            {
-                var items = line.Split('\t');
-                var items2 = items[1].Split(',');
-                cf2[items[0]] = items2;
-            }
+            string[] lines;
+            //// duilian
+            //var lines = FileManager.readLines($"{PluginPath}/{duiP1f}");
+            //foreach (var line in lines)
+            //{
+            //    var items = line.Split('\t');
+            //    var items2 = items[1].Split(',');
+            //    cf[items[0]] = items2;
+            //}
+            //lines = FileManager.readLines($"{PluginPath}/{duiP2f}");
+            //foreach (var line in lines)
+            //{
+            //    var items = line.Split('\t');
+            //    var items2 = items[1].Split(',');
+            //    cf2[items[0]] = items2;
+            //}
 
 
             // junk
@@ -224,20 +221,28 @@ namespace MMDK.Mods
                         
                     case CommandType.Shuffle:
                         // 乱序字符串
-                        if (param.Count > 0)
+                        if (param.Count == 1)
                         {
+                            // 彻底打乱
                             results.Add(ShuffleString(param.First()));
+                            return true;
+                        }else if(param.Count == 2)
+                        {
+                            // K切
+                            int cutTime = 0;
+                            int.TryParse(param[1], out cutTime);
+                            results.Add(ShuffleString(param.First(), cutTime));
                             return true;
                         }
                         return false;
                         
                     case CommandType.Couplet:
                         // 对对联
-                        if (param.Count > 0)
-                        {
-                            results.Add(getDui(param.First()));
-                            return true;
-                        }
+                        //if (param.Count > 0)
+                        //{
+                        //    results.Add(getDui(param.First()));
+                        //    return true;
+                        //}
                         return false;
                     case CommandType.LoremIpsum:
                         // 乱数假文，目前是随机汉字
@@ -357,7 +362,7 @@ namespace MMDK.Mods
         {
             { "乱序", CommandType.Shuffle},
             { "反转", CommandType.Reverse},
-            { "上联", CommandType.Couplet},
+            //{ "上联", CommandType.Couplet},
             { "什么是", CommandType.WordSalad},
             { "随机", CommandType.LoremIpsum},
             { "讽刺", CommandType.Joke},
@@ -392,6 +397,21 @@ namespace MMDK.Mods
 
             }
 
+            // k切
+            reg = new Regex(@"(\d+)切(.+)", RegexOptions.Singleline);
+            match = reg.Match(input);
+            if (match.Success)
+            {
+
+                string sA = match.Groups[2].Value.Trim();
+                string sB = match.Groups[1].Value.Trim();
+                param.Add(sA);
+                param.Add(sB);
+                commandType = CommandType.Shuffle;
+                return true;
+
+            }
+
             // - 符号类
 
 
@@ -402,81 +422,175 @@ namespace MMDK.Mods
 
 
 
-        public string getDui(string sin)
+        //public string getDui(string sin)
+        //{
+
+        //    sin = sin.Trim();
+        //    string sout = "";
+
+        //    for (int i = 0; i < sin.Length; i++)
+        //    {
+        //        if (i + 1 < sin.Length && cf2.ContainsKey(sin.Substring(i, 2)))
+        //        {
+        //            sout += cf2[sin.Substring(i, 2)][rand.Next(cf2[sin.Substring(i, 2)].Length)];
+        //            i += 1;
+        //        }
+        //        else if (cf.ContainsKey(sin[i].ToString()))
+        //        {
+        //            sout += cf[sin[i].ToString()][rand.Next(cf[sin[i].ToString()].Length)];
+        //        }
+        //        //else if("３")
+        //        else if ("123456789".Contains(sin[i]))
+        //        {
+        //            sout = $"{sout}{10 - int.Parse(sin[i].ToString())}";
+        //        }
+        //        else if ("abcdefghijklmnopqrstuvwxyz".Contains(sin[i]))
+        //        {
+        //            sout += "abcdefghijklmnopqrstuvwxyz"[rand.Next(26)];
+        //        }
+        //        else if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(sin[i]))
+        //        {
+        //            sout += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[rand.Next(26)];
+        //        }
+        //        else if ("あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ".Contains(sin[i]))
+        //        {
+        //            sout += "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ"[rand.Next(71)];
+        //        }
+        //        else if ("アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ".Contains(sin[i]))
+        //        {
+        //            sout += "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ"[rand.Next(71)];
+        //        }
+        //        else
+        //        {
+        //            sout += sin[i];
+        //        }
+        //    }
+        //    return sout;
+
+
+
+
+        //}
+
+
+
+
+        public void FisherYates(char[] input)
         {
-
-            sin = sin.Trim();
-            string sout = "";
-
-            for (int i = 0; i < sin.Length; i++)
+            // Fisher-Yates 洗牌算法，完全打乱
+            for (int i = input.Length - 1; i > 0; i--)
             {
-                if (i + 1 < sin.Length && cf2.ContainsKey(sin.Substring(i, 2)))
-                {
-                    sout += cf2[sin.Substring(i, 2)][rand.Next(cf2[sin.Substring(i, 2)].Length)];
-                    i += 1;
-                }
-                else if (cf.ContainsKey(sin[i].ToString()))
-                {
-                    sout += cf[sin[i].ToString()][rand.Next(cf[sin[i].ToString()].Length)];
-                }
-                //else if("３")
-                else if ("123456789".Contains(sin[i]))
-                {
-                    sout = $"{sout}{10 - int.Parse(sin[i].ToString())}";
-                }
-                else if ("abcdefghijklmnopqrstuvwxyz".Contains(sin[i]))
-                {
-                    sout += "abcdefghijklmnopqrstuvwxyz"[rand.Next(26)];
-                }
-                else if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(sin[i]))
-                {
-                    sout += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[rand.Next(26)];
-                }
-                else if ("あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ".Contains(sin[i]))
-                {
-                    sout += "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ"[rand.Next(71)];
-                }
-                else if ("アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ".Contains(sin[i]))
-                {
-                    sout += "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ"[rand.Next(71)];
-                }
-                else
-                {
-                    sout += sin[i];
-                }
+                int j = MyRandom.Next(0, i + 1); // 生成随机索引
+                                             // 交换
+                char temp = input[i];
+                input[i] = input[j];
+                input[j] = temp;
             }
-            return sout;
-
-
-
-
         }
-
-
-
-
-
-
+        public void FisherYates(string[] input)
+        {
+            // Fisher-Yates 洗牌算法，完全打乱
+            for (int i = input.Length - 1; i > 0; i--)
+            {
+                int j = MyRandom.Next(0, i + 1); // 生成随机索引
+                                             // 交换
+                string temp = input[i];
+                input[i] = input[j];
+                input[j] = temp;
+            }
+        }
+        public void FisherYates(bool[] input)
+        {
+            // Fisher-Yates 洗牌算法，完全打乱
+            for (int i = input.Length - 1; i > 0; i--)
+            {
+                int j = MyRandom.Next(0, i + 1); // 生成随机索引
+                                             // 交换
+                bool temp = input[i];
+                input[i] = input[j];
+                input[j] = temp;
+            }
+        }
         /// <summary>
-        /// Fisher-Yates 洗牌算法
+        /// 洗牌算法
         /// </summary>
         /// <param name="str">需打乱的字符串</param>
         /// <returns>打乱结果</returns>
-        public string ShuffleString(string str)
+        public string ShuffleString(string str, int time = 0)
         {
-            char[] array = str.ToCharArray(); // 将字符串转换为字符数组
+            if (string.IsNullOrWhiteSpace(str)) return str;
+            
 
-            // Fisher-Yates 洗牌算法
-            for (int i = array.Length - 1; i > 0; i--)
+
+            if(time < 1)
             {
-                int j = rand.Next(0, i + 1); // 生成随机索引
-                                               // 交换
-                char temp = array[i];
-                array[i] = array[j];
-                array[j] = temp;
+                char[] array = str.ToCharArray(); // 将字符串转换为字符数组
+                FisherYates(array);
+                return new string(array); // 返回新的乱序字符串
             }
+            else
+            {
+                // 只随机切牌time轮  算法3 - 不均匀切
+                time = Math.Min(time, str.Length - 1);
+                bool[] cuts = new bool[str.Length - 1];
 
-            return new string(array); // 返回新的乱序字符串
+                var stringBuilder = new StringBuilder();
+                for (int i = 0; i < cuts.Length; i++) cuts[i] = (i < time);
+                FisherYates(cuts);
+                List<string> parts = new List<string>();
+
+                // 切割字符串
+                int startIndex = 0;
+                for (int i = 1; i < str.Length; i++)
+                {
+                    if (cuts[i-1])
+                    {
+                        parts.Add(str.Substring(startIndex, i - startIndex));
+                        startIndex = i;
+                    }
+                    
+                }
+                parts.Add(str.Substring(startIndex));
+                var pparts = parts.ToArray();
+                FisherYates(pparts);
+                return string.Concat(pparts);
+
+                //// 只随机切牌time轮  算法2 - 均匀切
+                //time = Math.Min(time, str.Length);
+                //int partLength = str.Length / time;
+                //List<string> parts = new List<string>();
+
+                //// 切割字符串
+                //for (int i = 0; i < time; i++)
+                //{
+                //    // 计算切割的开始和结束索引
+                //    int startIndex = i * partLength;
+                //    // 处理最后一部分，确保包含所有剩余字符
+                //    int length = (i == time - 1) ? str.Length - startIndex : partLength;
+
+                //    // 提取子字符串并添加到列表中
+                //    parts.Add(str.Substring(startIndex, length));
+                //}
+
+                //// 打乱切割后的部分
+                //List<string> shuffledParts = parts.OrderBy(x => rand.Next()).ToList();
+
+                //// 合并打乱后的部分为最终字符串
+                //return string.Concat(shuffledParts);
+
+                //// 只随机切牌time轮 算法1 - 切后拼后切
+                //for (int i = 0; i < Math.Min(time, str.Length*2); i++)
+                //{
+                //    int cutPosition = rand.Next(1, str.Length); 
+                //    string leftPart = str.Substring(0, cutPosition);
+                //    if (rand.Next(0, 2) > 0) leftPart = new string(leftPart.Reverse().ToArray());
+                //    string rightPart = str.Substring(cutPosition);
+                //    if (rand.Next(0, 2) > 0) rightPart = new string(rightPart.Reverse().ToArray());
+                //    str = rightPart + leftPart;
+                //}
+                //// 合并打乱后的部分为最终字符串
+                //return str;
+            }
         }
 
 
@@ -552,11 +666,11 @@ namespace MMDK.Mods
                 {
                     if (para.Count > 0)
                     {
-                        result += para[rand.Next(para.Count)] + "\r\n";
+                        result += para[MyRandom.Next(para.Count)] + "\r\n";
                     }
                 }
                 result = result.Replace("【E】", DateTime.Now.Year.ToString());
-                result = result.Replace("【B】", new string[] { "朋友", "小伙伴", "网友" }[rand.Next(3)]);
+                result = result.Replace("【B】", new string[] { "朋友", "小伙伴", "网友" }[MyRandom.Next(3)]);
                 result = result.Replace("【A】", key);
             }
             catch (Exception ex)
@@ -583,7 +697,7 @@ namespace MMDK.Mods
             {
                 if (!string.IsNullOrWhiteSpace(gong) && !string.IsNullOrWhiteSpace(shou) && gongshou.Count > 0)
                 {
-                    result = gongshou[rand.Next(gongshou.Count)];
+                    result = gongshou[MyRandom.Next(gongshou.Count)];
                     result = result.Replace("<攻>", gong).Replace("<受>", shou);
                 }
             }
@@ -609,7 +723,7 @@ namespace MMDK.Mods
                 if (pairs.ContainsKey("事件")) usingjokes.AddRange(jokesEvent);
                 if (usingjokes.Count <= 0) usingjokes.AddRange(jokes);
                 int find = 100;
-                int index = rand.Next(usingjokes.Count);
+                int index = MyRandom.Next(usingjokes.Count);
                 do
                 {
                     result = usingjokes[index];
@@ -658,7 +772,7 @@ namespace MMDK.Mods
                         str = str.Substring(sb.Key.Length);
                         if (string.IsNullOrWhiteSpace(str)) return "";
 
-                        var temp = sb.Value[rand.Next(sb.Value.Count)];
+                        var temp = sb.Value[MyRandom.Next(sb.Value.Count)];
                         if (temp.StartsWith("【W】"))     // num and english char
                         {
                             // total 10 + 26 + 26 = 62

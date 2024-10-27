@@ -646,9 +646,9 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
 
 
-            logWindow($"更新好友列表和群列表...");
-            RefreshFriendList();
-            logWindow($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+            //logWindow($"更新好友列表和群列表...");
+            //RefreshFriendList();
+            //logWindow($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
 
 
 

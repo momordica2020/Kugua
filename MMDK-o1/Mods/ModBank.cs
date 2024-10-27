@@ -14,7 +14,6 @@ namespace MMDK.Mods
     /// </summary>
     public class ModBank : Mod
     {
-        Random rand = new Random();
         public static string unitName = "马币";
 
 
@@ -23,7 +22,6 @@ namespace MMDK.Mods
 
         public bool Init(string[] args)
         {
-            rand = new Random();
 
             return true;
         }
@@ -116,7 +114,7 @@ namespace MMDK.Mods
                 int maxmoney = 114;
                 int minmoney = 30;
                 // success
-                long money = rand.Next(minmoney, maxmoney);
+                long money = MyRandom.Next(minmoney, maxmoney);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;

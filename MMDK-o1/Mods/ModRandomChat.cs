@@ -19,9 +19,6 @@ namespace MMDK.Mods
     /// </summary>
     public class ModRandomChat : Mod
     {
-        Random rand = new Random();
-
-
 
         public string replacefile = "replacewords.txt";
         string modeIndexName = "_index.txt";
@@ -69,8 +66,6 @@ namespace MMDK.Mods
         {
             try
             {
-
-                rand = new Random();
 
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");
 
@@ -583,20 +578,20 @@ namespace MMDK.Mods
         {
             StringBuilder sb = new StringBuilder();
 
-            int snum = rand.Next(1, 5);
+            int snum = MyRandom.Next(1, 5);
             for (int i = 0; i < snum; i++)
             {
-                int wnum = rand.Next(1, 5);
+                int wnum = MyRandom.Next(1, 5);
                 int nowlen = 0;
                 for (int j = 0; j < wnum; j++)
                 {
-                    string s = chaosXwb[rand.Next(chaosXwb.Count)];
+                    string s = chaosXwb[MyRandom.Next(chaosXwb.Count)];
                     sb.Append(s);
                     nowlen += s.Length;
                     if (nowlen > 15) break;
                 }
                 if (i < snum - 1) sb.Append("，");
-                else sb.Append("。？！"[rand.Next(3)]);
+                else sb.Append("。？！"[MyRandom.Next(3)]);
             }
 
             return sb.ToString();
@@ -611,26 +606,26 @@ namespace MMDK.Mods
             string[] sgn = new string[] { "\r\n", "。", "？", "！", "…", "——", "??", "...", "：", "?!", "???", "!!", "！！！" };
             string result = "";
             byte[] md5data = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-            int sentences = rand.Next(1, 6);
+            int sentences = MyRandom.Next(1, 6);
 
             for (int i = 0; i < sentences; i++)
             {
-                int thislen = rand.Next(0, 11);
+                int thislen = MyRandom.Next(0, 11);
                 StringBuilder thissentence = new StringBuilder();
                 int wordnum = 0;
                 while (thissentence.Length < thislen && wordnum < 5)
                 {
                     wordnum++;
-                    if (rand.Next(0, 100) > 80)
+                    if (MyRandom.Next(0, 100) > 80)
                     {
-                        thissentence.Append(chaosWord[rand.Next(0, chaosWord.Count - 1)][0]);
+                        thissentence.Append(chaosWord[MyRandom.Next(0, chaosWord.Count - 1)][0]);
                     }
                     else
                     {
-                        thissentence.Append(chaosXwb[rand.Next(0, chaosXwb.Count - 1)]);
+                        thissentence.Append(chaosXwb[MyRandom.Next(0, chaosXwb.Count - 1)]);
                     }
                 }
-                thissentence.Append(sgn[rand.Next(sgn.Length)]);
+                thissentence.Append(sgn[MyRandom.Next(sgn.Length)]);
                 result += thissentence.ToString();
             }
 
@@ -649,11 +644,11 @@ namespace MMDK.Mods
         {
             try
             {
-                int num = rand.Next(2, 10);
+                int num = MyRandom.Next(2, 10);
                 List<string> res = new List<string>();
                 while (num-- > 0)
                 {
-                    res.Add(penlist[rand.Next(penlist.Count)].Trim());
+                    res.Add(penlist[MyRandom.Next(penlist.Count)].Trim());
                 }
                 return res;
             }
@@ -676,12 +671,12 @@ namespace MMDK.Mods
                 if (files.Length <= 0) return result;
                 while (maxtime-- > 0)
                 {
-                    int findex = rand.Next(files.Length);
+                    int findex = MyRandom.Next(files.Length);
                     string[] lines = FileManager.readLines(files[findex]).ToArray();
                     if (lines.Length < 100) continue;
-                    int begin = rand.Next(lines.Length - 5);
-                    int maxnum = rand.Next(1, 5);
-                    int num = lines.Length - begin;// rand.Next(10, lines.Length - begin);
+                    int begin = MyRandom.Next(lines.Length - 5);
+                    int maxnum = MyRandom.Next(1, 5);
+                    int num = lines.Length - begin;// MyRandom.Next(10, lines.Length - begin);
                     bool find = false;
                     string targetuser = "";
                     for (int i = 0; i < num; i++)
@@ -738,13 +733,13 @@ namespace MMDK.Mods
         public string getAnswerGong(long user, string question)
         {
             string msg = "";
-            if (rand.Next(0, 100) < 85)
+            if (MyRandom.Next(0, 100) < 85)
             {
                 msg = getChaosRandomSentence(question) + getMotionString();
             }
             else
             {
-                if (msg.Length <= 0 || rand.Next(1, 100) < 40)
+                if (msg.Length <= 0 || MyRandom.Next(1, 100) < 40)
                 {
                     msg = getSaoHua() + getMotionString();
                 }
@@ -763,7 +758,7 @@ namespace MMDK.Mods
         {
             string answer = "";
             string msg = "";
-            if (rand.Next(0, 100) < 85)
+            if (MyRandom.Next(0, 100) < 85)
             {
                 msg = getChaosRandomSentence(question) + getMotionString();
             }
@@ -774,7 +769,7 @@ namespace MMDK.Mods
                 //{
                 //    msg = answer + "..." + getMotionString();
                 //}
-                if (msg.Length <= 0 || rand.Next(1, 100) < 40)
+                if (msg.Length <= 0 || MyRandom.Next(1, 100) < 40)
                 {
                     msg = getSaoHua() + getMotionString();
                 }
@@ -792,7 +787,7 @@ namespace MMDK.Mods
         {
             try
             {
-                return defaultAnswers[rand.Next(defaultAnswers.Count)].Trim();
+                return defaultAnswers[MyRandom.Next(defaultAnswers.Count)].Trim();
             }
             catch (Exception e)
             {
@@ -810,9 +805,9 @@ namespace MMDK.Mods
             string res = "";
 
             if (chaosMotion.Count <= 0) return res;
-            if (rand.Next(0, 100) > 66)
+            if (MyRandom.Next(0, 100) > 66)
             {
-                res = $"({chaosMotion[rand.Next(0, chaosMotion.Count - 1)]})";
+                res = $"({chaosMotion[MyRandom.Next(0, chaosMotion.Count - 1)]})";
             }
 
             return res;
@@ -868,28 +863,28 @@ namespace MMDK.Mods
                 string[] sgn2 = new string[] { "\r\n", "。", "。", "。", "？", "！", "…", "——" };
                 string[] sgn3 = new string[] { "\r\n", "。", "？", "！", "…", "——", "??", "...", "：", "?!", "???", "!!", "！！！" };
 
-                int sn = rand.Next(1, maxsnum);
+                int sn = MyRandom.Next(1, maxsnum);
 
                 for (int i = 0; i < sn; i++)
                 {
-                    int thislen = rand.Next(1, maxslen);
+                    int thislen = MyRandom.Next(1, maxslen);
                     StringBuilder thissentence = new StringBuilder();
                     int wordnum = 0;
                     while (thissentence.Length < thislen && wordnum < maxwordnum)
                     {
                         wordnum++;
-                        thissentence.Append(sentences[rand.Next(0, sentences.Count - 1)]);
+                        thissentence.Append(sentences[MyRandom.Next(0, sentences.Count - 1)]);
                     }
                     if (thissentence.Length > 0 && !sgn1.Contains(thissentence.ToString().Last().ToString()) && !sgn2.Contains(thissentence.ToString().Last().ToString()))
                     {
                         if (config.Contains("无标点")) thissentence.Append(" ");
-                        else thissentence.Append(sgn1[rand.Next(sgn1.Length)]);
+                        else thissentence.Append(sgn1[MyRandom.Next(sgn1.Length)]);
                         result += thissentence.ToString();
                         if (result.Length > 0)
                         {
                             if (config.Contains("无标点")) ;
-                            else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[rand.Next(sgn3.Length)];
-                            else result = result.Substring(0, result.Length - 1) + sgn2[rand.Next(sgn2.Length)];
+                            else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[MyRandom.Next(sgn3.Length)];
+                            else result = result.Substring(0, result.Length - 1) + sgn2[MyRandom.Next(sgn2.Length)];
                         }
 
                     }
@@ -901,8 +896,8 @@ namespace MMDK.Mods
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     if (config.Contains("无标点")) result = " ";
-                    else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[rand.Next(sgn3.Length)];
-                    else result = result.Substring(0, result.Length - 1) + sgn2[rand.Next(sgn2.Length)];
+                    else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[MyRandom.Next(sgn3.Length)];
+                    else result = result.Substring(0, result.Length - 1) + sgn2[MyRandom.Next(sgn2.Length)];
                 }
 
 
