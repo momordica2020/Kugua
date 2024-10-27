@@ -20,6 +20,7 @@ using System.ComponentModel;
 using static System.Windows.Forms.AxHost;
 using System.Threading.Tasks;
 using System.Windows.Interop;
+using MeowMiraiLib.GenericModel;
 
 namespace MMDK
 {
@@ -162,7 +163,7 @@ namespace MMDK
 
 
 
-        public void workRunBot()
+        void workRunBot()
         {
             try
             {
@@ -179,6 +180,7 @@ namespace MMDK
                     new ModProof(),
                     new ModTextFunction(),
                     new ModZhanbu(),
+                    //new ModTranslate(),
                     new ModRandomChat(),    // 这个会用闲聊收尾
 
                 };
@@ -243,6 +245,9 @@ namespace MMDK
                     ClientX.OnEventBotInvitedJoinGroupRequestEvent += OnEventBotInvitedJoinGroupRequestEvent;
                     ClientX.OnEventNewFriendRequestEvent += OnEventNewFriendRequestEvent;
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
+
+                    
+                    
                 }
                 else
                 {
@@ -256,6 +261,238 @@ namespace MMDK
                 logWindow(ex.Message + "\r\n" + ex.StackTrace);
             }
         }
+
+
+
+
+
+
+
+        /* APIs
+         * OnEventGroupNameChangeEvent	GroupNameChangeEvent	群名改变信息
+OnEventGroupEntranceAnnouncementChangeEvent	GroupEntranceAnnouncementChangeEvent	某个群的入群公告改变
+OnEventGroupMuteAllEvent	GroupMuteAllEvent	群全员禁言
+OnEventGroupAllowAnonymousChatEvent	GroupAllowAnonymousChatEvent	某个群更改了群匿名聊天状态
+OnEventGroupAllowConfessTalkEvent	GroupAllowConfessTalkEvent	某个群更改了坦白说的状态
+OnEventGroupAllowMemberInviteEvent	GroupAllowMemberInviteEvent	某个群员邀请好友加群
+
+
+        OnEventGroupRecallEvent	GroupRecallEvent	某群员撤回信息
+OnEventMemberJoinEvent	MemberJoinEvent	某群有新人入群了
+OnEventMemberLeaveEventKick	MemberLeaveEventKick	某群把某人踢出了(不是Bot)
+OnEventMemberLeaveEventQuit	MemberLeaveEventQuit	某群有成员主动退群了
+OnEventCardChangeEvent	MemberCardChangeEvent	某群有人的群名片改动了
+OnEventSpecialTitleChangeEvent	MemberSpecialTitleChangeEvent	某群群主改动了某人头衔
+OnEventPermissionChangeEvent	MemberPermissionChangeEvent	某群有某个成员权限被改变了(不是Bot)
+OnEventMemberMuteEvent	MemberMuteEvent	某群的某个群成员被禁言
+OnEventMemberUnmuteEvent	MemberUnmuteEvent	某群的某个群成员被取消禁言
+OnEventMemberHonorChangeEvent	MemberHonorChangeEvent	某群的某个成员的群称号改变
+OnEventMemberJoinRequestEvent	MemberJoinRequestEvent	接收到用户入群申请
+
+        OnEventNewFriendRequestEvent	NewFriendRequestEvent	接收到新好友请求
+OnEventFriendInputStatusChangedEvent	FriendInputStatusChangedEvent	好友的输入状态改变
+OnEventFriendNickChangedEvent	FriendNickChangedEvent	好友的昵称改变
+OnEventFriendRecallEvent	FriendRecallEvent	好友撤回信息
+
+
+        OnEventBotGroupPermissionChangeEvent	BotGroupPermissionChangeEvent	Bot在群里的权限被改变了
+OnEventBotMuteEvent	BotMuteEvent	Bot被禁言
+OnEventBotUnmuteEvent	BotUnmuteEvent	Bot被解除禁言
+OnEventBotJoinGroupEvent	BotJoinGroupEvent	Bot加入新群
+OnEventBotLeaveEventActive	BotLeaveEventActive	Bot主动退群
+OnEventBotLeaveEventKick	BotLeaveEventKick	Bot被群踢出
+OnEventNudgeEvent	NudgeEvent	Bot被戳一戳
+OnEventBotInvitedJoinGroupRequestEvent	BotInvitedJoinGroupRequestEvent	Bot被邀请入群申请
+
+        OnEventBotOnlineEvent	BotOnlineEvent	Mirai后台证实QQ已上线
+OnEventBotOfflineEventActive	BotOfflineEventActive	Mirai后台证实QQ主动离线
+OnEventBotOfflineEventForce	BotOfflineEventForce	Mirai后台证实QQ被挤下线
+OnEventBotOfflineEventDropped	BotOfflineEventDropped	Mirai后台证实QQ由于网络问题掉线
+OnEventBotReloginEvent	BotReloginEvent	Mirai后台证实QQ重新连接完毕
+
+        OnFriendMessageReceive	FriendMessageSender, Message[]	接收到好友私聊信息
+OnGroupMessageReceive	GroupMessageSender, Message[]	接收到群消息
+OnTempMessageReceive	TempMessageSender, Message[]	接收到临时信息
+OnStrangerMessageReceive	StrangerMessageSender, Message[]	接收到陌生人消息
+OnOtherMessageReceive	OtherClientMessageSender, Message[]	接收到其他类型消息
+OnFriendSyncMessageReceive	FriendSyncMessageSender, Message[]	接收到好友同步消息
+OnGroupSyncMessageReceive	GroupSyncMessageSender, Message[]	接收到群同步消息
+OnTempSyncMessageReceive	TempSyncMessageSender, Message[]	接收到临时同步消息
+OnStrangerSyncMessageReceive	StrangerSyncMessageSender, Message[]	接收到陌生人同步消息
+
+        MGetPlainString 获取消息中的所有字符集合
+c.OnFriendMessageReceive += (s, e) =>
+{
+    if(s.id != qqid) //过滤自己发出的信息
+    {
+        var str = e.MGetPlainString();
+        Console.WriteLine(str);
+    }
+};
+2. MGetPlainString 获取消息中的所有字符集合并且使用(splitor参数)分割
+c.OnFriendMessageReceive += (s, e) =>
+{
+    if(s.id != qqid) //过滤自己发出的信息
+    {
+        var str = e.MGetPlainStringSplit(); //默认使用空格分隔
+        //var str = e.MGetPlainStringSplit(","); //使用逗号分割
+        Console.WriteLine(str);
+    }
+};
+3. MGetEachImageUrl 获取消息中的所有图片集合的Url
+c.OnFriendMessageReceive += (s, e) =>
+{
+    if(s.id != qqid) //过滤自己发出的信息
+    {
+        var sx = e.MGetEachImageUrl();
+        Console.WriteLine(sx[1].url);
+    }
+};
+4. SendToFriend 信息类前置发送好友信息
+new Message[] { new Plain("...") }.SendToFriend(qqnumber,c);
+5. SendToGroup 信息类前置发送群信息
+new Message[] { new Plain("...") }.SendToGroup(qqgroupnumber,c);
+6. SendToTemp 信息类前置发送临时信息
+new Message[] { new Plain("...") }.SendToTemp(qqnumber,qqgroupnumber,c);
+7. SendMessage 对于 GenericModel 的群发信息逻辑
+注:您也可以使用foreach对每个群/好友/群员发送
+
+var msg = new Message[] { new Plain("...") };//要发送的信息
+
+var fl = new FriendList().Send(c);//获取好友列表
+
+fl[0].SendMessage(msg,c);//朝好友列表的1号好友发送信息(原生写法)
+(fl[0], msg).SendMessage(c); //朝好友列表的1号好友发送信息(简单写法)
+
+foreach(var i in fl) //朝好友列表的所有好友发送信息(原生写法)
+{
+    i.SendMessage(msg,c);
+}
+
+var gl = new GroupList().Send(c);//获取群列表
+var gml = gl[0].GetMemberList(c);//获取群1的群员列表
+
+gml[0].SendMessage(msg,c);//朝群1的1号群员发送msg信息(原生写法)
+(gml[0], msg).SendMessage(c);//朝群1的1号群员发送msg信息(简单写法)
+
+foreach(var i in gml) //朝群1的所有群员发送信息(原生写法)
+{
+    i.SendMessage(msg,c);
+}
+
+foreach(var i in gl) //朝所有群发送群信息(原生写法)
+{
+    i.SendMessage(msg,c);
+}
+
+
+        Instance	MessageId	SendMsgBack	Message[],
+Opt ConClient?	往原处发送信息
+Instance	async Task	SendMsgBackAsync	Message[],
+Opt ConClient?	往原处发送信息
+Instance	MessageId	SendMessageToFriend	Message[],
+Opt ConClient?	强行往发送者的私聊发送信息
+Instance	async Task	SendMessageToFriendAsync	Message[],
+Opt ConClient?	强行往发送者的私聊发送信息
+Instance	MessageId	SendMessageToGroup	Message[],
+Opt ConClient?	强行往发送者的群发送信息(如果有)
+Instance	async Task	SendMessageToGroupAsync	Message[],
+Opt ConClient?	强行往发送者的群发送信息(如果有)
+
+
+
+        _OnServeiceConnected	string	接收到WS连接成功信息
+_OnServeiceError	Exception	接收到WS错误信息
+_OnServiceDropped	string	接收到WS断连信息
+_OnClientOnlineEvent	OtherClientOnlineEvent	接收到其他客户端上线通知
+_OnOtherClientOfflineEvent	OtherClientOfflineEvent	接收到其他客户端下线通知
+_OnCommandExecutedEvent	CommandExecutedEvent	接收到后端传送命令执行
+_OnUnknownEvent	string	接收到后端传送未知指令
+         * 
+        var bp = new BotProfile().Send(c); //获取Bot资料
+        var fp = new FriendProfile(qqnumber).Send(c);//获取好友资料
+        var mp = new MemberProfile(qqgroup, qqnumber).Send(c);//获取群员资料
+        var up = new UserProfile(qqnumber).Send(c);//获取用户资料
+                                                   //获取群公告&&推送群公告
+        var k = new Anno_list(qqgroup).Send(c);
+        k[1].Delete(c);//删除群公告1 (快速写法)
+        var k1 = new Anno_publish(qqgroup, "Bot 公告推送").Send(c);
+        var k2 = new Anno_publish(qqgroup, "Bot 带图公告推送实验", imageUrl: "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png").Send(c);
+        */
+
+
+
+        /// <summary>
+        /// 刷新好友列表并更新配置文件
+        /// </summary>
+        public void RefreshFriendList()
+        {
+            try
+            {
+                if (ClientX != null)
+                {
+                    var fp = new FriendList().Send(ClientX);
+                    Config.Instance.friends.Clear();
+                    if (fp == null)
+                    {
+                        Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
+
+                    }
+                    else
+                    {
+                        foreach (var f in fp)
+                        {
+                            var friend = Config.Instance.GetPlayerInfo(f.id);
+                            friend.Name = f.nickname;
+                            //friend.Mark = f.remark;
+                            friend.SetTag("好友");
+                            //friend.Type = PlayerType.Normal;
+                            Config.Instance.friends.Add(f.id, f);
+                        }
+                    }
+
+
+
+
+                    var gp = new GroupList().Send(ClientX);
+                    Config.Instance.groups.Clear();
+                    Config.Instance.groupMembers.Clear();
+                    if (gp == null)
+                    {
+                        Logger.Instance.Log($"不会吧不会吧不会没有群吧");
+
+                    }
+                    else{
+                        foreach (var g in gp)
+                        {
+                            var group = Config.Instance.GetGroupInfo(g.id);
+                            group.Name = g.name;
+                            var groupMembers = g.GetMemberList(ClientX);
+                            if (groupMembers == null)
+                            {
+                                Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+                                continue;
+                            }
+                            Config.Instance.groups.Add(g.id, g);
+                            Config.Instance.groupMembers.Add(g.id, groupMembers);
+                            foreach (var gf in groupMembers)
+                            {
+                                var member = Config.Instance.GetPlayerInfo(gf.id);
+                                member.Mark = gf.memberName;    //群昵称？
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+
+        }
+
+
 
 
 
@@ -404,6 +641,17 @@ namespace MMDK
         void ServiceConnected(string e)
         {
             logWindow($"连接成功：{e}");
+
+
+
+
+
+            logWindow($"更新好友列表和群列表...");
+            RefreshFriendList();
+            logWindow($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+
+
+
         }
 
         void OnServeiceError(Exception e)
@@ -428,10 +676,12 @@ namespace MMDK
             if (g.Is("黑名单") || u.Is("黑名单"))
             {
                 e.Deny(ClientX);
+                return;
             }
-            if (u.Is("管理员") || u.Is("好友") || e.fromId == Config.Instance.App.Avatar.adminQQ)
+            if (Config.Instance.friends.ContainsKey(e.fromId) || u.Is("管理员") || u.Is("好友") || e.fromId == Config.Instance.App.Avatar.adminQQ)
             {
                 e.Grant(ClientX);
+                return;
             }
         }
 
@@ -443,7 +693,7 @@ namespace MMDK
                 e.Grant(ClientX, "来了来了");
                 var user = Config.Instance.GetPlayerInfo(e.fromId);
                 user.Name = e.nick;
-                user.Mark = e.nick;
+                //user.Mark = e.nick;
                 user.SetTag("好友");
                 user.Type = PlayerType.Normal;
             }
@@ -510,7 +760,7 @@ namespace MMDK
             }
         }
 
-        private async void Form1_Load(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
 
 
@@ -529,7 +779,7 @@ namespace MMDK
 
             systemInfo = new SystemInfo();
 
-            await Task.Run(() =>
+            Task.Run(() =>
             {
                 while (State != BotRunningState.exit)
                 {
@@ -546,7 +796,10 @@ namespace MMDK
         {
             //button1.Enabled = false;
 
-            new Thread(workRunBot).Start();
+            Task.Run(() =>
+            {
+                workRunBot();
+            });
 
             textInputTest.Focus();
         }
@@ -686,14 +939,11 @@ namespace MMDK
                         lbPort.Text = $"{Config.Instance.App.IO.MiraiPort}";
                         lbVersion.Text = $"{Config.Instance.App.Version}";
                         lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
-                        //lbFriendNum.Text = $"{config["friendnum"]}";
-                        //lbGroupNum.Text = $"{config["groupnum"]}";
+                        
+
+                        lbFriendNum.Text = $"{Config.Instance.friends.Count}";
+                        lbGroupNum.Text = $"{Config.Instance.groups.Count}";
                         lbUseNum.Text = $"{Config.Instance.App.Log.playTimePrivate + Config.Instance.App.Log.playTimeGroup}";
-                        //if (bot != null)
-                        //{
-                        //    lbFriendNum.Text = $"{bot.friends.Count}";
-                        //    lbGroupNum.Text = $"{bot.groups.Count}";
-                        //}
 
                         pbCPU.Value = (int)(cpu);
                         pbMem.Value = (int)(mem);

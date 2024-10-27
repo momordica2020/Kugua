@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿
+using MeowMiraiLib.GenericModel;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
@@ -34,6 +36,19 @@ namespace MMDK.Util
         /// <param name="results">传出返回文本序列</param>
         /// <returns>返回是否已处理，true表示该模块已经对信息进行了处理并截断后续其他模块的处理流程</returns>
         public bool HandleText(long userId, long groupId, string message, List<string> results);
+
+        
+    }
+
+    public interface ModWithMirai
+    {
+        /// <summary>
+        /// 直连Mirai，不从函数回传
+        /// 实现该模块时，代码需要操作Mirai库的Api
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="msg"></param>
+        public void ReceiveMiraiMessage(MeowMiraiLib.Client client, MeowMiraiLib.Msg.Type.Message msg);
     }
 
     public class AppConfigs
@@ -270,6 +285,10 @@ namespace MMDK.Util
         public AppConfigs App;
         public Dictionary<long, Player> players;
         public Dictionary<long, Playgroup> playgroups;
+        // 以下两个数据动态从Mirai收集
+        public Dictionary<long, QQFriend> friends = new Dictionary<long, QQFriend>();
+        public Dictionary<long, QQGroup> groups = new Dictionary<long, QQGroup>();
+        public Dictionary<long, QQGroupMember[]> groupMembers = new Dictionary<long, QQGroupMember[]>();
 
         private Config()
         {

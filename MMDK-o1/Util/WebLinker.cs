@@ -109,50 +109,77 @@ namespace MMDK.Util
             return true; //总是接受     
         }
 
-        private static readonly string DefaultUserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
+        private static readonly string DefaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+            //"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
 
-        /// <summary>
-        /// 发送https请求
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="charset"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        public static HttpWebResponse CreatePostHttpResponse(string url, Encoding charset, IDictionary<string, string> parameters = null)
+
+        private static readonly HttpClient httpClient = new HttpClient();
+
+        public static async Task<HttpResponseMessage> CreatePostHttpResponseAsync(string url, Encoding charset, IDictionary<string, string> parameters = null)
         {
-            HttpWebRequest request = null;
-            //HTTPSQ请求  
-            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-            request = WebRequest.Create(url) as HttpWebRequest;
-            request.ProtocolVersion = HttpVersion.Version10;
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.UserAgent = DefaultUserAgent;
-            //如果需要POST数据     
-            if (!(parameters == null || parameters.Count == 0))
+            // 设置请求的基本信息
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent); // 替换为实际的 User-Agent
+
+            // 创建 POST 请求内容
+            HttpContent content = null;
+            if (parameters != null && parameters.Count > 0)
             {
-                StringBuilder buffer = new StringBuilder();
-                int i = 0;
-                foreach (string key in parameters.Keys)
-                {
-                    if (i > 0)
-                    {
-                        buffer.AppendFormat("&{0}={1}", key, parameters[key]);
-                    }
-                    else
-                    {
-                        buffer.AppendFormat("{0}={1}", key, parameters[key]);
-                    }
-                    i++;
-                }
-                byte[] data = charset.GetBytes(buffer.ToString());
-                using (Stream stream = request.GetRequestStream())
-                {
-                    stream.Write(data, 0, data.Length);
-                }
+                var contentString = new FormUrlEncodedContent(parameters);
+                content = contentString;
             }
-            return request.GetResponse() as HttpWebResponse;
+
+            // 发送 POST 请求
+            var response = await httpClient.PostAsync(url, content);
+
+            // 确保成功状态
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
+
+
+        ///// <summary>
+        ///// 发送https请求
+        ///// </summary>
+        ///// <param name="url"></param>
+        ///// <param name="charset"></param>
+        ///// <param name="parameters"></param>
+        ///// <returns></returns>
+        //public static HttpWebResponse CreatePostHttpResponse(string url, Encoding charset, IDictionary<string, string> parameters = null)
+        //{
+        //    HttpWebRequest request = null;
+        //    //HTTPSQ请求  
+        //    ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
+        //    request = WebRequest.Create(url) as HttpWebRequest;
+        //    request.ProtocolVersion = HttpVersion.Version10;
+        //    request.Method = "POST";
+        //    request.ContentType = "application/x-www-form-urlencoded";
+        //    request.UserAgent = DefaultUserAgent;
+        //    //如果需要POST数据     
+        //    if (!(parameters == null || parameters.Count == 0))
+        //    {
+        //        StringBuilder buffer = new StringBuilder();
+        //        int i = 0;
+        //        foreach (string key in parameters.Keys)
+        //        {
+        //            if (i > 0)
+        //            {
+        //                buffer.AppendFormat("&{0}={1}", key, parameters[key]);
+        //            }
+        //            else
+        //            {
+        //                buffer.AppendFormat("{0}={1}", key, parameters[key]);
+        //            }
+        //            i++;
+        //        }
+        //        byte[] data = charset.GetBytes(buffer.ToString());
+        //        using (Stream stream = request.GetRequestStream())
+        //        {
+        //            stream.Write(data, 0, data.Length);
+        //        }
+        //    }
+        //    return request.GetResponse() as HttpWebResponse;
+        //}
 
 
         public static string UrlEncode(string str)
