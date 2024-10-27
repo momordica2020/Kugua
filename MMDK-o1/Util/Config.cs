@@ -185,7 +185,6 @@ namespace MMDK.Util
             }
         }
 
-
         public bool Is(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag)) return false;

@@ -115,6 +115,19 @@ namespace MMDK.Mods
                             results.Add($"私聊已删掉tag：{message}");
                             return true;
                         }
+                    case CommandType.TagRemoveAll:
+                        if (isGroup)
+                        {
+                            group.Tag = "";
+                            results.Add($"本群已清空tag");
+                            return true;
+                        }
+                        else
+                        {
+                            user.Tag = "";
+                            results.Add($"私聊已清空tag");
+                            return true;
+                        }
                     case CommandType.CheckState:
                         string rmsg = "";
                         if (isGroup)
@@ -170,6 +183,7 @@ namespace MMDK.Mods
             UnBan,
             TagAdd,
             TagRemove,
+            TagRemoveAll,
             CheckState,
         }
         // 存储可匹配的命令
@@ -185,9 +199,9 @@ namespace MMDK.Mods
             { "解封", CommandType.UnBan},
             { "解开", CommandType.UnBan},
             { "设置+", CommandType.TagAdd},
-            { "设置", CommandType.TagAdd},
             //{ "添加", CommandType.TagAdd},
             { "设置-", CommandType.TagRemove},
+            { "设置清空", CommandType.TagRemoveAll},
             { "状态", CommandType.CheckState},
         };
         static bool TryReadCommand(ref string input, out CommandType commandType)

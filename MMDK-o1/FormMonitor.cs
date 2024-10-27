@@ -17,6 +17,9 @@ using static MeowMiraiLib.Msg.Type.ForwardMessage;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 using Microsoft.Win32;
 using System.ComponentModel;
+using static System.Windows.Forms.AxHost;
+using System.Threading.Tasks;
+using System.Windows.Interop;
 
 namespace MMDK
 {
@@ -24,7 +27,10 @@ namespace MMDK
     partial class FormMonitor : Form
     {
 
-        public delegate void sendString(string msg);
+
+
+
+
 
         public static MeowMiraiLib.Client ClientX;
 
@@ -35,41 +41,64 @@ namespace MMDK
 
 
 
+
+
+
+
+
+
+        #region 窗体相关定义
+
+
+        SystemInfo systemInfo;
         DateTime beginTime;
+        bool IsEnterAutoSend = true;
+        bool IsVirtualGroup = false;
 
+        public delegate void sendString(string msg);
 
-        runState _state;
-        runState State
+        public enum BotRunningState
         {
+            stop,
+            mmdkInit,
+            ok,
+            exit
+        }
+        public BotRunningState _state;
+        BotRunningState State
+        {
+            get => _state;
             set
             {
+                _state = value;
+
+                var stateMessages = new Dictionary<BotRunningState, string>
+                    {
+                        { BotRunningState.stop, "已停止" },
+                        { BotRunningState.mmdkInit, "正在启动Bot" },
+                        { BotRunningState.ok, "正在运行" }
+                    };
+
+                string text = stateMessages.ContainsKey(value) ? stateMessages[value] : string.Empty;
+                //更新显示窗口
                 try
                 {
-                    _state = value;
-                    string text = "";
-                    switch (value)
-                    {
-                        case runState.stop: text = "已停止"; break;
-                        case runState.mmdkInit: text = "正在启动Bot"; break;
-                        case runState.ok: text = "正在运行"; break;
-                        default: break;
-                    }
-                    Invoke(new EventHandler(delegate
+                    Invoke((MethodInvoker)delegate
                     {
                         lbState.Text = text;
-                    }));
+                    });
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    Console.WriteLine($"Error updating state label: {ex.Message}\r\n{ex.StackTrace}");
                 }
-
-            }
-            get
-            {
-                return _state;
             }
         }
+
+
+
+        #endregion
+
         public FormMonitor()
         {
             InitializeComponent();
@@ -133,7 +162,7 @@ namespace MMDK
 
 
 
-        public void workRunMMDK()
+        public void workRunBot()
         {
             try
             {
@@ -148,9 +177,9 @@ namespace MMDK
                     new ModBank(),
                     new ModDice(),
                     new ModProof(),
-                    new ModRandomChat(),
                     new ModTextFunction(),
                     new ModZhanbu(),
+                    new ModRandomChat(),    // 这个会用闲聊收尾
 
                 };
 
@@ -158,7 +187,7 @@ namespace MMDK
 
                 //bot = new MainProcess();
                 //bot.Init(config);
-                
+
 
 
                 if (true)
@@ -189,7 +218,7 @@ namespace MMDK
                     }
                 }
 
-                State = runState.ok;
+                State = BotRunningState.ok;
                 logWindow($"bot启动完成");
 
 
@@ -205,7 +234,7 @@ namespace MMDK
                     ClientX._OnServeiceError += OnServeiceError;
                     ClientX._OnServiceDropped += OnServiceDropped;
 
-                    
+
                     ClientX.Connect();
 
 
@@ -244,15 +273,16 @@ namespace MMDK
             if (cmd.Length > 0)
             {
                 List<string> res = new List<string>();
-                foreach(var mod in Mods)
+                foreach (var mod in Mods)
                 {
                     var succeed = mod.HandleText(s.id, 0, cmd, res);
-                    if (succeed) {
+                    if (succeed)
+                    {
                         break;
                     }
                 }
-                
-                
+
+
                 foreach (var msg in res)
                 {
                     if (msg.Trim().Length <= 0) continue;
@@ -264,7 +294,7 @@ namespace MMDK
                     new FriendMessage(s.id, output).Send(ClientX);
                     talked = true;
                 }
-                
+
             }
             // update player info
             Player p = Config.Instance.GetPlayerInfo(s.id);
@@ -327,7 +357,7 @@ namespace MMDK
                     break;
                 }
             }
-    
+
             var rres = res.ToArray();
             if (rres != null && rres.Length > 0)
             {
@@ -358,7 +388,7 @@ namespace MMDK
                     }
                 }
             }
-            
+
 
             // update player info
             Playgroup p = Config.Instance.GetGroupInfo(s.group.id);
@@ -428,72 +458,10 @@ namespace MMDK
             logWindow($"好友改昵称（{e.friend.id}，{e.from}->{e.to}");
             var user = Config.Instance.GetPlayerInfo(e.friend.id);
             user.Name = e.to;
-            
-        }
-
-
-        private void OnServeiceConnected(string e)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void workMonitor()
-        {
-            SystemInfo systemInfo = new SystemInfo();
-            while (State != runState.exit)
-            {
-                var cpu = systemInfo.CpuLoad;
-                var mem = 100.0 - ((double)systemInfo.MemoryAvailable * 100 / systemInfo.PhysicalMemory);
-
-                try
-                {
-                    Invoke(new EventHandler(delegate
-                    {
-                        lbCPU.Text = $"CPU\n({cpu.ToString(".0")}%)";
-                        lbMem.Text = $"内存\n({mem.ToString(".0")}%)";
-                        lbBeginTime.Text = $"{beginTime.ToString("yyyy-MM-dd")}\r\n{beginTime.ToString("HH:mm:ss")}";
-                        lbTimeSpan.Text = $"{(DateTime.Now - beginTime).Days}天\r\n{(DateTime.Now - beginTime).Hours}小时{(DateTime.Now - beginTime).Minutes}分{(DateTime.Now - beginTime).Seconds}秒";
-                        lbQQ.Text = $"{Config.Instance.App.Avatar.myQQ}";
-                        lbPort.Text = $"{Config.Instance.App.IO.MiraiPort}";
-                        lbVersion.Text = $"{Config.Instance.App.Version}";
-                        lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
-                        //lbFriendNum.Text = $"{config["friendnum"]}";
-                        //lbGroupNum.Text = $"{config["groupnum"]}";
-                        lbUseNum.Text = $"{Config.Instance.App.Log.playTimePrivate + Config.Instance.App.Log.playTimeGroup}";
-                        //if (bot != null)
-                        //{
-                        //    lbFriendNum.Text = $"{bot.friends.Count}";
-                        //    lbGroupNum.Text = $"{bot.groups.Count}";
-                        //}
-
-                        pbCPU.Value = (int)(cpu);
-                        pbMem.Value = (int)(mem);
-                    }));
-                }
-                catch
-                {
-
-                }
-
-
-
-                Thread.Sleep(500);     // 1s
-            }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //button1.Enabled = false;
-
-            new Thread(workRunMMDK).Start();
-            button1.Text = "<运行中>";
-            button1.BackColor = System.Drawing.Color.Green;
-            button1.Enabled = false;
-            flowLayoutPanel1.Enabled = true;
-            flowLayoutPanel1.Visible = true;
-            textInputTest.Focus();
 
         }
+
+
 
         private void tbMmdk_MouseDown(object sender, MouseEventArgs e)
         {
@@ -526,15 +494,15 @@ namespace MMDK
                     {
                         Logger.Instance.Log(ex);
                     }
-                    
+
                 }
                 history.run = false;
                 Config.Instance.Save();
-                
+
                 Logger.Instance.Close();
                 //Environment.Exit(0);
 
-                State = runState.exit;
+                State = BotRunningState.exit;
             }
             catch
             {
@@ -542,8 +510,10 @@ namespace MMDK
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object sender, EventArgs e)
         {
+
+
             logWindow("开始初始化配置文件。");
 
             Config.Instance.Load();
@@ -557,23 +527,73 @@ namespace MMDK
 
             logWindow("配置文件读取完毕。");
 
-            new Thread(workMonitor).Start();
+            systemInfo = new SystemInfo();
+
+            await Task.Run(() =>
+            {
+                while (State != BotRunningState.exit)
+                {
+                    UpdateMonitorInfo(); // 更新状态
+
+                    // 控制更新频率，比如每秒更新一次
+                    Thread.Sleep(200);
+                }
+            });
+            //new Thread(workMonitor).Start();
+        }
+
+        private void StartBot()
+        {
+            //button1.Enabled = false;
+
+            new Thread(workRunBot).Start();
+
+            textInputTest.Focus();
         }
 
         /// <summary>
-        /// 模拟输入给bot
+        /// 模拟bot的输入
         /// </summary>
         /// <param name="message"></param>
         public void virtualInput(string message)
         {
-            textLocalTest.AppendText($"[me]:{message}\r\n");
-            try
+            long userId;
+            long groupId;
+            bool isAtMe = false;
+
+            if (IsVirtualGroup)
+            {
+
+                userId = -1;
+                groupId = 1;
+                textLocalTestGroup.AppendText($"[me]:{message}\r\n");
+
+                if (Config.Instance.isAskMe(message))
+                {
+                    isAtMe = true;
+                    message = message.Substring(Config.Instance.App.Avatar.askName.Length);
+                }
+            }
+            else
             {
                 
+                userId = -1;
+                groupId = 0;
+                textLocalTest.AppendText($"[me]:{message}\r\n");
+
+                isAtMe = true;
+            }
+
+
+
+            try
+            {
+
                 List<string> res = new List<string>();
                 foreach (var mod in Mods)
                 {
-                    var succeed = mod.HandleText(-1, 0, message, res);
+                    if (!isAtMe) break;
+                    var succeed = mod.HandleText(userId, groupId, message, res);
                     if (succeed)
                     {
                         break;
@@ -589,40 +609,126 @@ namespace MMDK
                 textLocalTest.AppendText($"[error]:{ex.Message}\r\n{ex.StackTrace}\r\n");
             }
 
-            
+
         }
+
+
 
         public void virtualOutput(string result)
         {
-            textLocalTest.AppendText($"[bot]:{result}\r\n");
+            if (IsVirtualGroup)
+            {
+                textLocalTestGroup.AppendText($"[bot]:{result}\r\n");
+            }
+            else
+            {
+                textLocalTest.AppendText($"[bot]:{result}\r\n");
+            }
+           
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            virtualInput(textInputTest.Text.Trim());
+            string msg = textInputTest.Text.Trim();
             textInputTest.Clear();
+            virtualInput(msg);
+
         }
 
         private void textInputTest_TextChanged(object sender, EventArgs e)
         {
-            if (textInputTest.Text.EndsWith("\n"))
+            if (IsEnterAutoSend && textInputTest.Text.EndsWith("\n"))
             {
-                virtualInput(textInputTest.Text.Trim());
+                string msg = textInputTest.Text.Trim();
                 textInputTest.Clear();
+                virtualInput(msg);
             }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
+
+        }
+
+        private void 启动botToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StartBot();
+            启动botToolStripMenuItem.Enabled = false;
+            启动botToolStripMenuItem.Text = "（正在运行）";
+        }
+
+        private void 存档当前配置ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
             Config.Instance.Save();
             logWindow($"已储存");
         }
+
+
+        /// <summary>
+        /// 更新显示界面信息
+        /// </summary>
+        private void UpdateMonitorInfo()
+        {
+            if (State != BotRunningState.exit)
+            {
+                var cpu = systemInfo.CpuLoad;
+                var mem = 100.0 - ((double)systemInfo.MemoryAvailable * 100 / systemInfo.PhysicalMemory);
+
+                try
+                {
+                    Invoke(new EventHandler(delegate
+                    {
+                        lbCPU.Text = $"CPU\n({cpu.ToString(".0")}%)";
+                        lbMem.Text = $"内存\n({mem.ToString(".0")}%)";
+                        lbBeginTime.Text = $"{beginTime.ToString("yyyy-MM-dd")}\r\n{beginTime.ToString("HH:mm:ss")}";
+                        lbTimeSpan.Text = $"{(DateTime.Now - beginTime).Days}天\r\n{(DateTime.Now - beginTime).Hours}小时{(DateTime.Now - beginTime).Minutes}分{(DateTime.Now - beginTime).Seconds}秒";
+                        lbQQ.Text = $"{Config.Instance.App.Avatar.myQQ}";
+                        lbPort.Text = $"{Config.Instance.App.IO.MiraiPort}";
+                        lbVersion.Text = $"{Config.Instance.App.Version}";
+                        lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
+                        //lbFriendNum.Text = $"{config["friendnum"]}";
+                        //lbGroupNum.Text = $"{config["groupnum"]}";
+                        lbUseNum.Text = $"{Config.Instance.App.Log.playTimePrivate + Config.Instance.App.Log.playTimeGroup}";
+                        //if (bot != null)
+                        //{
+                        //    lbFriendNum.Text = $"{bot.friends.Count}";
+                        //    lbGroupNum.Text = $"{bot.groups.Count}";
+                        //}
+
+                        pbCPU.Value = (int)(cpu);
+                        pbMem.Value = (int)(mem);
+                    }));
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+
+
+                Thread.Sleep(500);     // 1s
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            IsEnterAutoSend = checkBox1.Checked;
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if(tabControl1.SelectedIndex == 0)
+            {
+                // private
+                IsVirtualGroup = false;
+                button2.Text = "发送（私聊）";
+            }
+            else
+            {
+                IsVirtualGroup = true;
+                button2.Text = "发送（群组）";
+            }
+        }
     }
-    enum runState
-    {
-        stop,
-        mmdkInit,
-        ok,
-        exit,
-    }
+
 }

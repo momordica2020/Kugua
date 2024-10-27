@@ -32,18 +32,22 @@
             tbMmdk = new System.Windows.Forms.TextBox();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
             清空日志ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            button1 = new System.Windows.Forms.Button();
-            splitContainer1 = new System.Windows.Forms.SplitContainer();
-            flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            textInputTest = new System.Windows.Forms.TextBox();
+            tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             button2 = new System.Windows.Forms.Button();
+            checkBox1 = new System.Windows.Forms.CheckBox();
+            tabControl1 = new System.Windows.Forms.TabControl();
+            tabPage1 = new System.Windows.Forms.TabPage();
             textLocalTest = new System.Windows.Forms.TextBox();
-            button3 = new System.Windows.Forms.Button();
+            tabPage2 = new System.Windows.Forms.TabPage();
+            textLocalTestGroup = new System.Windows.Forms.TextBox();
+            textInputTest = new System.Windows.Forms.TextBox();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
+            启动botToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            存档当前配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            打开ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            bot配置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            启动ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            ToolStripMenuItem0 = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             lbUpdateTime = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
@@ -69,14 +73,24 @@
             lbCPU = new System.Windows.Forms.Label();
             lbMem = new System.Windows.Forms.Label();
             pbMem = new System.Windows.Forms.ProgressBar();
+            tabControl2 = new System.Windows.Forms.TabControl();
+            tabPage3 = new System.Windows.Forms.TabPage();
+            tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
+            tabPage4 = new System.Windows.Forms.TabPage();
+            tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
             contextMenuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            splitContainer1.Panel1.SuspendLayout();
-            splitContainer1.Panel2.SuspendLayout();
-            splitContainer1.SuspendLayout();
-            flowLayoutPanel1.SuspendLayout();
+            tableLayoutPanel2.SuspendLayout();
+            tableLayoutPanel3.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tabPage1.SuspendLayout();
+            tabPage2.SuspendLayout();
             menuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
+            tabControl2.SuspendLayout();
+            tabPage3.SuspendLayout();
+            tableLayoutPanel4.SuspendLayout();
+            tabPage4.SuspendLayout();
+            tableLayoutPanel5.SuspendLayout();
             SuspendLayout();
             // 
             // tbMmdk
@@ -84,17 +98,17 @@
             tbMmdk.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             tbMmdk.BorderStyle = System.Windows.Forms.BorderStyle.None;
             tbMmdk.ContextMenuStrip = contextMenuStrip1;
-            tbMmdk.Dock = System.Windows.Forms.DockStyle.Right;
+            tbMmdk.Dock = System.Windows.Forms.DockStyle.Fill;
             tbMmdk.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             tbMmdk.ForeColor = System.Drawing.SystemColors.Window;
-            tbMmdk.Location = new System.Drawing.Point(781, 32);
-            tbMmdk.Margin = new System.Windows.Forms.Padding(4);
+            tbMmdk.Location = new System.Drawing.Point(6, 6);
+            tbMmdk.Margin = new System.Windows.Forms.Padding(6);
             tbMmdk.MaxLength = 32767000;
             tbMmdk.Multiline = true;
             tbMmdk.Name = "tbMmdk";
             tbMmdk.ReadOnly = true;
             tbMmdk.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            tbMmdk.Size = new System.Drawing.Size(619, 734);
+            tbMmdk.Size = new System.Drawing.Size(1218, 1086);
             tbMmdk.TabIndex = 0;
             // 
             // contextMenuStrip1
@@ -111,157 +125,209 @@
             清空日志ToolStripMenuItem.Text = "清空日志";
             清空日志ToolStripMenuItem.Click += 清空日志ToolStripMenuItem_Click;
             // 
-            // button1
+            // tableLayoutPanel2
             // 
-            button1.BackColor = System.Drawing.Color.Red;
-            button1.Font = new System.Drawing.Font("宋体", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            button1.ForeColor = System.Drawing.Color.Yellow;
-            button1.Location = new System.Drawing.Point(13, 36);
-            button1.Margin = new System.Windows.Forms.Padding(4);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(169, 55);
-            button1.TabIndex = 1;
-            button1.Text = "波特启动";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            tableLayoutPanel2.ColumnCount = 1;
+            tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel2.Controls.Add(tableLayoutPanel3, 0, 2);
+            tableLayoutPanel2.Controls.Add(tabControl1, 0, 0);
+            tableLayoutPanel2.Controls.Add(textInputTest, 0, 1);
+            tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel2.Location = new System.Drawing.Point(3, 3);
+            tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 3;
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 61.50061F));
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.7503128F));
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 7.74907732F));
+            tableLayoutPanel2.Size = new System.Drawing.Size(1230, 1098);
+            tableLayoutPanel2.TabIndex = 9;
             // 
-            // splitContainer1
+            // tableLayoutPanel3
             // 
-            splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            splitContainer1.IsSplitterFixed = true;
-            splitContainer1.Location = new System.Drawing.Point(0, 0);
-            splitContainer1.Margin = new System.Windows.Forms.Padding(4);
-            splitContainer1.Name = "splitContainer1";
-            // 
-            // splitContainer1.Panel1
-            // 
-            splitContainer1.Panel1.Controls.Add(flowLayoutPanel1);
-            splitContainer1.Panel1.Controls.Add(button3);
-            splitContainer1.Panel1.Controls.Add(tbMmdk);
-            splitContainer1.Panel1.Controls.Add(button1);
-            splitContainer1.Panel1.Controls.Add(menuStrip1);
-            // 
-            // splitContainer1.Panel2
-            // 
-            splitContainer1.Panel2.Controls.Add(tableLayoutPanel1);
-            splitContainer1.Size = new System.Drawing.Size(1820, 766);
-            splitContainer1.SplitterDistance = 1400;
-            splitContainer1.TabIndex = 2;
-            // 
-            // flowLayoutPanel1
-            // 
-            flowLayoutPanel1.Controls.Add(textInputTest);
-            flowLayoutPanel1.Controls.Add(button2);
-            flowLayoutPanel1.Controls.Add(textLocalTest);
-            flowLayoutPanel1.Enabled = false;
-            flowLayoutPanel1.Location = new System.Drawing.Point(202, 36);
-            flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new System.Drawing.Size(567, 710);
-            flowLayoutPanel1.TabIndex = 7;
-            flowLayoutPanel1.Visible = false;
-            // 
-            // textInputTest
-            // 
-            textInputTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            textInputTest.ContextMenuStrip = contextMenuStrip1;
-            textInputTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            textInputTest.Location = new System.Drawing.Point(4, 4);
-            textInputTest.Margin = new System.Windows.Forms.Padding(4);
-            textInputTest.MaxLength = 32767000;
-            textInputTest.Multiline = true;
-            textInputTest.Name = "textInputTest";
-            textInputTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textInputTest.Size = new System.Drawing.Size(567, 148);
-            textInputTest.TabIndex = 4;
-            textInputTest.TextChanged += textInputTest_TextChanged;
+            tableLayoutPanel3.ColumnCount = 2;
+            tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel3.Controls.Add(button2, 0, 0);
+            tableLayoutPanel3.Controls.Add(checkBox1, 1, 0);
+            tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel3.Location = new System.Drawing.Point(4, 1017);
+            tableLayoutPanel3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tableLayoutPanel3.Name = "tableLayoutPanel3";
+            tableLayoutPanel3.RowCount = 1;
+            tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel3.Size = new System.Drawing.Size(1222, 76);
+            tableLayoutPanel3.TabIndex = 10;
             // 
             // button2
             // 
             button2.BackColor = System.Drawing.Color.CadetBlue;
+            button2.Dock = System.Windows.Forms.DockStyle.Fill;
             button2.Font = new System.Drawing.Font("微软雅黑", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
             button2.ForeColor = System.Drawing.Color.Yellow;
-            button2.Location = new System.Drawing.Point(4, 160);
-            button2.Margin = new System.Windows.Forms.Padding(4);
+            button2.Location = new System.Drawing.Point(6, 6);
+            button2.Margin = new System.Windows.Forms.Padding(6);
             button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(169, 49);
+            button2.Size = new System.Drawing.Size(599, 64);
             button2.TabIndex = 6;
-            button2.Text = "发送";
+            button2.Text = "发送（私聊）";
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
+            // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Checked = true;
+            checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            checkBox1.Location = new System.Drawing.Point(614, 3);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new System.Drawing.Size(256, 35);
+            checkBox1.TabIndex = 7;
+            checkBox1.Text = "句尾有换行直接发送";
+            checkBox1.UseVisualStyleBackColor = true;
+            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(tabPage1);
+            tabControl1.Controls.Add(tabPage2);
+            tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            tabControl1.Location = new System.Drawing.Point(4, 5);
+            tabControl1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new System.Drawing.Size(1222, 665);
+            tabControl1.TabIndex = 8;
+            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
+            // 
+            // tabPage1
+            // 
+            tabPage1.BackColor = System.Drawing.Color.Transparent;
+            tabPage1.Controls.Add(textLocalTest);
+            tabPage1.Location = new System.Drawing.Point(4, 40);
+            tabPage1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tabPage1.Size = new System.Drawing.Size(1214, 621);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "私聊窗口";
             // 
             // textLocalTest
             // 
             textLocalTest.BackColor = System.Drawing.SystemColors.ActiveCaption;
             textLocalTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
             textLocalTest.ContextMenuStrip = contextMenuStrip1;
+            textLocalTest.Dock = System.Windows.Forms.DockStyle.Fill;
             textLocalTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            textLocalTest.Location = new System.Drawing.Point(4, 217);
-            textLocalTest.Margin = new System.Windows.Forms.Padding(4);
+            textLocalTest.Location = new System.Drawing.Point(4, 5);
+            textLocalTest.Margin = new System.Windows.Forms.Padding(6);
             textLocalTest.MaxLength = 32767000;
             textLocalTest.Multiline = true;
             textLocalTest.Name = "textLocalTest";
             textLocalTest.ReadOnly = true;
             textLocalTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textLocalTest.Size = new System.Drawing.Size(567, 400);
+            textLocalTest.Size = new System.Drawing.Size(1206, 611);
             textLocalTest.TabIndex = 3;
             // 
-            // button3
+            // tabPage2
             // 
-            button3.BackColor = System.Drawing.Color.CadetBlue;
-            button3.Font = new System.Drawing.Font("微软雅黑", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
-            button3.ForeColor = System.Drawing.Color.Yellow;
-            button3.Location = new System.Drawing.Point(13, 253);
-            button3.Margin = new System.Windows.Forms.Padding(4);
-            button3.Name = "button3";
-            button3.Size = new System.Drawing.Size(169, 49);
-            button3.TabIndex = 7;
-            button3.Text = "储存数据";
-            button3.UseVisualStyleBackColor = false;
-            button3.Click += button3_Click;
+            tabPage2.Controls.Add(textLocalTestGroup);
+            tabPage2.Location = new System.Drawing.Point(4, 40);
+            tabPage2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            tabPage2.Size = new System.Drawing.Size(1214, 621);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "群聊窗口";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // textLocalTestGroup
+            // 
+            textLocalTestGroup.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            textLocalTestGroup.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            textLocalTestGroup.Dock = System.Windows.Forms.DockStyle.Fill;
+            textLocalTestGroup.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            textLocalTestGroup.Location = new System.Drawing.Point(4, 5);
+            textLocalTestGroup.Margin = new System.Windows.Forms.Padding(6);
+            textLocalTestGroup.MaxLength = 32767000;
+            textLocalTestGroup.Multiline = true;
+            textLocalTestGroup.Name = "textLocalTestGroup";
+            textLocalTestGroup.ReadOnly = true;
+            textLocalTestGroup.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            textLocalTestGroup.Size = new System.Drawing.Size(1206, 611);
+            textLocalTestGroup.TabIndex = 4;
+            // 
+            // textInputTest
+            // 
+            textInputTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            textInputTest.ContextMenuStrip = contextMenuStrip1;
+            textInputTest.Dock = System.Windows.Forms.DockStyle.Fill;
+            textInputTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            textInputTest.Location = new System.Drawing.Point(6, 681);
+            textInputTest.Margin = new System.Windows.Forms.Padding(6);
+            textInputTest.MaxLength = 32767000;
+            textInputTest.Multiline = true;
+            textInputTest.Name = "textInputTest";
+            textInputTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            textInputTest.Size = new System.Drawing.Size(1218, 325);
+            textInputTest.TabIndex = 4;
+            textInputTest.TextChanged += textInputTest_TextChanged;
             // 
             // menuStrip1
             // 
+            menuStrip1.BackColor = System.Drawing.SystemColors.MenuBar;
+            menuStrip1.Font = new System.Drawing.Font("黑体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 文件ToolStripMenuItem, bot配置ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 启动botToolStripMenuItem, 存档当前配置ToolStripMenuItem, 文件ToolStripMenuItem });
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new System.Drawing.Size(1400, 32);
+            menuStrip1.Padding = new System.Windows.Forms.Padding(9, 3, 0, 3);
+            menuStrip1.Size = new System.Drawing.Size(1650, 38);
             menuStrip1.TabIndex = 5;
             menuStrip1.Text = "menuStrip1";
             // 
+            // 启动botToolStripMenuItem
+            // 
+            启动botToolStripMenuItem.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 134);
+            启动botToolStripMenuItem.ForeColor = System.Drawing.Color.Blue;
+            启动botToolStripMenuItem.Name = "启动botToolStripMenuItem";
+            启动botToolStripMenuItem.Size = new System.Drawing.Size(107, 32);
+            启动botToolStripMenuItem.Text = "启动bot";
+            启动botToolStripMenuItem.Click += 启动botToolStripMenuItem_Click;
+            // 
+            // 存档当前配置ToolStripMenuItem
+            // 
+            存档当前配置ToolStripMenuItem.Name = "存档当前配置ToolStripMenuItem";
+            存档当前配置ToolStripMenuItem.Size = new System.Drawing.Size(158, 32);
+            存档当前配置ToolStripMenuItem.Text = "存档当前配置";
+            存档当前配置ToolStripMenuItem.Click += 存档当前配置ToolStripMenuItem_Click;
+            // 
             // 文件ToolStripMenuItem
             // 
-            文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { 打开ToolStripMenuItem });
+            文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { ToolStripMenuItem0, toolStripMenuItem1 });
             文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
-            文件ToolStripMenuItem.Size = new System.Drawing.Size(62, 28);
+            文件ToolStripMenuItem.Size = new System.Drawing.Size(70, 32);
             文件ToolStripMenuItem.Text = "文件";
             // 
-            // 打开ToolStripMenuItem
+            // ToolStripMenuItem0
             // 
-            打开ToolStripMenuItem.Name = "打开ToolStripMenuItem";
-            打开ToolStripMenuItem.Size = new System.Drawing.Size(146, 34);
-            打开ToolStripMenuItem.Text = "打开";
+            ToolStripMenuItem0.Name = "ToolStripMenuItem0";
+            ToolStripMenuItem0.Size = new System.Drawing.Size(154, 34);
+            ToolStripMenuItem0.Text = "打开";
             // 
-            // bot配置ToolStripMenuItem
+            // toolStripMenuItem1
             // 
-            bot配置ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { 启动ToolStripMenuItem });
-            bot配置ToolStripMenuItem.Name = "bot配置ToolStripMenuItem";
-            bot配置ToolStripMenuItem.Size = new System.Drawing.Size(92, 28);
-            bot配置ToolStripMenuItem.Text = "bot配置";
-            // 
-            // 启动ToolStripMenuItem
-            // 
-            启动ToolStripMenuItem.Name = "启动ToolStripMenuItem";
-            启动ToolStripMenuItem.Size = new System.Drawing.Size(146, 34);
-            启动ToolStripMenuItem.Text = "启动";
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new System.Drawing.Size(154, 34);
+            toolStripMenuItem1.Text = "退出";
             // 
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Inset;
             tableLayoutPanel1.ColumnCount = 2;
-            tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 39.58333F));
-            tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60.41667F));
+            tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 130F));
+            tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableLayoutPanel1.Controls.Add(lbUpdateTime, 1, 2);
             tableLayoutPanel1.Controls.Add(label3, 0, 2);
             tableLayoutPanel1.Controls.Add(lbUseNum, 0, 11);
@@ -287,23 +353,23 @@
             tableLayoutPanel1.Controls.Add(lbMem, 0, 7);
             tableLayoutPanel1.Controls.Add(pbMem, 1, 7);
             tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-            tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
+            tableLayoutPanel1.Location = new System.Drawing.Point(6, 6);
+            tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(6);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 12;
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 75F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 63F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 63F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 62F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 12F));
-            tableLayoutPanel1.Size = new System.Drawing.Size(416, 766);
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 62F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 62F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 117F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 98F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 93F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 68F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 70F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 78F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 19F));
+            tableLayoutPanel1.Size = new System.Drawing.Size(388, 1142);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // lbUpdateTime
@@ -311,10 +377,10 @@
             lbUpdateTime.AutoSize = true;
             lbUpdateTime.Dock = System.Windows.Forms.DockStyle.Fill;
             lbUpdateTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbUpdateTime.Location = new System.Drawing.Point(170, 78);
-            lbUpdateTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbUpdateTime.Location = new System.Drawing.Point(140, 118);
+            lbUpdateTime.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbUpdateTime.Name = "lbUpdateTime";
-            lbUpdateTime.Size = new System.Drawing.Size(240, 40);
+            lbUpdateTime.Size = new System.Drawing.Size(240, 62);
             lbUpdateTime.TabIndex = 25;
             lbUpdateTime.Text = "-";
             lbUpdateTime.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -324,10 +390,10 @@
             label3.AutoSize = true;
             label3.Dock = System.Windows.Forms.DockStyle.Fill;
             label3.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label3.Location = new System.Drawing.Point(6, 78);
-            label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label3.Location = new System.Drawing.Point(8, 118);
+            label3.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(154, 40);
+            label3.Size = new System.Drawing.Size(118, 62);
             label3.TabIndex = 24;
             label3.Text = "更新日期";
             label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -337,10 +403,10 @@
             lbUseNum.AutoSize = true;
             lbUseNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbUseNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbUseNum.Location = new System.Drawing.Point(170, 576);
-            lbUseNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbUseNum.Location = new System.Drawing.Point(140, 882);
+            lbUseNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbUseNum.Name = "lbUseNum";
-            lbUseNum.Size = new System.Drawing.Size(240, 188);
+            lbUseNum.Size = new System.Drawing.Size(240, 258);
             lbUseNum.TabIndex = 23;
             lbUseNum.Text = "0";
             lbUseNum.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -350,10 +416,10 @@
             lbGroupNum.AutoSize = true;
             lbGroupNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbGroupNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbGroupNum.Location = new System.Drawing.Point(170, 524);
-            lbGroupNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbGroupNum.Location = new System.Drawing.Point(140, 802);
+            lbGroupNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbGroupNum.Name = "lbGroupNum";
-            lbGroupNum.Size = new System.Drawing.Size(240, 50);
+            lbGroupNum.Size = new System.Drawing.Size(240, 78);
             lbGroupNum.TabIndex = 22;
             lbGroupNum.Text = "0";
             lbGroupNum.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -363,10 +429,10 @@
             label15.AutoSize = true;
             label15.Dock = System.Windows.Forms.DockStyle.Fill;
             label15.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label15.Location = new System.Drawing.Point(6, 576);
-            label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label15.Location = new System.Drawing.Point(8, 882);
+            label15.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(154, 188);
+            label15.Size = new System.Drawing.Size(118, 258);
             label15.TabIndex = 21;
             label15.Text = "调用次数";
             label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -376,10 +442,10 @@
             lbFriendNum.AutoSize = true;
             lbFriendNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbFriendNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbFriendNum.Location = new System.Drawing.Point(170, 477);
-            lbFriendNum.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbFriendNum.Location = new System.Drawing.Point(140, 730);
+            lbFriendNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbFriendNum.Name = "lbFriendNum";
-            lbFriendNum.Size = new System.Drawing.Size(240, 45);
+            lbFriendNum.Size = new System.Drawing.Size(240, 70);
             lbFriendNum.TabIndex = 20;
             lbFriendNum.Text = "0";
             lbFriendNum.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -389,10 +455,10 @@
             label13.AutoSize = true;
             label13.Dock = System.Windows.Forms.DockStyle.Fill;
             label13.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label13.Location = new System.Drawing.Point(6, 524);
-            label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label13.Location = new System.Drawing.Point(8, 802);
+            label13.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label13.Name = "label13";
-            label13.Size = new System.Drawing.Size(154, 50);
+            label13.Size = new System.Drawing.Size(118, 78);
             label13.TabIndex = 19;
             label13.Text = "群数";
             label13.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -402,10 +468,10 @@
             label12.AutoSize = true;
             label12.Dock = System.Windows.Forms.DockStyle.Fill;
             label12.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label12.Location = new System.Drawing.Point(6, 431);
-            label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label12.Location = new System.Drawing.Point(8, 660);
+            label12.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label12.Name = "label12";
-            label12.Size = new System.Drawing.Size(154, 44);
+            label12.Size = new System.Drawing.Size(118, 68);
             label12.TabIndex = 18;
             label12.Text = "Bot QQ";
             label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -415,10 +481,10 @@
             lbQQ.AutoSize = true;
             lbQQ.Dock = System.Windows.Forms.DockStyle.Fill;
             lbQQ.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbQQ.Location = new System.Drawing.Point(170, 431);
-            lbQQ.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbQQ.Location = new System.Drawing.Point(140, 660);
+            lbQQ.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbQQ.Name = "lbQQ";
-            lbQQ.Size = new System.Drawing.Size(240, 44);
+            lbQQ.Size = new System.Drawing.Size(240, 68);
             lbQQ.TabIndex = 17;
             lbQQ.Text = "0";
             lbQQ.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -428,10 +494,10 @@
             label10.AutoSize = true;
             label10.Dock = System.Windows.Forms.DockStyle.Fill;
             label10.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label10.Location = new System.Drawing.Point(6, 477);
-            label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label10.Location = new System.Drawing.Point(8, 730);
+            label10.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label10.Name = "label10";
-            label10.Size = new System.Drawing.Size(154, 45);
+            label10.Size = new System.Drawing.Size(118, 70);
             label10.TabIndex = 16;
             label10.Text = "好友数";
             label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -441,10 +507,10 @@
             lbTimeSpan.AutoSize = true;
             lbTimeSpan.Dock = System.Windows.Forms.DockStyle.Fill;
             lbTimeSpan.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbTimeSpan.Location = new System.Drawing.Point(170, 239);
-            lbTimeSpan.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbTimeSpan.Location = new System.Drawing.Point(140, 365);
+            lbTimeSpan.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbTimeSpan.Name = "lbTimeSpan";
-            lbTimeSpan.Size = new System.Drawing.Size(240, 63);
+            lbTimeSpan.Size = new System.Drawing.Size(240, 98);
             lbTimeSpan.TabIndex = 15;
             lbTimeSpan.Text = "222天\r\n10小时33分22秒";
             lbTimeSpan.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -454,10 +520,10 @@
             label8.AutoSize = true;
             label8.Dock = System.Windows.Forms.DockStyle.Fill;
             label8.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label8.Location = new System.Drawing.Point(6, 239);
-            label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label8.Location = new System.Drawing.Point(8, 365);
+            label8.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label8.Name = "label8";
-            label8.Size = new System.Drawing.Size(154, 63);
+            label8.Size = new System.Drawing.Size(118, 98);
             label8.TabIndex = 14;
             label8.Text = "运行时长";
             label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -467,10 +533,10 @@
             lbBeginTime.AutoSize = true;
             lbBeginTime.Dock = System.Windows.Forms.DockStyle.Fill;
             lbBeginTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbBeginTime.Location = new System.Drawing.Point(170, 162);
-            lbBeginTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbBeginTime.Location = new System.Drawing.Point(140, 246);
+            lbBeginTime.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbBeginTime.Name = "lbBeginTime";
-            lbBeginTime.Size = new System.Drawing.Size(240, 75);
+            lbBeginTime.Size = new System.Drawing.Size(240, 117);
             lbBeginTime.TabIndex = 13;
             lbBeginTime.Text = "2020-11-22 11:22:33";
             lbBeginTime.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -480,10 +546,10 @@
             label6.AutoSize = true;
             label6.Dock = System.Windows.Forms.DockStyle.Fill;
             label6.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label6.Location = new System.Drawing.Point(6, 162);
-            label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label6.Location = new System.Drawing.Point(8, 246);
+            label6.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label6.Name = "label6";
-            label6.Size = new System.Drawing.Size(154, 75);
+            label6.Size = new System.Drawing.Size(118, 117);
             label6.TabIndex = 12;
             label6.Text = "启动时间";
             label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -493,10 +559,10 @@
             lbPort.AutoSize = true;
             lbPort.Dock = System.Windows.Forms.DockStyle.Fill;
             lbPort.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbPort.Location = new System.Drawing.Point(170, 120);
-            lbPort.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbPort.Location = new System.Drawing.Point(140, 182);
+            lbPort.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbPort.Name = "lbPort";
-            lbPort.Size = new System.Drawing.Size(240, 40);
+            lbPort.Size = new System.Drawing.Size(240, 62);
             lbPort.TabIndex = 11;
             lbPort.Text = "9999";
             lbPort.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -506,10 +572,10 @@
             label4.AutoSize = true;
             label4.Dock = System.Windows.Forms.DockStyle.Fill;
             label4.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label4.Location = new System.Drawing.Point(6, 120);
-            label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label4.Location = new System.Drawing.Point(8, 182);
+            label4.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(154, 40);
+            label4.Size = new System.Drawing.Size(118, 62);
             label4.TabIndex = 4;
             label4.Text = "Mirai";
             label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -519,10 +585,10 @@
             lbVersion.AutoSize = true;
             lbVersion.Dock = System.Windows.Forms.DockStyle.Fill;
             lbVersion.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbVersion.Location = new System.Drawing.Point(170, 44);
-            lbVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbVersion.Location = new System.Drawing.Point(140, 66);
+            lbVersion.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbVersion.Name = "lbVersion";
-            lbVersion.Size = new System.Drawing.Size(240, 32);
+            lbVersion.Size = new System.Drawing.Size(240, 50);
             lbVersion.TabIndex = 10;
             lbVersion.Text = "v 0.1.0";
             lbVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -532,10 +598,10 @@
             label2.AutoSize = true;
             label2.Dock = System.Windows.Forms.DockStyle.Fill;
             label2.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label2.Location = new System.Drawing.Point(6, 44);
-            label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label2.Location = new System.Drawing.Point(8, 66);
+            label2.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(154, 32);
+            label2.Size = new System.Drawing.Size(118, 50);
             label2.TabIndex = 3;
             label2.Text = "版本";
             label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -545,10 +611,10 @@
             lbState.AutoSize = true;
             lbState.Dock = System.Windows.Forms.DockStyle.Fill;
             lbState.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbState.Location = new System.Drawing.Point(170, 2);
-            lbState.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbState.Location = new System.Drawing.Point(140, 2);
+            lbState.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbState.Name = "lbState";
-            lbState.Size = new System.Drawing.Size(240, 40);
+            lbState.Size = new System.Drawing.Size(240, 62);
             lbState.TabIndex = 3;
             lbState.Text = "初始";
             lbState.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -558,10 +624,10 @@
             label1.AutoSize = true;
             label1.Dock = System.Windows.Forms.DockStyle.Fill;
             label1.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label1.Location = new System.Drawing.Point(6, 2);
-            label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label1.Location = new System.Drawing.Point(8, 2);
+            label1.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(154, 40);
+            label1.Size = new System.Drawing.Size(118, 62);
             label1.TabIndex = 0;
             label1.Text = "运行状态";
             label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -569,10 +635,10 @@
             // pbCPU
             // 
             pbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbCPU.Location = new System.Drawing.Point(170, 308);
-            pbCPU.Margin = new System.Windows.Forms.Padding(4);
+            pbCPU.Location = new System.Drawing.Point(140, 471);
+            pbCPU.Margin = new System.Windows.Forms.Padding(6);
             pbCPU.Name = "pbCPU";
-            pbCPU.Size = new System.Drawing.Size(240, 55);
+            pbCPU.Size = new System.Drawing.Size(240, 86);
             pbCPU.TabIndex = 4;
             // 
             // lbCPU
@@ -580,10 +646,10 @@
             lbCPU.AutoSize = true;
             lbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
             lbCPU.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbCPU.Location = new System.Drawing.Point(6, 304);
-            lbCPU.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbCPU.Location = new System.Drawing.Point(8, 465);
+            lbCPU.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbCPU.Name = "lbCPU";
-            lbCPU.Size = new System.Drawing.Size(154, 63);
+            lbCPU.Size = new System.Drawing.Size(118, 98);
             lbCPU.TabIndex = 5;
             lbCPU.Text = "CPU\r\n(100%)";
             lbCPU.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -593,10 +659,10 @@
             lbMem.AutoSize = true;
             lbMem.Dock = System.Windows.Forms.DockStyle.Fill;
             lbMem.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbMem.Location = new System.Drawing.Point(6, 369);
-            lbMem.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            lbMem.Location = new System.Drawing.Point(8, 565);
+            lbMem.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbMem.Name = "lbMem";
-            lbMem.Size = new System.Drawing.Size(154, 60);
+            lbMem.Size = new System.Drawing.Size(118, 93);
             lbMem.TabIndex = 8;
             lbMem.Text = "内存\r\n(0%)";
             lbMem.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -604,46 +670,119 @@
             // pbMem
             // 
             pbMem.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbMem.Location = new System.Drawing.Point(170, 373);
-            pbMem.Margin = new System.Windows.Forms.Padding(4);
+            pbMem.Location = new System.Drawing.Point(140, 571);
+            pbMem.Margin = new System.Windows.Forms.Padding(6);
             pbMem.Name = "pbMem";
-            pbMem.Size = new System.Drawing.Size(240, 52);
+            pbMem.Size = new System.Drawing.Size(240, 81);
             pbMem.TabIndex = 9;
+            // 
+            // tabControl2
+            // 
+            tabControl2.Controls.Add(tabPage3);
+            tabControl2.Controls.Add(tabPage4);
+            tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
+            tabControl2.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            tabControl2.Location = new System.Drawing.Point(403, 3);
+            tabControl2.Name = "tabControl2";
+            tabControl2.SelectedIndex = 0;
+            tabControl2.Size = new System.Drawing.Size(1244, 1148);
+            tabControl2.TabIndex = 10;
+            // 
+            // tabPage3
+            // 
+            tabPage3.Controls.Add(tableLayoutPanel4);
+            tabPage3.Location = new System.Drawing.Point(4, 40);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            tabPage3.Size = new System.Drawing.Size(1236, 1104);
+            tabPage3.TabIndex = 0;
+            tabPage3.Text = "日志信息";
+            tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanel4
+            // 
+            tableLayoutPanel4.ColumnCount = 1;
+            tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel4.Controls.Add(tbMmdk, 0, 0);
+            tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel4.Location = new System.Drawing.Point(3, 3);
+            tableLayoutPanel4.Name = "tableLayoutPanel4";
+            tableLayoutPanel4.RowCount = 1;
+            tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            tableLayoutPanel4.Size = new System.Drawing.Size(1230, 1098);
+            tableLayoutPanel4.TabIndex = 0;
+            // 
+            // tabPage4
+            // 
+            tabPage4.Controls.Add(tableLayoutPanel2);
+            tabPage4.Location = new System.Drawing.Point(4, 40);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            tabPage4.Size = new System.Drawing.Size(1236, 1104);
+            tabPage4.TabIndex = 1;
+            tabPage4.Text = "本地模拟测试";
+            tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanel5
+            // 
+            tableLayoutPanel5.BackColor = System.Drawing.SystemColors.Window;
+            tableLayoutPanel5.ColumnCount = 2;
+            tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 400F));
+            tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel5.Controls.Add(tableLayoutPanel1, 0, 0);
+            tableLayoutPanel5.Controls.Add(tabControl2, 1, 0);
+            tableLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel5.Location = new System.Drawing.Point(0, 38);
+            tableLayoutPanel5.Name = "tableLayoutPanel5";
+            tableLayoutPanel5.RowCount = 1;
+            tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel5.Size = new System.Drawing.Size(1650, 1154);
+            tableLayoutPanel5.TabIndex = 11;
             // 
             // FormMonitor
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 28F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1820, 766);
-            Controls.Add(splitContainer1);
-            Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            ClientSize = new System.Drawing.Size(1650, 1192);
+            Controls.Add(tableLayoutPanel5);
+            Controls.Add(menuStrip1);
+            Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             MainMenuStrip = menuStrip1;
-            Margin = new System.Windows.Forms.Padding(4);
-            MinimumSize = new System.Drawing.Size(890, 722);
+            Margin = new System.Windows.Forms.Padding(6);
+            MinimumSize = new System.Drawing.Size(1276, 1092);
             Name = "FormMonitor";
             Text = "MIraiKUgua";
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
             contextMenuStrip1.ResumeLayout(false);
-            splitContainer1.Panel1.ResumeLayout(false);
-            splitContainer1.Panel1.PerformLayout();
-            splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
-            splitContainer1.ResumeLayout(false);
-            flowLayoutPanel1.ResumeLayout(false);
-            flowLayoutPanel1.PerformLayout();
+            tableLayoutPanel2.ResumeLayout(false);
+            tableLayoutPanel2.PerformLayout();
+            tableLayoutPanel3.ResumeLayout(false);
+            tableLayoutPanel3.PerformLayout();
+            tabControl1.ResumeLayout(false);
+            tabPage1.ResumeLayout(false);
+            tabPage1.PerformLayout();
+            tabPage2.ResumeLayout(false);
+            tabPage2.PerformLayout();
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            tabControl2.ResumeLayout(false);
+            tabPage3.ResumeLayout(false);
+            tableLayoutPanel4.ResumeLayout(false);
+            tableLayoutPanel4.PerformLayout();
+            tabPage4.ResumeLayout(false);
+            tableLayoutPanel5.ResumeLayout(false);
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private System.Windows.Forms.TextBox tbMmdk;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.Label lbState;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label1;
@@ -673,14 +812,26 @@
         private System.Windows.Forms.TextBox textLocalTest;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem 文件ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem bot配置ToolStripMenuItem;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.ToolStripMenuItem 启动ToolStripMenuItem;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.ToolStripMenuItem 打开ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem0;
         private System.Windows.Forms.Label lbUpdateTime;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
+        private System.Windows.Forms.TextBox textLocalTestGroup;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem 启动botToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 存档当前配置ToolStripMenuItem;
+        private System.Windows.Forms.TabControl tabControl2;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel5;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

@@ -251,9 +251,13 @@ namespace MMDK.Mods
                                 // 提取行数和列数
                                 int rows = int.Parse(match.Groups[1].Value);
                                 int columns = match.Groups[2].Success ? int.Parse(match.Groups[2].Value) : 1; // 如果没有列数，默认为1
-
+                                if(rows<1 || columns<1 || rows > 100 || columns > 100 || rows * columns > 2000)
+                                {
+                                    results.Add($"输入太多，溢出来了！");
+                                    return true;
+                                }
                                 // 生成随机字符串
-                                results.Add(GenerateRandomString(rows, columns));
+                                results.Add(GenerateRandomStringHans(rows, columns));
                                 return true;
                             }
                             else
@@ -476,6 +480,30 @@ namespace MMDK.Mods
         }
 
 
+        /// <summary>
+        /// 生成随机字符串
+        /// </summary>
+        /// <param name="rows">行数</param>
+        /// <param name="columns">列数</param>
+        /// <returns>生成的字符串</returns>
+        string GenerateRandomStringHans(int rows, int columns)
+        {
+            StringBuilder sb = new StringBuilder();
+            Random random = new Random();
+
+            // 生成随机字符
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    char rc = randomChar[random.Next(randomChar.Length)]; 
+                    sb.Append(rc);
+                }
+                sb.AppendLine(); 
+            }
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// 生成随机字符串
@@ -483,7 +511,7 @@ namespace MMDK.Mods
         /// <param name="rows">行数</param>
         /// <param name="columns">列数</param>
         /// <returns>生成的字符串</returns>
-        static string GenerateRandomString(int rows, int columns)
+        string GenerateRandomString(int rows, int columns)
         {
             StringBuilder sb = new StringBuilder();
             Random random = new Random();
