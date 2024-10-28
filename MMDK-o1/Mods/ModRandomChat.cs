@@ -69,7 +69,6 @@ namespace MMDK.Mods
 
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");
 
-
                 // pen
                 var penlist = FileManager.ReadLines($"{PluginPath}/{penName}").ToList();
 

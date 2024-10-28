@@ -339,7 +339,7 @@ namespace MMDK.Util
                     {
                         string fullPath = $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
                         string fullDictPath = System.IO.Path.GetDirectoryName(fullPath);
-                        string fullFilePath = System.IO.Path.GetFileName(fullPath);
+                        string fullFilePath = System.IO.Path.GetFullPath(fullPath);
                         if (!Directory.Exists(fullDictPath))
                         {
                             Logger.Instance.Log($"新建资源文件夹，路径是{fullDictPath}", LogType.Debug);

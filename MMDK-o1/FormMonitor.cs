@@ -649,7 +649,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             p.Name = s.group.name;
             if (talked)
             {
-                p.UseTimes += 1;
+                //p.UseTimes += 1;
                 Config.Instance.GetPlayerInfo(s.id).UseTimes += 1;
                 Config.Instance.App.Log.playTimeGroup += 1;
             }
@@ -957,8 +957,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                         lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
 
 
-                        lbFriendNum.Text = $"{Config.Instance.friends.Count}";
-                        lbGroupNum.Text = $"{Config.Instance.groups.Count}";
+                        lbFriendNum.Text = $"{Config.Instance.players.Count}";
+                        lbGroupNum.Text = $"{Config.Instance.playgroups.Count}";
                         lbUseNum.Text = $"{Config.Instance.App.Log.playTimePrivate + Config.Instance.App.Log.playTimeGroup}";
 
                         pbCPU.Value = (int)(cpu);
