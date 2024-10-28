@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using System.IO;
+using System.IO.Compression;
 
 namespace MMDK.Util
 {
@@ -12,22 +13,82 @@ namespace MMDK.Util
     /// </summary>
     class FileManager
     {
+        public enum FileType
+        {
+            TextRaw,
+            TextWithCompress,
+            LinesRaw,
+            LinesWithCompress,
+        }
         public static Encoding encoding = Encoding.UTF8;
 
-        public static string readText(string file)
+        /// <summary>
+        /// 读一个文件全文进来
+        /// </summary>
+        /// <param name="resourceName">注意，是资源名称，会从配置文件json里找对应路径</param>
+        /// <param name="IsCompress">true表示是压缩文件，会用默认方式将之解压先</param>
+        /// <returns></returns>
+        public static string ReadResource(string resourceName, bool IsCompress=false)
         {
             try
             {
-                return File.ReadAllText(file, encoding);
-            }catch(Exception ex)
+                string realPath = Config.Instance.ResourceFullPath(resourceName);
+                if (File.Exists(realPath))
+                {
+                    string result = "";
+                    if (IsCompress)
+                    {
+                        // 压缩文件，将之解压先
+                        using (FileStream fileStream = new FileStream(realPath, FileMode.Open))
+                        using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
+                        using (StreamReader reader = new StreamReader(gzipStream))
+                        {
+                            result = reader.ReadToEnd();
+                        }
+                    }
+                    else
+                    {
+                        using (FileStream fileStream = new FileStream(realPath, FileMode.Open))
+                        using (StreamReader reader = new StreamReader(fileStream))
+                        {
+                            result = reader.ReadToEnd();
+                        }
+                    }
+                    return result;
+                }
+            }
+            catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
             return "";
         }
 
+        /// <summary>
+        /// 读一个文件并拆分每行成list
+        /// </summary>
+        /// <param name="resourceName">注意，是资源名称，会从配置文件json里找对应路径</param>
+        /// <param name="IsCompress">true表示是压缩文件，会用默认方式将之解压先</param>
+        /// <returns></returns>
+        public static IEnumerable<string> ReadResourceLines(string resourceName, bool IsCompress = false)
+        {
+            try
+            {
+                string rawData = ReadResource(resourceName, IsCompress);
+                if (!string.IsNullOrWhiteSpace(rawData))
+                {
+                    return rawData.Split( '\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            return new List<string>();
+        }
 
-        public static string[] readLines(string file)
+
+        public static string[] ReadLines(string file)
         {
             List<string> res = new List<string>();
 
@@ -58,56 +119,7 @@ namespace MMDK.Util
             return res.ToArray();
         }
 
-        public static Dictionary<string, string> readDict(string file, char[] spliters = null)
-        {
-            Dictionary<string, string> res = new Dictionary<string, string>();
-            try
-            {
-                if (spliters == null) spliters = new char[] { ' ', '\t' };
-                string[] lines = readLines(file);
-                foreach (var line in lines)
-                {
-                    var items = line.Split(spliters, StringSplitOptions.RemoveEmptyEntries);
-                    if (items.Length >= 2)
-                    {
-                        res[items[0].Trim()] = string.Join(" ", items.Skip(1)).Trim();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-
-
-            return res;
-        }
-
-
-        public static Dictionary<string, string[]> readDictArray(string file, char[] spliters = null)
-        {
-            Dictionary<string, string[]> res = new Dictionary<string, string[]>();
-            try
-            {
-                if (spliters == null) spliters = new char[] { ' ', '\t' };
-                string[] lines = readLines(file);
-                foreach (var line in lines)
-                {
-                    var items = line.Split(spliters, StringSplitOptions.RemoveEmptyEntries);
-                    if (items.Length >= 2)
-                    {
-                        res[items[0].Trim()] = items.Skip(1).ToArray();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-
-
-            return res;
-        }
+       
 
         public static void writeText(string file, string text)
         {
@@ -121,17 +133,6 @@ namespace MMDK.Util
             }
         }
 
-        public static void appendText(string file, string text)
-        {
-            try
-            {
-                File.AppendAllText(file, text, encoding);
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
 
         public static void writeLines(string file, IEnumerable<string> lines)
         {
@@ -145,46 +146,36 @@ namespace MMDK.Util
             }
         }
 
-        public static void writeDict(string file, Dictionary<string, string> dict, char spliter = '\t')
+
+        /// <summary>
+        /// 解压缩文件
+        /// </summary>
+        /// <param name="compressedFilePath"></param>
+        /// <param name="decompressedFilePath"></param>
+        public static void DecompressFile(string compressedFilePath, string decompressedFilePath)
         {
-            try
+            using (FileStream fileStream = new FileStream(compressedFilePath, FileMode.Open))
+            using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
+            using (FileStream outputFileStream = new FileStream(decompressedFilePath, FileMode.Create))
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (var item in dict)
-                {
-                    sb.Append($"{item.Key}{spliter}{item.Value}\r\n");
-                }
-                File.WriteAllText(file, sb.ToString(), encoding);
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
+                gzipStream.CopyTo(outputFileStream);
             }
         }
-        
-        public static void writeDictArray(string file, Dictionary<string, string[]> dicts, char spliter = '\t')
+
+        /// <summary>
+        /// 压缩文件
+        /// </summary>
+        /// <param name="decompressedFilePath"></param>
+        /// <param name="compressedFilePath"></param>
+        public static void CompressFile(string decompressedFilePath, string compressedFilePath)
         {
-            try
+            using (FileStream inputFileStream = new FileStream(decompressedFilePath, FileMode.Open))
+            using (FileStream fileStream = new FileStream(compressedFilePath, FileMode.Create))
+            using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Compress))
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (var item in dicts)
-                {
-                    sb.Append($"{item.Key}{spliter}{string.Join($"{spliter}", item.Value)}\r\n");
-                }
-                File.WriteAllText(file, sb.ToString(), encoding);
+                inputFileStream.CopyTo(gzipStream);
             }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-
         }
-
-
-
-
-
-
 
 
     }

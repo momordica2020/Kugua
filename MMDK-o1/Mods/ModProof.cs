@@ -37,7 +37,7 @@ namespace MMDK.Mods
             try
             {
                 bhdict = new Dictionary<string, int>();
-                var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Bihua"));
+                var lines = FileManager.ReadResourceLines("Bihua");
                 foreach (var line in lines)
                 {
                     string[] vitem = line.Split('\t');

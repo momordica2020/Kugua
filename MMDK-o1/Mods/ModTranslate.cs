@@ -34,7 +34,7 @@ namespace MMDK.Mods
             try
             {
                 ctlist = new Dictionary<string, string>();
-                var lines = FileManager.readLines($"{Config.Instance.App.ResourcePath}/{Config.Instance.App.Resources["Translate"].Path}");
+                var lines = FileManager.ReadResourceLines("Translate");
                 foreach (var line in lines)
                 {
                     string[] vitem = line.Split('\t');

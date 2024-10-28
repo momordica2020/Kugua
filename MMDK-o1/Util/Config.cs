@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MMDK.Util
 {
+
+    #region Mod相关接口
     public interface Mod
     {
         /// <summary>
@@ -50,6 +53,10 @@ namespace MMDK.Util
         /// <param name="msg"></param>
         public void ReceiveMiraiMessage(MeowMiraiLib.Client client, MeowMiraiLib.Msg.Type.Message msg);
     }
+
+    #endregion
+
+    #region 配置文件相关结构体
 
     public class AppConfigs
     {
@@ -100,6 +107,7 @@ namespace MMDK.Util
 
     }
 
+    
     /// <summary>
     /// 个性项
     /// </summary>
@@ -145,6 +153,16 @@ namespace MMDK.Util
 
     }
 
+
+    #endregion
+
+
+
+    #region 用户和群组结构
+
+
+
+
     public enum PlayerType
     {
         Normal,
@@ -161,7 +179,7 @@ namespace MMDK.Util
 
 
 
-        public string Tag {  get; set; }
+        public HashSet<string> Tags {  get; set; }
 
 
 
@@ -169,42 +187,10 @@ namespace MMDK.Util
         public DateTime LastSignTime { get; set; }
         public long SignTimes {  get; set; }
 
-        public void SetTag(string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                if (!Is(tag))
-                {
-                    if (string.IsNullOrWhiteSpace(Tag))Tag = $"{tag},";
-                    else Tag += $"{tag},";
-                    
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
-        public void DeleteTag(string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                if (Is(tag)) Tag = Tag.Replace($"{tag},", "");
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
-
         public bool Is(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag)) return false;
-            if (!string.IsNullOrWhiteSpace(Tag) && Tag.Contains($"{tag},")) return true;
-            return false;
+            return Tags?.Contains(tag.Trim()) ?? false;
         }
     }
 
@@ -225,54 +211,18 @@ namespace MMDK.Util
 
 
 
-        public string Tag { get; set; }
+        public HashSet<string> Tags { get; set; }
 
-
-
-        public void SetTag(string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                tag = tag.Trim();
-                if (string.IsNullOrWhiteSpace(Tag)) Tag = $"{tag},";
-                else if (!Tag.Contains(tag)) Tag += $"{tag},";
-
-
-                // Save();
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
-        public void DeleteTag(string tag)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return;
-                tag = tag.Trim();
-                if (!string.IsNullOrWhiteSpace(Tag) && Tag.Contains(tag)) Tag = Tag.Replace($"{tag},", "");
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-        }
         public bool Is(string tag)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(tag)) return false;
-                return Tag.Contains($"{tag},");
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-            return false;
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            return Tags?.Contains(tag.Trim()) ?? false;
         }
     }
+
+    #endregion
+
+
 
 
     public class Config
@@ -281,6 +231,12 @@ namespace MMDK.Util
 
         bool isLoaded;
         string configFile;
+
+
+        public SystemInfo systemInfo = new SystemInfo();
+
+        // 当前程序的程序集
+        public Assembly assembly = Assembly.GetExecutingAssembly();
 
         public AppConfigs App;
         public Dictionary<long, Player> players;
@@ -332,6 +288,10 @@ namespace MMDK.Util
                 if (players != null)
                 {
                     Logger.Instance.Log($"从{path}读取了{players.Count}名用户资料", LogType.Debug);
+                    foreach(var p in players)
+                    {
+                        if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
+                    }
                 }
 
                 path = ResourceFullPath("Playgroup");
@@ -345,6 +305,10 @@ namespace MMDK.Util
                 if (playgroups != null)
                 {
                     Logger.Instance.Log($"从{path}读取了{playgroups.Count}个群组资料", LogType.Debug);
+                    foreach (var p in playgroups)
+                    {
+                        if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
+                    }
                 }
 
 
@@ -466,7 +430,7 @@ namespace MMDK.Util
                     Name = "",
                     Type = PlayerType.Normal,
                     UseTimes = 0,
-                    Tag= "",
+                    Tags = new HashSet<string>(),
                 };
                 players.Add(id, p2);
                 return p2;
@@ -521,7 +485,7 @@ namespace MMDK.Util
                 {
                     Name = "",
                     Type = PlaygroupType.Normal,
-                    Tag = "",
+                    Tags = new HashSet<string>(),
                     UseTimes = 0
                 };
                 playgroups.Add(id, p);

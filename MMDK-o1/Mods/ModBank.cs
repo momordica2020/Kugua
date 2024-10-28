@@ -297,7 +297,7 @@ namespace MMDK.Mods
         {
             try
             {
-                var items = line.Trim().Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                var items = line.Trim().Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (items.Length >= 6)
                 {
                     src = long.Parse(items[0]);

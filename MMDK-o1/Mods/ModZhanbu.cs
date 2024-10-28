@@ -25,7 +25,7 @@ namespace MMDK.Mods
         {
             try
             {
-                var lines = FileManager.readLines(Config.Instance.ResourceFullPath("Zhouyi"));
+                var lines = FileManager.ReadResourceLines("Zhouyi");
                 string nowGuaNum = "";
                 int nowline = 0;
                 string[] items;

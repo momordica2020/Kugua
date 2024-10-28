@@ -53,11 +53,11 @@ namespace MMDK.Mods
         {
 
             string PluginPath = Config.Instance.ResourceFullPath("ModePath");
-            randomChar = FileManager.readText($"{PluginPath}/{randomch}").Trim();
+            randomChar = FileManager.ReadResource("ModePath").Trim();
 
             // gongshou
             gongshou = new List<string>();
-            var res = FileManager.readLines($"{PluginPath}/{gongshouName}");
+            var res = FileManager.ReadLines($"{PluginPath}/{gongshouName}");
             string thistmp = "";
             foreach (var line in res)
             {
@@ -77,7 +77,7 @@ namespace MMDK.Mods
             qianze1 = new List<string>();
             qianze2 = new List<string>();
             int pos = 0;
-            res = FileManager.readLines($"{PluginPath}/{qianzeName}");
+            res = FileManager.ReadLines($"{PluginPath}/{qianzeName}");
             foreach (var line in res)
             {
                 if (line.Trim().StartsWith("#1"))
@@ -100,7 +100,7 @@ namespace MMDK.Mods
             jokesOrg = new List<string>();
             jokesEvent = new List<string>();
             jokesEnemy = new List<string>();
-            res = FileManager.readLines($"{PluginPath}/{jokeName}");
+            res = FileManager.ReadLines($"{PluginPath}/{jokeName}");
             string tmpline = "";
             foreach (var line in res)
             {
@@ -171,7 +171,7 @@ namespace MMDK.Mods
 
 
             // symbols
-            lines = FileManager.readLines($"{PluginPath}/{symbolf}");
+            lines = FileManager.ReadLines($"{PluginPath}/{symbolf}");
             symbollist = new Dictionary<string, List<string>>();
             foreach (var line in lines)
             {
@@ -311,13 +311,13 @@ namespace MMDK.Mods
                             try
                             {
                                 // 笑话输入格式：“事件：A，好人：B，坏人：C，地点：D”
-                                var items = param.First().Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries);
+                                var items = param.First().Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                                 if (items.Length >= 1)
                                 {
                                     Dictionary<string, string> pairs = new Dictionary<string, string>();
                                     foreach (var item in items)
                                     {
-                                        var pair = item.Split(new char[] { ':', '：', '=', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                        var pair = item.Split(new char[] { ':', '：', '=', ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                                         if (pair.Length == 2) pairs[pair[0].Trim()] = pair[1].Trim();
                                     }
                                     if (pairs.Count > 0)

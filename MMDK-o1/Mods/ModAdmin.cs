@@ -39,47 +39,50 @@ namespace MMDK.Mods
             message = message.Trim();
 
             CommandType cmd = CommandType.None;
-            string tag = "";
             bool isGroup = groupId > 0;
             var user = Config.Instance.GetPlayerInfo(userId);
             
             var group = Config.Instance.GetGroupInfo(groupId);
             if (TryReadCommand(ref message, out cmd))
             {
+                
                 switch (cmd)
                 {
                     case CommandType.Help:
                         results.Add(getWelcomeString());
                         return true;
                     case CommandType.Ban:
+                        if (!UserHasAdminAuthority(userId)) return false;
                         var targetUserId = 0;
-                        if(int.TryParse(message, out targetUserId))
+                        if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
+                        {
+                            results.Add($"请在指令后接用户QQ号码");
+                            return true;
+                        }
+                        else
                         {
                             var targetUser = Config.Instance.GetPlayerInfo(targetUserId);
-                            targetUser.SetTag("黑名单"); // 临时性拉黑，没有加type设置
+                            targetUser.Tags.Add("黑名单"); // 临时性拉黑，没有加type设置
                             results.Add($"已全局屏蔽{targetUser.Name}({targetUserId})");
                             return true;
                         }
-                        else
+                    case CommandType.UnBan:
+                        if (!UserHasAdminAuthority(userId)) return false;
+                        var targetUserId2 = 0;
+                        if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
                         {
                             results.Add($"请在指令后接用户QQ号码");
                             return true;
                         }
-                    case CommandType.UnBan:
-                        var targetUserId2 = 0;
-                        if (int.TryParse(message, out targetUserId2))
+                        else
                         {
                             var targetUser = Config.Instance.GetPlayerInfo(targetUserId2);
-                            targetUser.DeleteTag("黑名单"); 
+                            targetUser.Tags.Remove("黑名单"); 
                             results.Add($"已解除屏蔽{targetUser.Name}({targetUserId2})");
                             return true;
                         }
-                        else
-                        {
-                            results.Add($"请在指令后接用户QQ号码");
-                            return true;
-                        }
                     case CommandType.TagAdd:
+                        if (!UserHasAdminAuthority(userId)) return false;
                         if (string.IsNullOrWhiteSpace(message))
                         {
                             results.Add($"请在指令后接tag名称");
@@ -87,17 +90,18 @@ namespace MMDK.Mods
                         }
                         if (isGroup)
                         {
-                            group.SetTag(message);
+                            group.Tags.Add(message);
                             results.Add($"本群已添加tag：{message}");
                             return true;
                         }
                         else
                         {
-                            user.SetTag(tag);
+                            user.Tags.Add(message);
                             results.Add($"私聊已添加tag：{message}");
                             return true;
                         }
                     case CommandType.TagRemove:
+                        if (!UserHasAdminAuthority(userId)) return false;
                         if (string.IsNullOrWhiteSpace(message))
                         {
                             results.Add($"请在指令后接tag名称");
@@ -105,52 +109,70 @@ namespace MMDK.Mods
                         }
                         if (isGroup)
                         {
-                            group.DeleteTag(tag);
+                            group.Tags.Remove(message);
                             results.Add($"本群已删掉tag：{message}");
                             return true;
                         }
                         else
                         {
-                            user.DeleteTag(tag);
+                            user.Tags.Remove(message);
                             results.Add($"私聊已删掉tag：{message}");
                             return true;
                         }
                     case CommandType.TagRemoveAll:
-                        if (isGroup)
+                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (string.IsNullOrWhiteSpace(message))
                         {
-                            group.Tag = "";
-                            results.Add($"本群已清空tag");
-                            return true;
-                        }
-                        else
-                        {
-                            user.Tag = "";
-                            results.Add($"私聊已清空tag");
-                            return true;
-                        }
-                    case CommandType.CheckState:
-                        string rmsg = "";
-                        if (isGroup)
-                        {
-                            if (group.Is("测试")) //临时：只有测试群可查详细信息
+                            if (isGroup)
                             {
-                                DateTime startTime = Config.Instance.App.Log.StartTime;
-                                rmsg += $"本次启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\r\n";
-                                rmsg += $"重启了{Config.Instance.App.Log.beginTimes}次\r\n";
-                                rmsg += $"加了{Config.Instance.App.Log.numGroup}个群\r\n";
-                                rmsg += $"在群里被乐{Config.Instance.App.Log.playTimeGroup}次\r\n";
-                                rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\r\n";
+                                group.Tags.Clear();
+                                results.Add($"本群已清空所有tag");
+                                return true;
                             }
                             else
                             {
-                                rmsg += $"在本群的配置是：{(string.IsNullOrWhiteSpace(group.Tag) ? "*平平无奇*" : group.Tag)}\r\n";
-                                //rmsg += $"在本群闲聊配置为：{Config.Instance.GetGroupInfo(groupId).Tag}\r\n";
+                                user.Tags.Clear();
+                                results.Add($"私聊已清空所有tag");
+                                return true;
                             }
+                        }
+                        else
+                        {
+                            if (isGroup)
+                            {
+                                group.Tags.RemoveWhere(tag => tag.Contains(message));
+                                results.Add($"本群已删除所有带{message}tag");
+                                return true;
+                            }
+                            else
+                            {
+                                user.Tags.RemoveWhere(tag => tag.Contains(message));
+                                results.Add($"私聊已删除所有带{message}tag");
+                                return true;
+                            }
+                        }
+                    case CommandType.CheckState:
+                        string rmsg = "";
+                        if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ ) //临时：只有测试群可查详细信息
+                        {
+                            DateTime startTime = Config.Instance.App.Log.StartTime;
+                            rmsg += $"内核版本 - 苦音未来v{Config.Instance.assembly.GetName().Version.ToString()}（{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}）\r\n";
+                            rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\r\n";
+                            rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存\n({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\r\n";
+                            rmsg += $"一共重启{Config.Instance.App.Log.beginTimes}次\r\n";
+                            rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\r\n";
+                            rmsg += $"在群里被乐{Config.Instance.App.Log.playTimeGroup}次\r\n";
+                            rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\r\n";
+                            rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\r\n";
+                        }
+                        if (isGroup)
+                        {
+                            rmsg += $"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}\r\n";
                         }
                         else
                         {
                             //私聊查状态
-                            rmsg += $"目前闲聊配置为：{user.Tag}\r\n";
+                             rmsg += $"在私聊的标签是：{(user.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", user.Tags))}\r\n";
                         }
                         results.Add(rmsg);
                         return true;
@@ -166,14 +188,14 @@ namespace MMDK.Mods
 
 
 
-        bool isAskme(string msg)
-        {
-            if (msg.StartsWith(Config.Instance.App.Avatar.askName))
-            {
-                return true;
-            }
-            return false;
-        }
+        //bool isAskme(string msg)
+        //{
+        //    if (msg.StartsWith(Config.Instance.App.Avatar.askName))
+        //    {
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         enum CommandType
         {

@@ -21,12 +21,14 @@ using static System.Windows.Forms.AxHost;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using MeowMiraiLib.GenericModel;
+using System.Reflection;
 
 namespace MMDK
 {
 
     partial class FormMonitor : Form
     {
+        
 
 
 
@@ -51,7 +53,7 @@ namespace MMDK
         #region 窗体相关定义
 
 
-        SystemInfo systemInfo;
+        
         DateTime beginTime;
         bool IsEnterAutoSend = true;
         bool IsVirtualGroup = false;
@@ -84,10 +86,9 @@ namespace MMDK
                 //更新显示窗口
                 try
                 {
-                    Invoke((MethodInvoker)delegate
-                    {
+                    Invoke((Action)(() =>  {
                         lbState.Text = text;
-                    });
+                    }));
                 }
                 catch (Exception ex)
                 {
@@ -103,8 +104,21 @@ namespace MMDK
         public FormMonitor()
         {
             InitializeComponent();
+            this.DoubleBuffered = true; // 设置窗体的双缓冲
         }
 
+        /// <summary>
+        /// 设置缓冲阻止频闪。？
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // Turn on WS_EX_COMPOSITED 
+                return cp;
+            }
+        }
         /// <summary>
         /// 检查并初始化配置
         /// </summary>
@@ -142,8 +156,7 @@ namespace MMDK
             int maxlen = 100000;
             try
             {
-                Invoke(new EventHandler(delegate
-                {
+                Invoke((Action)(() => {
                     tbMmdk.AppendText($"[{DateTime.Now:G}][{Logger.GetLogTypeName(logType)}]{str}\r\n");
                     if (tbMmdk.TextLength > maxlen)
                     {
@@ -151,6 +164,7 @@ namespace MMDK
                     }
                     tbMmdk.ScrollToCaret();
                 }));
+
 
                 Logger.Instance.Log(str, logType);
             }
@@ -170,6 +184,8 @@ namespace MMDK
                 logWindow($"读取配置文件...");
                 Config.Instance.Load();
 
+                logWindow($"启用过滤器...");
+                IOFilter.Instance.Init();
 
                 logWindow($"开始启动bot...");
                 Mods = new List<Mod>
@@ -445,7 +461,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                             var friend = Config.Instance.GetPlayerInfo(f.id);
                             friend.Name = f.nickname;
                             //friend.Mark = f.remark;
-                            friend.SetTag("好友");
+                            friend.Tags.Add("好友");
                             //friend.Type = PlayerType.Normal;
                             Config.Instance.friends.Add(f.id, f);
                         }
@@ -694,7 +710,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 var user = Config.Instance.GetPlayerInfo(e.fromId);
                 user.Name = e.nick;
                 //user.Mark = e.nick;
-                user.SetTag("好友");
+                user.Tags.Add("好友");
                 user.Type = PlayerType.Normal;
             }
             else
@@ -777,7 +793,6 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
             logWindow("配置文件读取完毕。");
 
-            systemInfo = new SystemInfo();
 
             Task.Run(() =>
             {
@@ -924,22 +939,21 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             if (State != BotRunningState.exit)
             {
-                var cpu = systemInfo.CpuLoad;
-                var mem = 100.0 - ((double)systemInfo.MemoryAvailable * 100 / systemInfo.PhysicalMemory);
-
+                var cpu = Config.Instance.systemInfo.CpuLoad;
+                var mem = 100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory);
                 try
                 {
-                    Invoke(new EventHandler(delegate
-                    {
+                    Invoke((Action)(() => {
+
                         lbCPU.Text = $"CPU\n({cpu.ToString(".0")}%)";
                         lbMem.Text = $"内存\n({mem.ToString(".0")}%)";
                         lbBeginTime.Text = $"{beginTime.ToString("yyyy-MM-dd")}\r\n{beginTime.ToString("HH:mm:ss")}";
                         lbTimeSpan.Text = $"{(DateTime.Now - beginTime).Days}天\r\n{(DateTime.Now - beginTime).Hours}小时{(DateTime.Now - beginTime).Minutes}分{(DateTime.Now - beginTime).Seconds}秒";
                         lbQQ.Text = $"{Config.Instance.App.Avatar.myQQ}";
                         lbPort.Text = $"{Config.Instance.App.IO.MiraiPort}";
-                        lbVersion.Text = $"{Config.Instance.App.Version}";
+                        lbVersion.Text = $"{Config.Instance.assembly.GetName().Version.ToString()}";
                         lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
-                        
+
 
                         lbFriendNum.Text = $"{Config.Instance.friends.Count}";
                         lbGroupNum.Text = $"{Config.Instance.groups.Count}";
@@ -947,6 +961,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
                         pbCPU.Value = (int)(cpu);
                         pbMem.Value = (int)(mem);
+
+
                     }));
                 }
                 catch (Exception ex)

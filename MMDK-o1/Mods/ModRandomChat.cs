@@ -71,7 +71,7 @@ namespace MMDK.Mods
 
 
                 // pen
-                var penlist = FileManager.readLines($"{PluginPath}/{penName}").ToList();
+                var penlist = FileManager.ReadLines($"{PluginPath}/{penName}").ToList();
 
 
 
@@ -192,7 +192,7 @@ namespace MMDK.Mods
                 // load modes
                 
                 modedict = new Dictionary<string, ModeInfo>();
-                List<string> modelines = FileManager.readLines($"{PluginPath}/{modeIndexName}").ToList();
+                List<string> modelines = FileManager.ReadLines($"{PluginPath}/{modeIndexName}").ToList();
                 foreach (var line in modelines)
                 {
                     var items = line.Split('\t');
@@ -202,14 +202,14 @@ namespace MMDK.Mods
                         string[] modeConfigs;
                         if (items.Length >= 2)
                         {
-                            modeConfigs = items[1].Trim().Split(',', StringSplitOptions.RemoveEmptyEntries);
+                            modeConfigs = items[1].Trim().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                         }
                         else
                         {
                             modeConfigs = new string[1] { "默认" };
                         }
-                        modedict[modeName] = new ModeInfo(modeName, modeConfigs, FileManager.readLines($"{PluginPath}/{modeName}.txt").ToList());
+                        modedict[modeName] = new ModeInfo(modeName, modeConfigs, FileManager.ReadLines($"{PluginPath}/{modeName}.txt").ToList());
                     }
                     catch (Exception ex)
                     {
@@ -220,10 +220,10 @@ namespace MMDK.Mods
 
                 // replace
                 wordReplace = new Dictionary<string, string>();
-                var lines = FileManager.readLines($"{PluginPath}/{replacefile}");
+                var lines = FileManager.ReadLines($"{PluginPath}/{replacefile}");
                 foreach (var line in lines)
                 {
-                    var items = line.Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    var items = line.Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     if (items.Length >= 2)
                     {
                         wordReplace[items[1]] = items[0];
@@ -255,30 +255,30 @@ namespace MMDK.Mods
                 //}
 
                 // motions
-                chaosMotion = FileManager.readLines($"{PluginPath}/{chaosm}").ToList();
+                chaosMotion = FileManager.ReadLines($"{PluginPath}/{chaosm}").ToList();
                 // verb
-                var wordlines = FileManager.readLines($"{PluginPath}/{chaosv}").ToList();
+                var wordlines = FileManager.ReadLines($"{PluginPath}/{chaosv}").ToList();
                 foreach (var line in wordlines)
                 {
-                    chaosWord.Add(line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                    chaosWord.Add(line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
                 }
                 // xwb
-                chaosXwb = FileManager.readLines($"{PluginPath}/{chaosw}").ToList();
+                chaosXwb = FileManager.ReadLines($"{PluginPath}/{chaosw}").ToList();
 
                 // yunjieshuodao
-                yjsd = FileManager.readLines($"{PluginPath}/{yunjief}").ToList();
+                yjsd = FileManager.ReadLines($"{PluginPath}/{yunjief}").ToList();
 
                 // random
 
 
                 // default
-                defaultAnswers = FileManager.readLines($"{PluginPath}/{defaultAnswerName}").ToList();
+                defaultAnswers = FileManager.ReadLines($"{PluginPath}/{defaultAnswerName}").ToList();
 
                 // sstv
-                sstv = FileManager.readLines($"{PluginPath}/{sstvName}").ToList();
+                sstv = FileManager.ReadLines($"{PluginPath}/{sstvName}").ToList();
 
                 // pics
-                pics = FileManager.readLines($"{PluginPath}/{picsave}").ToList();
+                pics = FileManager.ReadLines($"{PluginPath}/{picsave}").ToList();
 
 
                 //new Thread(workInitModes).Start();
@@ -324,47 +324,61 @@ namespace MMDK.Mods
             bool isGroup = groupId > 0;
             var user = Config.Instance.GetPlayerInfo(userId);
             var group = Config.Instance.GetGroupInfo(groupId);
-            Regex modereg = new Regex("(\\S+)模式\\s*(on)", RegexOptions.IgnoreCase);
+            Regex modereg = new Regex(@"(\S+)模式\s*(on)", RegexOptions.IgnoreCase);
             var moderes = modereg.Match(message);
-            string mode = "";
             if (moderes.Success)
             {
                 try
                 {
-                    mode = moderes.Groups[1].ToString();
-                    bool chooseResult = true;
-                    if (string.IsNullOrWhiteSpace(mode)) chooseResult = false;
-                    else if (!modePublic(mode))
+                    if (moderes.Groups.Count < 2) { return false; } // 好像不可能小于2？
+                    string modeName = moderes.Groups[1].ToString().Trim();
+                    if (modeName.EndsWith("模式")) modeName = modeName.Replace("模式", "");
+                    if (string.IsNullOrWhiteSpace(modeName))
                     {
-                        if (isGroup && (!GroupHasAdminAuthority(groupId)))chooseResult = false;
-                        if (!isGroup && (!UserHasAdminAuthority(groupId))) chooseResult = false;
+                        // 输入不合法
+                        results.Add(printModeList());
+                        return true;
                     }
-
-
-                    if (chooseResult)
+                    //ModeInfo mode = null;
+                    if (modedict.TryGetValue(modeName, out ModeInfo mode))
                     {
-                        if (groupId > 0)
+                        // 模式存在
+                        if (mode.config.Contains("隐藏"))
+                        {
+                            // 隐藏模式，且没有相应权限就不启动
+                            if (
+                                (isGroup && !GroupHasAdminAuthority(groupId))
+                              ||(!isGroup && !UserHasAdminAuthority(groupId))
+                                ) {
+                                results.Add(printModeList());
+                                return true;
+                            }
+                        }
+                        // 切换模式tag
+                        if (isGroup)
                         {
                             // group
-                            GroupClearAndRefreshChatTag(group, mode);
+                            group.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                            group.Tags.Add($"{mode.name}模式");
                         }
                         else
                         {
                             // private
-                            UserClearAndRefreshChatTag(user, mode);
+                            user.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                            user.Tags.Add($"{mode.name}模式");
                         }
-                        results.Add($"~{Config.Instance.App.Avatar.askName}的{mode}模式启动~");
+
+                        results.Add($"~{Config.Instance.App.Avatar.askName}的{mode.name}模式启动~");
+                        return true;
+                        
                     }
                     else
                     {
-                        results.Add($"~我还没有这个模式~");
+                        // 没有这个模式
+                        results.Add($"~我还没有{modeName}模式~");
                         results.Add(printModeList());
-                        results.Add($"~输入“xx模式on”即可切换模式~");
                         return true;
                     }
-                    
-
-                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -372,47 +386,36 @@ namespace MMDK.Mods
                 }
             }
 
-            string chatModeName = "";
-            if (!isGroup)
+            // 以下部分无需输入任何内容即可触发！！！！！！！！！！！！！1111111
+            
+            ModeInfo modeTrigger = null;
+            if (isGroup)
             {
-                // 私聊发言
-                chatModeName = GetChatModeName(user.Tag);
+                // 群内
+                modeTrigger = getGroupMode(group);
             }
             else
             {
-                // 群内
-                chatModeName = GetChatModeName(group.Tag);
+                // 私聊发言
+                modeTrigger = getUserMode(user);
             }
-            string answer = "";
-            
-            switch (chatModeName)
+            if (modeTrigger == null)
             {
-                case "正常":
-                case "混沌": answer += getAnswerChaos(userId, message); 
-                    break;
-                case "小万邦": answer += getGong(); 
-                    break;
-
-
-
-                case "喷人": 
-                    results.AddRange(getPen(groupId, userId)); 
-                    return true;
-                case "测试": 
-                    results.AddRange(getHistoryReact(groupId, userId)); 
-                    return true;
-
-
-
-                default: 
-                    answer += getAnswerWithMode(userId, message, chatModeName); 
-                    break;
+                // 没找到模式
+                return false;
             }
-            if (!string.IsNullOrWhiteSpace(answer))
+            else
             {
-                results.Add(answer);
-                return true;
+                if(handleChatResults(modeTrigger, userId, groupId, message, out IEnumerable<string> chatResult))
+                {
+                    results.AddRange(chatResult);
+                    return true;
+                }
             }
+
+
+
+
             return false;
         }
 
@@ -440,54 +443,142 @@ namespace MMDK.Mods
 
         }
 
+        /// <summary>
+        /// 按模式处理输入并返回结果串
+        /// 里面每个模式的返回值都不应为null
+        /// </summary>
+        /// <param name="mode">模式对象</param>
+        /// <param name="userId"></param>
+        /// <param name="groupId"></param>
+        /// <param name="inputText"></param>
+        /// <param name="results">输出结果</param>
+        /// <returns>若结果不空，返回true，空则返回false</returns>
 
-        string GetChatModeName(string tagString)
+        bool handleChatResults(ModeInfo mode, long userId, long groupId, string inputText, out IEnumerable<string> results)
         {
-            if(string.IsNullOrWhiteSpace(tagString)) return null;
-            var tags=tagString.Split(',',StringSplitOptions.RemoveEmptyEntries);
-            foreach (var tag in tags)
+            List<string> answer = new List<string>();
+            try
             {
-                if (modedict.TryGetValue(tag.Replace("模式", "").Trim(), out var mode))
+                string modeName = mode.name;
+                switch (modeName)
                 {
+                    case "正常":
+                    case "混沌":
+                        answer.Add(getAnswerChaos(userId, inputText));
+                        break;
+                    case "小万邦":
+                        answer.Add(getGong());
+                        break;
 
-                    return mode.name;
+
+
+                    case "喷人":
+                        answer.AddRange(getPen(groupId, userId));
+                        break;
+                    case "测试":
+                        answer.AddRange(getHistoryReact(groupId, userId));
+                        break;
+
+
+
+                    default:
+                        answer.Add(mode.getRandomSentence(inputText));
+                        break;
+                }
+
+            }catch(Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+
+
+            results = answer.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            return results.Count() > 0;
+        }
+
+        private ModeInfo getUserMode(Player player)
+        {
+            if (player.Tags == null) return null;
+            foreach (var tag in player.Tags)
+            {
+                if (tag.EndsWith("模式"))
+                {
+                    string findName = tag.Substring(0, tag.Length - 2);
+                    if(modedict.TryGetValue(findName, out ModeInfo mode))
+                    {
+                        return mode;
+                    }
                 }
             }
-            
-            return "";
+            return null;
         }
 
-        IEnumerable<string> GetAllChatTags()
+        private ModeInfo getGroupMode(Playgroup group)
         {
-            List<string> tags = new List<string>();
-            foreach (var key in modedict.Keys)
+            if (group.Tags == null) return null;
+            foreach (var tag in group.Tags)
             {
-                tags.Add($"{key}模式");
+                if (tag.EndsWith("模式"))
+                {
+                    string findName = tag.Substring(0, tag.Length - 2);
+                    ModeInfo mode = null;
+                    if (modedict.TryGetValue(findName, out mode))
+                    {
+                        return mode;
+                    }
+                }
             }
-
-            return tags;
+            return null;
         }
 
 
-        void GroupClearAndRefreshChatTag(Playgroup group, string newTag)
-        {
-            foreach (var tag in GetAllChatTags())
-            {
-                group.DeleteTag(tag);
-            }
-            string tagName = $"{newTag.Replace("模式", "").Trim()}模式";
-            group.SetTag(tagName);
-        }
+        //string GetChatModeName(string tagString)
+        //{
+        //    if(string.IsNullOrWhiteSpace(tagString)) return null;
+        //    var tags=tagString.Split(',',StringSplitOptions.RemoveEmptyEntries);
+        //    foreach (var tag in tags)
+        //    {
+        //        if (modedict.TryGetValue(tag.Replace("模式", "").Trim(), out var mode))
+        //        {
 
-        void UserClearAndRefreshChatTag(Player user, string newTag)
-        {
-            foreach (var tag in GetAllChatTags())
-            {
-                user.DeleteTag(tag);
-            }
-            string tagName = $"{newTag.Replace("模式", "").Trim()}模式";
-            user.SetTag(tagName);
-        }
+        //            return mode.name;
+        //        }
+        //    }
+
+        //    return "";
+        //}
+
+        //IEnumerable<string> GetAllChatTags()
+        //{
+        //    List<string> tags = new List<string>();
+        //    foreach (var key in modedict.Keys)
+        //    {
+        //        tags.Add($"{key}模式");
+        //    }
+
+        //    return tags;
+        //}
+
+
+        //void GroupClearAndRefreshChatTag(Playgroup group, string newTag)
+        //{
+        //    foreach (var tag in GetAllChatTags())
+        //    {
+        //        group.DeleteTag(tag);
+        //    }
+        //    string tagName = $"{newTag.Replace("模式", "").Trim()}模式";
+        //    group.SetTag(tagName);
+        //}
+
+        //void UserClearAndRefreshChatTag(Player user, string newTag)
+        //{
+        //    foreach (var tag in GetAllChatTags())
+        //    {
+        //        user.DeleteTag(tag);
+        //    }
+        //    string tagName = $"{newTag.Replace("模式", "").Trim()}模式";
+        //    user.SetTag(tagName);
+        //}
 
         bool UserHasAdminAuthority(long userId)
         {
@@ -511,25 +602,6 @@ namespace MMDK.Mods
 
 
 
-        public bool modePublic(string modeName)
-        {
-            if (string.IsNullOrWhiteSpace(modeName)) return false;
-            if (modeExist(modeName) && !modedict[modeName].config.Contains("隐藏")) return true;
-            else return false;
-        }
-
-        public bool modeExist(string modeName)
-        {
-            if (string.IsNullOrWhiteSpace(modeName) || !modedict.ContainsKey(modeName))
-            {
-                // mode not exist!
-                //Logger.Instance.Log("mode " + modeName + " not exist.");
-                return false;
-            }
-            return true;
-        }
-
-
 
 
         public string printModeList()
@@ -537,38 +609,19 @@ namespace MMDK.Mods
             StringBuilder sb = new StringBuilder();
             foreach (var mode in modedict)
             {
-                if (mode.Value.config.Contains("隐藏"))
-                {
-                    // hide
-                }
-                else
-                {
-                    sb.Append($"{mode.Key}模式\r\n");
+                if (!mode.Value.config.Contains("隐藏"))
+                { 
+                   sb.Append($"{mode.Key}模式\r\n");
                 }
 
             }
+            sb.Append($"~输入“xxx模式on”即可切换模式~");
             return sb.ToString();
         }
 
 
 
-        /// <summary>
-        /// 按照模式随机生成回复
-        /// 模式是在配置文件里添加的，bot初始化时会从中读取要加载的模式，然后把句子都扔进内存来缓存
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="question"></param>
-        /// <param name="mode"></param>
-        /// <returns></returns>
-        public string getAnswerWithMode(long user, string question, string mode)
-        {
-            if (string.IsNullOrWhiteSpace(mode)) return "";
-            if (modedict.ContainsKey(mode))
-            {
-                return modedict[mode].getRandomSentence(question);
-            }
-            return "";
-        }
+
 
         /// <summary>
         /// 龚诗 bot 特有的模拟
@@ -672,7 +725,7 @@ namespace MMDK.Mods
                 while (maxtime-- > 0)
                 {
                     int findex = MyRandom.Next(files.Length);
-                    string[] lines = FileManager.readLines(files[findex]).ToArray();
+                    string[] lines = FileManager.ReadLines(files[findex]).ToArray();
                     if (lines.Length < 100) continue;
                     int begin = MyRandom.Next(lines.Length - 5);
                     int maxnum = MyRandom.Next(1, 5);
@@ -819,7 +872,6 @@ namespace MMDK.Mods
 
         class ModeInfo
         {
-            Random rand = new Random((int)DateTime.Now.Ticks);
             public string name;
             public List<string> config;
             List<string> sentences;
