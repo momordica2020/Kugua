@@ -26,19 +26,15 @@ namespace MMDK.Mods
                 root = new TrieNode();
 
                 var data = FileManager.ReadResourceLines("IME");
-                //firstWord = new Dictionary<char, char>();
-                //for(int i = 0; i < data.Length; i++)
-                //{
-                //    var line = data[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                //    if (line.Length >= 2)
-                //    {
-                //        firstWord[line[0][0]] = line[1][0];
-                //    }
-                //}
+                firstWord = new Dictionary<char, char>();
+                foreach(var line in data)
+                {
+                    var items = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (items.Length >= 2) firstWord[items[0][0]] = items[1][0];
+                }
 
-
-                //var json = FileManager.Read($"{Config.Instance.App.ResourcePath}/{Config.Instance.App.Resources["IMETree"]}");
-                //root = JsonConvert.DeserializeObject<TrieNode>(json);
+                var json = FileManager.ReadResource("IMETree");
+                root = JsonConvert.DeserializeObject<TrieNode>(json);
             }
             catch (Exception ex)
             {
