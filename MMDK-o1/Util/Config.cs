@@ -15,48 +15,6 @@ using System.Windows.Shapes;
 namespace MMDK.Util
 {
 
-    #region Mod相关接口
-    public interface Mod
-    {
-        /// <summary>
-        /// Mod初始化，只调用一次
-        /// </summary>
-        /// <param name="args">可选的传入参数</param>
-        /// <returns></returns>
-        public bool Init(string[] args);
-
-
-        /// <summary>
-        /// Mod退出清理，在bot关闭时调用一次
-        /// </summary>
-        public void Exit();
-
-        /// <summary>
-        /// Mod的文本处理接口
-        /// </summary>
-        /// <param name="userId">用户QQ</param>
-        /// <param name="groupId">群QQ</param>
-        /// <param name="message">输入的文本内容</param>
-        /// <param name="results">传出返回文本序列</param>
-        /// <returns>返回是否已处理，true表示该模块已经对信息进行了处理并截断后续其他模块的处理流程</returns>
-        public bool HandleText(long userId, long groupId, string message, List<string> results);
-
-        
-    }
-
-    public interface ModWithMirai
-    {
-        /// <summary>
-        /// 直连Mirai，不从函数回传
-        /// 实现该模块时，代码需要操作Mirai库的Api
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="msg"></param>
-        public void ReceiveMiraiMessage(MeowMiraiLib.Client client, MeowMiraiLib.Msg.Type.Message msg);
-    }
-
-    #endregion
-
     #region 配置文件相关结构体
 
     public class AppConfigs
@@ -149,7 +107,6 @@ namespace MMDK.Util
 
         public long errTimes { get; set; }
 
-        public long numGroup { get; set; }
 
 
     }
@@ -338,16 +295,15 @@ namespace MMDK.Util
                     if (App.Resources.TryGetValue(Name, out Resource res))
                     {
                         string fullPath = $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
-                        string fullDictPath = System.IO.Path.GetDirectoryName(fullPath);
-                        string fullFilePath = System.IO.Path.GetFullPath(fullPath);
-                        if (!Directory.Exists(fullDictPath))
+                        //string fullFilePath = System.IO.Path.GetFullPath(fullPath);
+                        if (res.Type == ResourceType.Path && !Directory.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"新建资源文件夹，路径是{fullDictPath}", LogType.Debug);
-                            Directory.CreateDirectory(fullDictPath);
+                            Logger.Instance.Log($"新建资源文件夹，路径是{fullPath}", LogType.Debug);
+                            Directory.CreateDirectory(fullPath);
                         }
-                        if (res.Type==ResourceType.File && !File.Exists(fullFilePath))
+                        if (res.Type==ResourceType.File && !File.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"资源文件不存在，路径是{fullFilePath}", LogType.Debug);
+                            Logger.Instance.Log($"资源文件不存在，路径是{fullPath}", LogType.Debug);
                         }
                         return fullPath;
                     }
@@ -465,9 +421,9 @@ namespace MMDK.Util
                 
                 if (id == App.Avatar.myQQ) return false;   // 不许套娃
                 var u = GetPlayerInfo(id);
-                if (u.Type == PlayerType.Blacklist || u.Is("黑名单")) return false;
+                if (u.Type == PlayerType.Blacklist || u.Is("屏蔽")) return false;
                 
-
+                // 默认皆可应答
                 return true;
                 
             }
@@ -475,7 +431,7 @@ namespace MMDK.Util
             {
                 Logger.Instance.Log(ex);
             }
-            // 默认皆可应答
+            
             return false;
         }
         #endregion
@@ -506,11 +462,35 @@ namespace MMDK.Util
             }
         }
 
+        /// <summary>
+        /// 判断是否回复特定qq号的消息
+        /// 根据personlevel配置来作判断
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool AllowGroup(long id)
+        {
+            try
+            {
 
+                var g = GetGroupInfo(id);
+                if (g.Type == PlaygroupType.Blacklist || g.Is("屏蔽")) return false;
+
+                // 默认皆可应答
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            
+            return false;
+        }
         #endregion
 
 
-       
+
 
     }
 

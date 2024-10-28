@@ -7,6 +7,10 @@ using System.IO;
 
 namespace MMDK.Util
 {
+
+
+
+
     public enum LogType
     {
         System,
@@ -14,32 +18,40 @@ namespace MMDK.Util
         Mirai,
         Debug
     }
+    enum LogLevel
+    {
+        Nope,
+        System,
+        Debug,
+    }
 
-    public class Logger
+    public class LogInfo
     {
 
-        
-        public class LogInfo
+        public string Message { get; set; }
+
+        public LogType Type { get; set; }
+
+        public DateTime HappendTime { get; set; }
+
+        public string ToDescription()
         {
- 
-            public string Message { get; set; }
-
-            public LogType Type { get; set; }
-
-            public DateTime HappendTime { get; set; }
-
-
+            string msg = $"[{HappendTime}][{Logger.GetLogTypeName(Type)}]{Message}";
+            return msg;
         }
-        
 
+    }
+    public class Logger
+    {
+        
         private static readonly Lazy<Logger> instance = new Lazy<Logger>(() => new Logger());
         private readonly StreamWriter writer;
         private static readonly object lockObject = new object(); // 用于线程安全
-
+        static LogLevel logLevel = LogLevel.System;
 
         public readonly string logFilePath;
 
-        public delegate void BroadcastLog(string message);
+        public delegate void BroadcastLog(LogInfo info);
 
         public event BroadcastLog OnBroadcastLogEvent;
 
@@ -55,6 +67,7 @@ namespace MMDK.Util
             if (!Directory.Exists(logDict)) Directory.CreateDirectory(logDict);
             logFilePath = $"{logDict}/{DateTime.Today.ToString("yyyyMMdd")}.log";
             writer = new StreamWriter(logFilePath, true) { AutoFlush = true }; // 以追加模式打开文件
+            
         }
 
 
@@ -68,16 +81,31 @@ namespace MMDK.Util
             {
                 try
                 {
+                    if (logLevel == LogLevel.Nope)
+                    {
+                        return;
+                    }
+                    else if (logLevel == LogLevel.System)
+                    {
+                        if (logType != LogType.System
+                         && logType != LogType.Mirai)
+                        {
+                            return;
+                        }
+                    }
+                    else if (logLevel == LogLevel.Debug)
+                    {
+                        // accept all logs.
+                    }
                     LogInfo info = new LogInfo
                     {
                         Message = message,
                         Type = logType,
                         HappendTime = DateTime.Now,
                     };
-                    string msg = $"[{info.HappendTime}][{GetLogTypeName(logType)}]{message}";
-                    OnBroadcastLogEvent?.Invoke(msg);
+                    OnBroadcastLogEvent?.Invoke(info);
 
-                    writer.WriteLine(msg);
+                    writer.WriteLine(info.ToDescription());
                 }
                 catch (Exception ex)
                 {

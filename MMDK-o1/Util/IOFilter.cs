@@ -11,20 +11,17 @@ using static System.Windows.Forms.LinkLabel;
 
 namespace MMDK.Util
 {
+    public enum FilterType
+    {
+        None,   // 无过滤
+        Normal, // 一般模式杜绝词语出现
+        Strict, // 严格模式杜绝单字出现
+    }
     /// <summary>
     /// bot发言的总过滤器
     /// </summary>
     public class IOFilter
     {
-
-        public enum FilterType
-        {
-            None,   // 无过滤
-            Normal, // 一般模式杜绝词语出现
-            Strict, // 严格模式杜绝单字出现
-        }
-
- 
 
         // Trie节点定义
         private class TrieNode
@@ -42,12 +39,14 @@ namespace MMDK.Util
         //private static readonly object lockObject = new object(); // 用于线程安全
         private bool isLoaded;
 
-        private readonly TrieNode root;
+        private readonly TrieNode rootNormal;
+        private readonly TrieNode rootStrict;
 
         public static IOFilter Instance => instance.Value;
         private IOFilter()
         {
-            root = new TrieNode();
+            rootNormal = new TrieNode();
+            rootStrict = new TrieNode();
             isLoaded = false;
         }
 
@@ -56,15 +55,26 @@ namespace MMDK.Util
             if (isLoaded) return true;
             try
             {
-                string filterFile1 = $"{Config.Instance.App.ResourcePath}/{Config.Instance.App.Resources["FilterNormal"]}";
-                string filterFile2 = $"{Config.Instance.App.ResourcePath}/{Config.Instance.App.Resources["FilterStrict"]}";
+                //string filterFile1 = Config.Instance.ResourceFullPath("FilterNormal");
+                //string filterFile2 = Config.Instance.ResourceFullPath("FilterStrict");
                 var fileLines = FileManager.ReadResourceLines("FilterNormal", true);
                 foreach(var line in fileLines)
                 {
                     string[] parts = line.Split("=>", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     string keyword = parts[0];
                     string replacement = parts.Length > 1 ? parts[1] : null;
-                    AddRule(keyword, replacement);
+                    AddRuleNormal(keyword, replacement);
+                }
+
+
+
+                fileLines = FileManager.ReadResourceLines("FilterStrict", true);
+                foreach (var line in fileLines)
+                {
+                    string[] parts = line.Split("=>", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    string keyword = parts[0];
+                    string replacement = parts.Length > 1 ? parts[1] : null;
+                    AddRuleStrict(keyword, replacement);
                 }
                 isLoaded = true;
             }
@@ -82,9 +92,9 @@ namespace MMDK.Util
         /// </summary>
         /// <param name="keyword"></param>
         /// <param name="replacement"></param>
-        private void AddRule(string keyword, string replacement)
+        private void AddRuleNormal(string keyword, string replacement)
         {
-            TrieNode node = root;
+            TrieNode node = rootNormal;
             foreach (char c in keyword)
             {
                 if (!node.Children.ContainsKey(c))
@@ -97,6 +107,25 @@ namespace MMDK.Util
             node.Replacement = replacement;
         }
 
+        /// <summary>
+        /// 添加规则到Trie
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <param name="replacement"></param>
+        private void AddRuleStrict(string keyword, string replacement)
+        {
+            TrieNode node = rootStrict;
+            foreach (char c in keyword)
+            {
+                if (!node.Children.ContainsKey(c))
+                {
+                    node.Children[c] = new TrieNode();
+                }
+                node = node.Children[c];
+            }
+            node.IsEndOfWord = true;
+            node.Replacement = replacement;
+        }
 
         /// <summary>
         /// 字符串是否通过过滤？
@@ -114,10 +143,14 @@ namespace MMDK.Util
                     result = true;
                     break;
                 case FilterType.Normal:
-                    result = (input == Filting(input, type));
-                    break;
                 case FilterType.Strict:
-                    result = (input == Filting(input, type));
+                    string res = Filting(input, type);
+                    if (res != input)
+                    {
+                        // filted!
+                        Logger.Instance.Log($"以拦截！{input} => {res}", LogType.Debug);
+                    }
+                    result = (input == res);
                     break;
                 default:
                     break;
@@ -140,7 +173,19 @@ namespace MMDK.Util
 
             while (index < input.Length)
             {
-                TrieNode node = root;
+                
+                TrieNode node = null;
+                if (FilterType.Normal == type)
+                {
+                    node = rootNormal;
+                }else if(FilterType.Strict == type)
+                {
+                    node = rootStrict;
+                }
+                else
+                {// error
+                    return input;
+                }
                 int matchLength = 0;
                 string replacement = null;
 
@@ -174,8 +219,12 @@ namespace MMDK.Util
                     index++;
                 }
             }
-
-            return new string(output.ToArray());
+            string res = new string(output.ToArray());
+            //if(res != input)
+            //{
+            //    Logger.Instance.Log($"以过滤！{input} => {res}", LogType.Debug);
+            //}
+            return res;
         }
 
     }

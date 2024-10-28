@@ -254,7 +254,7 @@ namespace MMDK.Mods
                         }
                         return false;
                         
-                    case CommandType.Couplet:
+                    //case CommandType.Couplet:
                         // 对对联
                         //if (param.Count > 0)
                         //{
@@ -367,7 +367,7 @@ namespace MMDK.Mods
             None,
             Shuffle,    // 洗牌，随机重排给定文本
             Reverse,    // 倒序输出给定文本
-            Couplet,    // 对联
+            //Couplet,    // 对联
             WordSalad,  // 生成营销号文章
             LoremIpsum, // 生成指定长度的乱数假文
             BL,         // 生成攻受文

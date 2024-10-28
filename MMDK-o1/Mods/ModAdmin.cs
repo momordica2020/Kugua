@@ -156,7 +156,7 @@ namespace MMDK.Mods
                         if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ ) //临时：只有测试群可查详细信息
                         {
                             DateTime startTime = Config.Instance.App.Log.StartTime;
-                            rmsg += $"内核版本 - 苦音未来v{Config.Instance.assembly.GetName().Version.ToString()}（{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}）\r\n";
+                            rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{Util.StaticUtil.GetBuildDate().ToString("F")}）\r\n";
                             rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\r\n";
                             rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\r\n";
                             rmsg += $"一共重启{Config.Instance.App.Log.beginTimes}次\r\n";
@@ -176,6 +176,15 @@ namespace MMDK.Mods
                         }
                         results.Add(rmsg);
                         return true;
+                    case CommandType.SaveConfig:
+                        // 存档咯
+                        if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ)
+                        {
+                            Config.Instance.Save();
+                            results.Add($"配置文件以存档 {DateTime.Now.ToString("F")}");
+                            return true;
+                        }
+                        return false;
                     case CommandType.None:
                     default:
                         return false;
@@ -207,6 +216,7 @@ namespace MMDK.Mods
             TagRemove,
             TagRemoveAll,
             CheckState,
+            SaveConfig,
         }
         // 存储可匹配的命令
         private static readonly Dictionary<string, CommandType> CommandDict = new Dictionary<string, CommandType>
@@ -225,6 +235,7 @@ namespace MMDK.Mods
             { "设置-", CommandType.TagRemove},
             { "设置清空", CommandType.TagRemoveAll},
             { "状态", CommandType.CheckState},
+            { "存档", CommandType.SaveConfig},
         };
         static bool TryReadCommand(ref string input, out CommandType commandType)
         {

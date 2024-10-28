@@ -25,10 +25,8 @@ namespace MMDK.Mods
         //string modePrivateName = "_mode_private.txt";
         //string modeGroupName = "_mode_group.txt";
         string defaultAnswerName = "_defaultanswer.txt";
-        string sstvName = "sstv.jpg";
         string PluginPath;
 
-        List<string> sstv = new List<string>();
         Dictionary<string, string> wordReplace = new Dictionary<string, string>();
         Dictionary<string, ModeInfo> modedict = new Dictionary<string, ModeInfo>();
         List<string> defaultAnswers = new List<string>();
@@ -273,9 +271,6 @@ namespace MMDK.Mods
                 // default
                 defaultAnswers = FileManager.ReadLines($"{PluginPath}/{defaultAnswerName}").ToList();
 
-                // sstv
-                sstv = FileManager.ReadLines($"{PluginPath}/{sstvName}").ToList();
-
                 // pics
                 pics = FileManager.ReadLines($"{PluginPath}/{picsave}").ToList();
 
@@ -284,7 +279,7 @@ namespace MMDK.Mods
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                Logger.Instance.Log(e);
             }
 
 
@@ -706,7 +701,7 @@ namespace MMDK.Mods
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                Logger.Instance.Log(e);
                 return new List<string>();
             }
         }
@@ -738,22 +733,12 @@ namespace MMDK.Mods
                             var items = lines[begin + i].Trim().Split('\t');
                             if (items.Length >= 3)
                             {
-                                //string ban = "2715126750 2045098852 188618935 2854196310 287859992 2963959417";
-                                //if (ban.Contains(items[1])) continue;
                                 if (targetuser.Length > 0 && targetuser != items[1]) continue;
                                 targetuser = items[1];
                                 string msg = items[2].Trim();
-                                if (msg.Contains("2715126750") || msg.Contains("2045098852")) continue;
-                                bool isSstv = false;
-                                foreach (var word in sstv)
-                                {
-                                    if (!string.IsNullOrWhiteSpace(word) && msg.Contains(word))
-                                    {
-                                        isSstv = true;
-                                        break;
-                                    }
-                                }
-                                if (isSstv) continue;
+
+                                if (!IOFilter.Instance.IsPass(msg, FilterType.Strict)) continue;
+
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
                                 if (string.IsNullOrWhiteSpace(msg.Trim())) continue;
                                 result.Add(msg);
@@ -762,7 +747,7 @@ namespace MMDK.Mods
                         }
                         catch (Exception e)
                         {
-                            Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                            Logger.Instance.Log(e);
                         }
                         maxnum -= 1;
                         if (maxnum <= 0) break;
@@ -774,7 +759,7 @@ namespace MMDK.Mods
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                Logger.Instance.Log(e);
             }
 
 
@@ -843,7 +828,7 @@ namespace MMDK.Mods
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                Logger.Instance.Log(e);
                 return "";
             }
         }

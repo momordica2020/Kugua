@@ -153,14 +153,14 @@ namespace MMDK
 
 
 
-        public void HandleShowLog(string str)
+        public void HandleShowLog(LogInfo info)
         {
             int maxlen = 100000;
             try
             {
                 Invoke((Action)(() =>
                 {
-                    tbLog.AppendText($"{str}\r\n");
+                    tbLog.AppendText($"{info.ToDescription()}\r\n");
                     if (tbLog.TextLength > maxlen)
                     {
                         tbLog.Text = tbLog.Text.Substring(tbLog.TextLength - maxlen);
@@ -197,6 +197,7 @@ namespace MMDK
                     new ModTextFunction(),
                     new ModZhanbu(),
                     //new ModTranslate(),
+                    new ModTimerTask(),
                     new ModRandomChat(),    // 这个会用闲聊收尾
 
                 };
@@ -252,7 +253,21 @@ namespace MMDK
                     ClientX._OnServeiceError += OnServeiceError;
                     ClientX._OnServiceDropped += OnServiceDropped;
 
-
+                    foreach (var mod in Mods)
+                    {
+                        try
+                        {
+                            if (mod is ModWithMirai modWithMirai)
+                            {
+                                Logger.Instance.Log($"模块{mod.GetType().Name}已用mirai初始化");
+                                modWithMirai.InitMiraiClient(ClientX);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Log(ex);
+                        }
+                    }
                     ClientX.Connect();
 
 
@@ -516,8 +531,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         public void OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
-            if (s.id == Config.Instance.App.Avatar.myQQ) return;
-            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}");
+            if (!Config.Instance.AllowPlayer(s.id)) return; // 黑名单
+            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
             history.saveMsg(0, s.id, e.MGetPlainString());
             string cmd = e.MGetPlainString();
             if (string.IsNullOrWhiteSpace(cmd)) return;
@@ -539,11 +554,12 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
                 foreach (var msg in res)
                 {
-                    if (msg.Trim().Length <= 0) continue;
+                    var msgFilted = IOFilter.Instance.Filting(msg, FilterType.Normal);
+                    if (string.IsNullOrWhiteSpace(msgFilted)) continue;
+                    
                     var output = new MeowMiraiLib.Msg.Type.Message[]
                     {
-
-                        new Plain(msg)
+                        new Plain(msgFilted)
                     };
                     new FriendMessage(s.id, output).Send(ClientX);
                     talked = true;
@@ -566,13 +582,12 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
-            if (s.id == Config.Instance.App.Avatar.myQQ) return;
-            Logger.Instance.Log($"群友信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}");
+            if (!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
+            Logger.Instance.Log($"群友信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
             history.saveMsg(s.group.id, s.id, e.MGetPlainString());
 
             // 检查群聊是否需要bot回复
             bool isAtMe = false;
-            bool talked = false;
             string cmd = e.MGetPlainString().Trim();
             if (cmd.Length > 0)
             {
@@ -613,41 +628,29 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
 
             var rres = res.ToArray();
-            if (rres != null && rres.Length > 0)
+            int sendNum = 0;
+            foreach(var r in rres)
             {
-                for (int i = 0; i < rres.Length; i++)
+                var textFilted = IOFilter.Instance.Filting(r, FilterType.Normal);
+                if (string.IsNullOrWhiteSpace(textFilted)) continue;
+                var output = new List<MeowMiraiLib.Msg.Type.Message>();
+                if (sendNum == 0)
                 {
-                    string text = rres[i];
-                    if (text == null) continue;
-                    text = text.Trim(); if (text.Length <= 0) continue;
-                    if (i == 0)
-                    {
-                        // 第一条信息 at 一下，后续就不了
-                        var output = new MeowMiraiLib.Msg.Type.Message[]
-                        {
-                             new At(s.id, s.memberName),
-                             new Plain(" " + rres[i])
-                        };
-                        new GroupMessage(s.group.id, output).Send(ClientX);
-                        talked = true;
-                    }
-                    else
-                    {
-                        var output = new MeowMiraiLib.Msg.Type.Message[]
-                        {
-                            new Plain(rres[i])
-                        };
-                        new GroupMessage(s.group.id, output).Send(ClientX);
-                        talked = true;
-                    }
+                    output.Add(new At(s.id, s.memberName));
                 }
-            }
+                output.Add(new Plain(textFilted));
+                
 
+                new GroupMessage(s.group.id, output.ToArray()).Send(ClientX);
+                
+
+                sendNum++;
+            }
 
             // update player info
             Playgroup p = Config.Instance.GetGroupInfo(s.group.id);
             p.Name = s.group.name;
-            if (talked)
+            if (sendNum > 0)
             {
                 //p.UseTimes += 1;
                 Config.Instance.GetPlayerInfo(s.id).UseTimes += 1;
@@ -657,7 +660,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void ServiceConnected(string e)
         {
-            Logger.Instance.Log($"连接成功：{e}");
+            Logger.Instance.Log($"连接成功：{e}", LogType.System);
 
 
 
@@ -673,21 +676,21 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnServeiceError(Exception e)
         {
-            Logger.Instance.Log($"连接出错：{e.Message}\r\n{e.StackTrace}");
+            Logger.Instance.Log($"连接出错：{e.Message}\r\n{e.StackTrace}", LogType.Mirai);
         }
 
         void OnServiceDropped(string e)
         {
-            Logger.Instance.Log($"连接中断：{e}");
+            Logger.Instance.Log($"连接中断：{e}", LogType.Mirai);
         }
 
         void OnClientOnlineEvent(OtherClientOnlineEvent e)
         {
-            Logger.Instance.Log($"其他平台登录（标识：{e.id}，平台：{e.platform}");
+            Logger.Instance.Log($"其他平台登录（标识：{e.id}，平台：{e.platform}", LogType.Mirai);
         }
         void OnEventBotInvitedJoinGroupRequestEvent(BotInvitedJoinGroupRequestEvent e)
         {
-            Logger.Instance.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}");
+            Logger.Instance.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}", LogType.Mirai);
             var g = Config.Instance.GetGroupInfo(e.groupId);
             var u = Config.Instance.GetPlayerInfo(e.fromId);
             if (g.Is("黑名单") || u.Is("黑名单"))
@@ -704,7 +707,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventNewFriendRequestEvent(NewFriendRequestEvent e)
         {
-            Logger.Instance.Log($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}");
+            Logger.Instance.Log($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}", LogType.Mirai);
             if (!string.IsNullOrWhiteSpace(e.message) && e.message.StartsWith(Config.Instance.App.Avatar.askName))
             {
                 e.Grant(ClientX, "来了来了");
@@ -722,7 +725,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventFriendNickChangedEvent(FriendNickChangedEvent e)
         {
-            Logger.Instance.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}");
+            Logger.Instance.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}", LogType.Mirai);
             var user = Config.Instance.GetPlayerInfo(e.friend.id);
             user.Name = e.to;
 
@@ -929,7 +932,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         private void 存档当前配置ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Config.Instance.Save();
-            Logger.Instance.Log($"已储存");
+            Logger.Instance.Log($"已储存当前配置");
         }
 
 
@@ -953,7 +956,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                         lbTimeSpan.Text = $"{(DateTime.Now - beginTime).Days}天\r\n{(DateTime.Now - beginTime).Hours}小时{(DateTime.Now - beginTime).Minutes}分{(DateTime.Now - beginTime).Seconds}秒";
                         lbQQ.Text = $"{Config.Instance.App.Avatar.myQQ}";
                         lbPort.Text = $"{Config.Instance.App.IO.MiraiPort}";
-                        lbVersion.Text = $"{Config.Instance.assembly.GetName().Version.ToString()}";
+                        lbVersion.Text = $"{Config.Instance.App.Version}\n({StaticUtil.GetBuildDate().ToString("F")})";
                         lbUpdateTime.Text = $"{Util.StaticUtil.GetBuildDate().ToString("yyyy-MM-dd")}";
 
 
@@ -1009,15 +1012,13 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         }
 
 
-
-
-        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        private void DealFilterFile(string filterSourceName)
         {
-            string filterCompressed = Config.Instance.ResourceFullPath("FilterNormal");
+            string filterCompressed = Config.Instance.ResourceFullPath(filterSourceName);
             string filterRaw = $"{filterCompressed}.raw";
             try
             {
-               
+
                 bool hasC = System.IO.File.Exists(filterCompressed);
                 bool hasR = System.IO.File.Exists(filterRaw);
 
@@ -1043,11 +1044,17 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 }
             }
 
-          catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Instance.Log($"刷新过滤器{filterCompressed}出错：{ex.Message}\r\n{ex.StackTrace}");
             }
 
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            DealFilterFile("FilterNormal");
+            DealFilterFile("FilterStrict");
         }
     }
 
