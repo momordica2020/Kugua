@@ -28,7 +28,7 @@ namespace MMDK
 
     partial class FormMonitor : Form
     {
-        
+
 
 
 
@@ -53,7 +53,7 @@ namespace MMDK
         #region 窗体相关定义
 
 
-        
+
         DateTime beginTime;
         bool IsEnterAutoSend = true;
         bool IsVirtualGroup = false;
@@ -86,7 +86,8 @@ namespace MMDK
                 //更新显示窗口
                 try
                 {
-                    Invoke((Action)(() =>  {
+                    Invoke((Action)(() =>
+                    {
                         lbState.Text = text;
                     }));
                 }
@@ -156,7 +157,8 @@ namespace MMDK
             int maxlen = 100000;
             try
             {
-                Invoke((Action)(() => {
+                Invoke((Action)(() =>
+                {
                     tbMmdk.AppendText($"[{DateTime.Now:G}][{Logger.GetLogTypeName(logType)}]{str}\r\n");
                     if (tbMmdk.TextLength > maxlen)
                     {
@@ -262,8 +264,8 @@ namespace MMDK
                     ClientX.OnEventNewFriendRequestEvent += OnEventNewFriendRequestEvent;
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
 
-                    
-                    
+
+
                 }
                 else
                 {
@@ -478,7 +480,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                         Logger.Instance.Log($"不会吧不会吧不会没有群吧");
 
                     }
-                    else{
+                    else
+                    {
                         foreach (var g in gp)
                         {
                             var group = Config.Instance.GetGroupInfo(g.id);
@@ -844,7 +847,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
             else
             {
-                
+
                 userId = -1;
                 groupId = 0;
                 textLocalTest.AppendText($"[me]:{message}\r\n");
@@ -892,7 +895,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             {
                 textLocalTest.AppendText($"[bot]:{result}\r\n");
             }
-           
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -943,7 +946,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 var mem = 100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory);
                 try
                 {
-                    Invoke((Action)(() => {
+                    Invoke((Action)(() =>
+                    {
 
                         lbCPU.Text = $"CPU\n({cpu.ToString(".0")}%)";
                         lbMem.Text = $"内存\n({mem.ToString(".0")}%)";
@@ -983,7 +987,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(tabControl1.SelectedIndex == 0)
+            if (tabControl1.SelectedIndex == 0)
             {
                 // private
                 IsVirtualGroup = false;
@@ -994,6 +998,16 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 IsVirtualGroup = true;
                 button2.Text = "发送（群组）";
             }
+        }
+
+        private void 清空私聊窗口ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            textLocalTest.Clear();
+        }
+
+        private void 清空群聊窗口ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            textLocalTestGroup.Clear();
         }
     }
 

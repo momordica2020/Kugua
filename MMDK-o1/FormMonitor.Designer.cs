@@ -39,8 +39,12 @@
             tabControl1 = new System.Windows.Forms.TabControl();
             tabPage1 = new System.Windows.Forms.TabPage();
             textLocalTest = new System.Windows.Forms.TextBox();
+            contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(components);
+            清空私聊窗口ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             tabPage2 = new System.Windows.Forms.TabPage();
             textLocalTestGroup = new System.Windows.Forms.TextBox();
+            contextMenuStrip3 = new System.Windows.Forms.ContextMenuStrip(components);
+            清空群聊窗口ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             textInputTest = new System.Windows.Forms.TextBox();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             启动botToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,7 +87,9 @@
             tableLayoutPanel3.SuspendLayout();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
+            contextMenuStrip2.SuspendLayout();
             tabPage2.SuspendLayout();
+            contextMenuStrip3.SuspendLayout();
             menuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             tabControl2.SuspendLayout();
@@ -217,7 +223,7 @@
             // 
             textLocalTest.BackColor = System.Drawing.SystemColors.ActiveCaption;
             textLocalTest.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            textLocalTest.ContextMenuStrip = contextMenuStrip1;
+            textLocalTest.ContextMenuStrip = contextMenuStrip2;
             textLocalTest.Dock = System.Windows.Forms.DockStyle.Fill;
             textLocalTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             textLocalTest.Location = new System.Drawing.Point(4, 5);
@@ -229,6 +235,20 @@
             textLocalTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             textLocalTest.Size = new System.Drawing.Size(1206, 611);
             textLocalTest.TabIndex = 3;
+            // 
+            // contextMenuStrip2
+            // 
+            contextMenuStrip2.ImageScalingSize = new System.Drawing.Size(24, 24);
+            contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 清空私聊窗口ToolStripMenuItem });
+            contextMenuStrip2.Name = "contextMenuStrip2";
+            contextMenuStrip2.Size = new System.Drawing.Size(189, 34);
+            // 
+            // 清空私聊窗口ToolStripMenuItem
+            // 
+            清空私聊窗口ToolStripMenuItem.Name = "清空私聊窗口ToolStripMenuItem";
+            清空私聊窗口ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
+            清空私聊窗口ToolStripMenuItem.Text = "清空私聊窗口";
+            清空私聊窗口ToolStripMenuItem.Click += 清空私聊窗口ToolStripMenuItem_Click;
             // 
             // tabPage2
             // 
@@ -246,6 +266,7 @@
             // 
             textLocalTestGroup.BackColor = System.Drawing.SystemColors.ActiveCaption;
             textLocalTestGroup.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            textLocalTestGroup.ContextMenuStrip = contextMenuStrip3;
             textLocalTestGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             textLocalTestGroup.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             textLocalTestGroup.Location = new System.Drawing.Point(4, 5);
@@ -257,6 +278,20 @@
             textLocalTestGroup.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             textLocalTestGroup.Size = new System.Drawing.Size(1206, 611);
             textLocalTestGroup.TabIndex = 4;
+            // 
+            // contextMenuStrip3
+            // 
+            contextMenuStrip3.ImageScalingSize = new System.Drawing.Size(24, 24);
+            contextMenuStrip3.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 清空群聊窗口ToolStripMenuItem });
+            contextMenuStrip3.Name = "contextMenuStrip3";
+            contextMenuStrip3.Size = new System.Drawing.Size(241, 67);
+            // 
+            // 清空群聊窗口ToolStripMenuItem
+            // 
+            清空群聊窗口ToolStripMenuItem.Name = "清空群聊窗口ToolStripMenuItem";
+            清空群聊窗口ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            清空群聊窗口ToolStripMenuItem.Text = "清空群聊窗口";
+            清空群聊窗口ToolStripMenuItem.Click += 清空群聊窗口ToolStripMenuItem_Click;
             // 
             // textInputTest
             // 
@@ -764,8 +799,10 @@
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
+            contextMenuStrip2.ResumeLayout(false);
             tabPage2.ResumeLayout(false);
             tabPage2.PerformLayout();
+            contextMenuStrip3.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
@@ -832,6 +869,10 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel5;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip2;
+        private System.Windows.Forms.ToolStripMenuItem 清空私聊窗口ToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip3;
+        private System.Windows.Forms.ToolStripMenuItem 清空群聊窗口ToolStripMenuItem;
     }
 }
 
