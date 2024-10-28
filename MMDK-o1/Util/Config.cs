@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Shapes;
 
 namespace MMDK.Util
 {
@@ -269,7 +270,7 @@ namespace MMDK.Util
                 //SaveConfig();
 
 
-                string rootPath = Path.GetDirectoryName(App.ResourcePath);
+                string rootPath = System.IO.Path.GetDirectoryName(App.ResourcePath);
                 if (!string.IsNullOrEmpty(rootPath) && !Directory.Exists(rootPath))
                 {
                     Logger.Instance.Log($"新建路径{rootPath}", LogType.Debug);
@@ -336,11 +337,23 @@ namespace MMDK.Util
                 {
                     if (App.Resources.TryGetValue(Name, out Resource res))
                     {
-                        return $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
+                        string fullPath = $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
+                        string fullDictPath = System.IO.Path.GetDirectoryName(fullPath);
+                        string fullFilePath = System.IO.Path.GetFileName(fullPath);
+                        if (!Directory.Exists(fullDictPath))
+                        {
+                            Logger.Instance.Log($"新建资源文件夹，路径是{fullDictPath}", LogType.Debug);
+                            Directory.CreateDirectory(fullDictPath);
+                        }
+                        if (res.Type==ResourceType.File && !File.Exists(fullFilePath))
+                        {
+                            Logger.Instance.Log($"资源文件不存在，路径是{fullFilePath}", LogType.Debug);
+                        }
+                        return fullPath;
                     }
                     else
                     {
-                        Logger.Instance.Log($"未找到键 '{Name}' 的对象。", LogType.Debug);
+                        Logger.Instance.Log($"未找到资源 '{Name}' 。请在{Directory.GetCurrentDirectory}/{App.ResourcePath}/config.json 中配置！", LogType.Debug);
                     }
                 }
             }

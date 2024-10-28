@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using System.Windows.Interop;
 using MeowMiraiLib.GenericModel;
 using System.Reflection;
+using System.Text;
 
 namespace MMDK
 {
@@ -152,27 +153,24 @@ namespace MMDK
 
 
 
-        public void logWindow(string str, LogType logType = LogType.System)
+        public void HandleShowLog(string str)
         {
             int maxlen = 100000;
             try
             {
                 Invoke((Action)(() =>
                 {
-                    tbMmdk.AppendText($"[{DateTime.Now:G}][{Logger.GetLogTypeName(logType)}]{str}\r\n");
-                    if (tbMmdk.TextLength > maxlen)
+                    tbLog.AppendText($"{str}\r\n");
+                    if (tbLog.TextLength > maxlen)
                     {
-                        tbMmdk.Text = tbMmdk.Text.Substring(tbMmdk.TextLength - maxlen);
+                        tbLog.Text = tbLog.Text.Substring(tbLog.TextLength - maxlen);
                     }
-                    tbMmdk.ScrollToCaret();
+                    tbLog.ScrollToCaret();
                 }));
-
-
-                Logger.Instance.Log(str, logType);
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                //Logger.Instance.Log(ex);
             }
 
         }
@@ -183,13 +181,13 @@ namespace MMDK
         {
             try
             {
-                logWindow($"读取配置文件...");
+                Logger.Instance.Log($"读取配置文件...");
                 Config.Instance.Load();
 
-                logWindow($"启用过滤器...");
+                Logger.Instance.Log($"启用过滤器...");
                 IOFilter.Instance.Init();
 
-                logWindow($"开始启动bot...");
+                Logger.Instance.Log($"开始启动bot...");
                 Mods = new List<Mod>
                 {
                     new ModAdmin(),
@@ -215,12 +213,12 @@ namespace MMDK
                     // 打开历史记录，不会是真的吧
                     string HistoryPath = Config.Instance.ResourceFullPath("HistoryPath");
                     if (!Directory.Exists(HistoryPath)) Directory.CreateDirectory(HistoryPath);
-                    logWindow($"历史记录保存在 {HistoryPath} 里");
+                    Logger.Instance.Log($"历史记录保存在 {HistoryPath} 里");
                     history.Init(HistoryPath);
                 }
                 else
                 {
-                    logWindow($"历史记录不会有记录");
+                    Logger.Instance.Log($"历史记录不会有记录");
                 }
 
                 foreach (var mod in Mods)
@@ -229,7 +227,7 @@ namespace MMDK
                     {
                         if (mod.Init(null))
                         {
-                            logWindow($"模块{mod.GetType().Name}已初始化");
+                            Logger.Instance.Log($"模块{mod.GetType().Name}已初始化");
                         }
                     }
                     catch (Exception ex)
@@ -239,7 +237,7 @@ namespace MMDK
                 }
 
                 State = BotRunningState.ok;
-                logWindow($"bot启动完成");
+                Logger.Instance.Log($"bot启动完成");
 
 
                 //mirai = new MiraiLink();
@@ -248,7 +246,7 @@ namespace MMDK
 
                     //string verifyKey = "123456";
                     string connectUri = $"{Config.Instance.App.IO.MiraiWS}:{Config.Instance.App.IO.MiraiPort}/all?qq={Config.Instance.App.Avatar.myQQ}";
-                    logWindow($"正在连接Mirai...{connectUri}");
+                    Logger.Instance.Log($"正在连接Mirai...{connectUri}");
                     ClientX = new(connectUri);
                     ClientX._OnServeiceConnected += ServiceConnected;
                     ClientX._OnServeiceError += OnServeiceError;
@@ -269,14 +267,14 @@ namespace MMDK
                 }
                 else
                 {
-                    logWindow($"不启动Mirai，启动本地应答");
+                    Logger.Instance.Log($"不启动Mirai，启动本地应答");
 
                 }
 
             }
             catch (Exception ex)
             {
-                logWindow(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Instance.Log(ex.Message + "\r\n" + ex.StackTrace);
             }
         }
 
@@ -519,7 +517,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         public void OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (s.id == Config.Instance.App.Avatar.myQQ) return;
-            logWindow($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}");
+            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}");
             history.saveMsg(0, s.id, e.MGetPlainString());
             string cmd = e.MGetPlainString();
             if (string.IsNullOrWhiteSpace(cmd)) return;
@@ -569,7 +567,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (s.id == Config.Instance.App.Avatar.myQQ) return;
-            logWindow($"群友信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}");
+            Logger.Instance.Log($"群友信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}");
             history.saveMsg(s.group.id, s.id, e.MGetPlainString());
 
             // 检查群聊是否需要bot回复
@@ -659,15 +657,15 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void ServiceConnected(string e)
         {
-            logWindow($"连接成功：{e}");
+            Logger.Instance.Log($"连接成功：{e}");
 
 
 
 
 
-            //logWindow($"更新好友列表和群列表...");
+            //Logger.Instance.Log($"更新好友列表和群列表...");
             //RefreshFriendList();
-            //logWindow($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+            //Logger.Instance.Log($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
 
 
 
@@ -675,21 +673,21 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnServeiceError(Exception e)
         {
-            logWindow($"连接出错：{e.Message}\r\n{e.StackTrace}");
+            Logger.Instance.Log($"连接出错：{e.Message}\r\n{e.StackTrace}");
         }
 
         void OnServiceDropped(string e)
         {
-            logWindow($"连接中断：{e}");
+            Logger.Instance.Log($"连接中断：{e}");
         }
 
         void OnClientOnlineEvent(OtherClientOnlineEvent e)
         {
-            logWindow($"其他平台登录（标识：{e.id}，平台：{e.platform}");
+            Logger.Instance.Log($"其他平台登录（标识：{e.id}，平台：{e.platform}");
         }
         void OnEventBotInvitedJoinGroupRequestEvent(BotInvitedJoinGroupRequestEvent e)
         {
-            logWindow($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}");
+            Logger.Instance.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}");
             var g = Config.Instance.GetGroupInfo(e.groupId);
             var u = Config.Instance.GetPlayerInfo(e.fromId);
             if (g.Is("黑名单") || u.Is("黑名单"))
@@ -706,7 +704,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventNewFriendRequestEvent(NewFriendRequestEvent e)
         {
-            logWindow($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}");
+            Logger.Instance.Log($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}");
             if (!string.IsNullOrWhiteSpace(e.message) && e.message.StartsWith(Config.Instance.App.Avatar.askName))
             {
                 e.Grant(ClientX, "来了来了");
@@ -724,7 +722,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventFriendNickChangedEvent(FriendNickChangedEvent e)
         {
-            logWindow($"好友改昵称（{e.friend.id}，{e.from}->{e.to}");
+            Logger.Instance.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}");
             var user = Config.Instance.GetPlayerInfo(e.friend.id);
             user.Name = e.to;
 
@@ -744,7 +742,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         private void 清空日志ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            tbMmdk.Clear();
+            tbLog.Clear();
         }
 
 
@@ -782,19 +780,19 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         private void Form1_Load(object sender, EventArgs e)
         {
 
-
-            logWindow("开始初始化配置文件。");
+            Logger.Instance.OnBroadcastLogEvent += HandleShowLog;
+            Logger.Instance.Log("开始初始化配置文件。");
 
             Config.Instance.Load();
             bool isValid = checkAndSetConfigValid();
             if (!isValid)
             {
-                logWindow("配置文件读取失败，中止运行");
+                Logger.Instance.Log("配置文件读取失败，中止运行");
                 return;
             }
 
 
-            logWindow("配置文件读取完毕。");
+            Logger.Instance.Log("配置文件读取完毕。");
 
 
             Task.Run(() =>
@@ -931,7 +929,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         private void 存档当前配置ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Config.Instance.Save();
-            logWindow($"已储存");
+            Logger.Instance.Log($"已储存");
         }
 
 
@@ -1008,6 +1006,48 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         private void 清空群聊窗口ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             textLocalTestGroup.Clear();
+        }
+
+
+
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            string filterCompressed = Config.Instance.ResourceFullPath("FilterNormal");
+            string filterRaw = $"{filterCompressed}.raw";
+            try
+            {
+               
+                bool hasC = System.IO.File.Exists(filterCompressed);
+                bool hasR = System.IO.File.Exists(filterRaw);
+
+                if (!hasC && !hasR)
+                {
+                    System.IO.File.WriteAllText(filterRaw, "example1 \nexapmle2 => fff\n", Encoding.UTF8);
+                    Logger.Instance.Log($"初始化过滤器{filterRaw}，请用记事本按规则编辑该过滤器文件，然后再点按钮加载之进bot。重启后生效");
+                }
+                if (hasC && !hasR)
+                {
+                    FileManager.DecompressFile(filterCompressed, filterRaw);
+                    Logger.Instance.Log($"准备编辑过滤词。{filterRaw}，请用记事本按规则编辑该过滤器文件，然后再点按钮加载之进bot。重启后生效");
+                }
+                if (!hasC && hasR)
+                {
+                    FileManager.CompressFile(filterRaw, filterCompressed);
+                    Logger.Instance.Log($"已用{filterRaw}刷新了过滤器文件{filterCompressed}。重启后生效");
+                }
+                if (hasC && hasR)
+                {
+                    FileManager.CompressFile(filterRaw, filterCompressed);
+                    Logger.Instance.Log($"已用{filterRaw}刷新了过滤器文件{filterCompressed}。重启后生效");
+                }
+            }
+
+          catch(Exception ex)
+            {
+                Logger.Instance.Log($"刷新过滤器{filterCompressed}出错：{ex.Message}\r\n{ex.StackTrace}");
+            }
+
         }
     }
 

@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            tbMmdk = new System.Windows.Forms.TextBox();
+            tbLog = new System.Windows.Forms.TextBox();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
             清空日志ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -101,21 +101,21 @@
             // 
             // tbMmdk
             // 
-            tbMmdk.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            tbMmdk.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            tbMmdk.ContextMenuStrip = contextMenuStrip1;
-            tbMmdk.Dock = System.Windows.Forms.DockStyle.Fill;
-            tbMmdk.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            tbMmdk.ForeColor = System.Drawing.SystemColors.Window;
-            tbMmdk.Location = new System.Drawing.Point(6, 6);
-            tbMmdk.Margin = new System.Windows.Forms.Padding(6);
-            tbMmdk.MaxLength = 32767000;
-            tbMmdk.Multiline = true;
-            tbMmdk.Name = "tbMmdk";
-            tbMmdk.ReadOnly = true;
-            tbMmdk.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            tbMmdk.Size = new System.Drawing.Size(1218, 1086);
-            tbMmdk.TabIndex = 0;
+            tbLog.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            tbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            tbLog.ContextMenuStrip = contextMenuStrip1;
+            tbLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            tbLog.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
+            tbLog.ForeColor = System.Drawing.SystemColors.Window;
+            tbLog.Location = new System.Drawing.Point(6, 6);
+            tbLog.Margin = new System.Windows.Forms.Padding(6);
+            tbLog.MaxLength = 32767000;
+            tbLog.Multiline = true;
+            tbLog.Name = "tbMmdk";
+            tbLog.ReadOnly = true;
+            tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            tbLog.Size = new System.Drawing.Size(1218, 1086);
+            tbLog.TabIndex = 0;
             // 
             // contextMenuStrip1
             // 
@@ -253,11 +253,11 @@
             // tabPage2
             // 
             tabPage2.Controls.Add(textLocalTestGroup);
-            tabPage2.Location = new System.Drawing.Point(4, 40);
+            tabPage2.Location = new System.Drawing.Point(4, 33);
             tabPage2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            tabPage2.Size = new System.Drawing.Size(1214, 621);
+            tabPage2.Size = new System.Drawing.Size(1214, 628);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "群聊窗口";
             tabPage2.UseVisualStyleBackColor = true;
@@ -276,7 +276,7 @@
             textLocalTestGroup.Name = "textLocalTestGroup";
             textLocalTestGroup.ReadOnly = true;
             textLocalTestGroup.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textLocalTestGroup.Size = new System.Drawing.Size(1206, 611);
+            textLocalTestGroup.Size = new System.Drawing.Size(1206, 618);
             textLocalTestGroup.TabIndex = 4;
             // 
             // contextMenuStrip3
@@ -284,12 +284,12 @@
             contextMenuStrip3.ImageScalingSize = new System.Drawing.Size(24, 24);
             contextMenuStrip3.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 清空群聊窗口ToolStripMenuItem });
             contextMenuStrip3.Name = "contextMenuStrip3";
-            contextMenuStrip3.Size = new System.Drawing.Size(241, 67);
+            contextMenuStrip3.Size = new System.Drawing.Size(189, 34);
             // 
             // 清空群聊窗口ToolStripMenuItem
             // 
             清空群聊窗口ToolStripMenuItem.Name = "清空群聊窗口ToolStripMenuItem";
-            清空群聊窗口ToolStripMenuItem.Size = new System.Drawing.Size(240, 30);
+            清空群聊窗口ToolStripMenuItem.Size = new System.Drawing.Size(188, 30);
             清空群聊窗口ToolStripMenuItem.Text = "清空群聊窗口";
             清空群聊窗口ToolStripMenuItem.Click += 清空群聊窗口ToolStripMenuItem_Click;
             // 
@@ -348,14 +348,15 @@
             // ToolStripMenuItem0
             // 
             ToolStripMenuItem0.Name = "ToolStripMenuItem0";
-            ToolStripMenuItem0.Size = new System.Drawing.Size(154, 34);
+            ToolStripMenuItem0.Size = new System.Drawing.Size(297, 34);
             ToolStripMenuItem0.Text = "打开";
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(154, 34);
-            toolStripMenuItem1.Text = "退出";
+            toolStripMenuItem1.Size = new System.Drawing.Size(297, 34);
+            toolStripMenuItem1.Text = "解压缩/更新过滤器";
+            toolStripMenuItem1.Click += toolStripMenuItem1_Click;
             // 
             // tableLayoutPanel1
             // 
@@ -739,7 +740,7 @@
             tableLayoutPanel4.ColumnCount = 1;
             tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel4.Controls.Add(tbMmdk, 0, 0);
+            tableLayoutPanel4.Controls.Add(tbLog, 0, 0);
             tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
             tableLayoutPanel4.Location = new System.Drawing.Point(3, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
@@ -819,7 +820,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox tbMmdk;
+        private System.Windows.Forms.TextBox tbLog;
         private System.Windows.Forms.Label lbState;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label1;
