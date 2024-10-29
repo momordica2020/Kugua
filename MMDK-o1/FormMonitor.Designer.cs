@@ -82,6 +82,7 @@
             tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             tabPage4 = new System.Windows.Forms.TabPage();
             tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
+            测试gptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             contextMenuStrip1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             tableLayoutPanel3.SuspendLayout();
@@ -99,7 +100,7 @@
             tableLayoutPanel5.SuspendLayout();
             SuspendLayout();
             // 
-            // tbMmdk
+            // tbLog
             // 
             tbLog.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             tbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -111,7 +112,7 @@
             tbLog.Margin = new System.Windows.Forms.Padding(6);
             tbLog.MaxLength = 32767000;
             tbLog.Multiline = true;
-            tbLog.Name = "tbMmdk";
+            tbLog.Name = "tbLog";
             tbLog.ReadOnly = true;
             tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             tbLog.Size = new System.Drawing.Size(1218, 1086);
@@ -314,7 +315,7 @@
             menuStrip1.BackColor = System.Drawing.SystemColors.MenuBar;
             menuStrip1.Font = new System.Drawing.Font("黑体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 启动botToolStripMenuItem, 存档当前配置ToolStripMenuItem, 文件ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { 启动botToolStripMenuItem, 存档当前配置ToolStripMenuItem, 文件ToolStripMenuItem, 测试gptToolStripMenuItem });
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Padding = new System.Windows.Forms.Padding(9, 3, 0, 3);
@@ -413,7 +414,7 @@
             lbUpdateTime.AutoSize = true;
             lbUpdateTime.Dock = System.Windows.Forms.DockStyle.Fill;
             lbUpdateTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbUpdateTime.Location = new System.Drawing.Point(140, 118);
+            lbUpdateTime.Location = new System.Drawing.Point(140, 158);
             lbUpdateTime.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbUpdateTime.Name = "lbUpdateTime";
             lbUpdateTime.Size = new System.Drawing.Size(240, 62);
@@ -426,7 +427,7 @@
             label3.AutoSize = true;
             label3.Dock = System.Windows.Forms.DockStyle.Fill;
             label3.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label3.Location = new System.Drawing.Point(8, 118);
+            label3.Location = new System.Drawing.Point(8, 158);
             label3.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(118, 62);
@@ -439,10 +440,10 @@
             lbUseNum.AutoSize = true;
             lbUseNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbUseNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbUseNum.Location = new System.Drawing.Point(140, 882);
+            lbUseNum.Location = new System.Drawing.Point(140, 922);
             lbUseNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbUseNum.Name = "lbUseNum";
-            lbUseNum.Size = new System.Drawing.Size(240, 258);
+            lbUseNum.Size = new System.Drawing.Size(240, 218);
             lbUseNum.TabIndex = 23;
             lbUseNum.Text = "0";
             lbUseNum.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -452,7 +453,7 @@
             lbGroupNum.AutoSize = true;
             lbGroupNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbGroupNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbGroupNum.Location = new System.Drawing.Point(140, 802);
+            lbGroupNum.Location = new System.Drawing.Point(140, 842);
             lbGroupNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbGroupNum.Name = "lbGroupNum";
             lbGroupNum.Size = new System.Drawing.Size(240, 78);
@@ -465,10 +466,10 @@
             label15.AutoSize = true;
             label15.Dock = System.Windows.Forms.DockStyle.Fill;
             label15.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label15.Location = new System.Drawing.Point(8, 882);
+            label15.Location = new System.Drawing.Point(8, 922);
             label15.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(118, 258);
+            label15.Size = new System.Drawing.Size(118, 218);
             label15.TabIndex = 21;
             label15.Text = "调用次数";
             label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -478,7 +479,7 @@
             lbFriendNum.AutoSize = true;
             lbFriendNum.Dock = System.Windows.Forms.DockStyle.Fill;
             lbFriendNum.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbFriendNum.Location = new System.Drawing.Point(140, 730);
+            lbFriendNum.Location = new System.Drawing.Point(140, 770);
             lbFriendNum.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbFriendNum.Name = "lbFriendNum";
             lbFriendNum.Size = new System.Drawing.Size(240, 70);
@@ -491,7 +492,7 @@
             label13.AutoSize = true;
             label13.Dock = System.Windows.Forms.DockStyle.Fill;
             label13.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label13.Location = new System.Drawing.Point(8, 802);
+            label13.Location = new System.Drawing.Point(8, 842);
             label13.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label13.Name = "label13";
             label13.Size = new System.Drawing.Size(118, 78);
@@ -504,7 +505,7 @@
             label12.AutoSize = true;
             label12.Dock = System.Windows.Forms.DockStyle.Fill;
             label12.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label12.Location = new System.Drawing.Point(8, 660);
+            label12.Location = new System.Drawing.Point(8, 700);
             label12.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label12.Name = "label12";
             label12.Size = new System.Drawing.Size(118, 68);
@@ -517,7 +518,7 @@
             lbQQ.AutoSize = true;
             lbQQ.Dock = System.Windows.Forms.DockStyle.Fill;
             lbQQ.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbQQ.Location = new System.Drawing.Point(140, 660);
+            lbQQ.Location = new System.Drawing.Point(140, 700);
             lbQQ.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbQQ.Name = "lbQQ";
             lbQQ.Size = new System.Drawing.Size(240, 68);
@@ -530,7 +531,7 @@
             label10.AutoSize = true;
             label10.Dock = System.Windows.Forms.DockStyle.Fill;
             label10.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label10.Location = new System.Drawing.Point(8, 730);
+            label10.Location = new System.Drawing.Point(8, 770);
             label10.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label10.Name = "label10";
             label10.Size = new System.Drawing.Size(118, 70);
@@ -543,7 +544,7 @@
             lbTimeSpan.AutoSize = true;
             lbTimeSpan.Dock = System.Windows.Forms.DockStyle.Fill;
             lbTimeSpan.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbTimeSpan.Location = new System.Drawing.Point(140, 365);
+            lbTimeSpan.Location = new System.Drawing.Point(140, 405);
             lbTimeSpan.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbTimeSpan.Name = "lbTimeSpan";
             lbTimeSpan.Size = new System.Drawing.Size(240, 98);
@@ -556,7 +557,7 @@
             label8.AutoSize = true;
             label8.Dock = System.Windows.Forms.DockStyle.Fill;
             label8.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label8.Location = new System.Drawing.Point(8, 365);
+            label8.Location = new System.Drawing.Point(8, 405);
             label8.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(118, 98);
@@ -569,7 +570,7 @@
             lbBeginTime.AutoSize = true;
             lbBeginTime.Dock = System.Windows.Forms.DockStyle.Fill;
             lbBeginTime.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbBeginTime.Location = new System.Drawing.Point(140, 246);
+            lbBeginTime.Location = new System.Drawing.Point(140, 286);
             lbBeginTime.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbBeginTime.Name = "lbBeginTime";
             lbBeginTime.Size = new System.Drawing.Size(240, 117);
@@ -582,7 +583,7 @@
             label6.AutoSize = true;
             label6.Dock = System.Windows.Forms.DockStyle.Fill;
             label6.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label6.Location = new System.Drawing.Point(8, 246);
+            label6.Location = new System.Drawing.Point(8, 286);
             label6.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label6.Name = "label6";
             label6.Size = new System.Drawing.Size(118, 117);
@@ -595,7 +596,7 @@
             lbPort.AutoSize = true;
             lbPort.Dock = System.Windows.Forms.DockStyle.Fill;
             lbPort.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbPort.Location = new System.Drawing.Point(140, 182);
+            lbPort.Location = new System.Drawing.Point(140, 222);
             lbPort.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbPort.Name = "lbPort";
             lbPort.Size = new System.Drawing.Size(240, 62);
@@ -608,7 +609,7 @@
             label4.AutoSize = true;
             label4.Dock = System.Windows.Forms.DockStyle.Fill;
             label4.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            label4.Location = new System.Drawing.Point(8, 182);
+            label4.Location = new System.Drawing.Point(8, 222);
             label4.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(118, 62);
@@ -624,7 +625,7 @@
             lbVersion.Location = new System.Drawing.Point(140, 66);
             lbVersion.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbVersion.Name = "lbVersion";
-            lbVersion.Size = new System.Drawing.Size(240, 50);
+            lbVersion.Size = new System.Drawing.Size(240, 90);
             lbVersion.TabIndex = 10;
             lbVersion.Text = "v 0.1.0";
             lbVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -637,7 +638,7 @@
             label2.Location = new System.Drawing.Point(8, 66);
             label2.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(118, 50);
+            label2.Size = new System.Drawing.Size(118, 90);
             label2.TabIndex = 3;
             label2.Text = "版本";
             label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -671,7 +672,7 @@
             // pbCPU
             // 
             pbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbCPU.Location = new System.Drawing.Point(140, 471);
+            pbCPU.Location = new System.Drawing.Point(140, 511);
             pbCPU.Margin = new System.Windows.Forms.Padding(6);
             pbCPU.Name = "pbCPU";
             pbCPU.Size = new System.Drawing.Size(240, 86);
@@ -682,7 +683,7 @@
             lbCPU.AutoSize = true;
             lbCPU.Dock = System.Windows.Forms.DockStyle.Fill;
             lbCPU.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbCPU.Location = new System.Drawing.Point(8, 465);
+            lbCPU.Location = new System.Drawing.Point(8, 505);
             lbCPU.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbCPU.Name = "lbCPU";
             lbCPU.Size = new System.Drawing.Size(118, 98);
@@ -695,7 +696,7 @@
             lbMem.AutoSize = true;
             lbMem.Dock = System.Windows.Forms.DockStyle.Fill;
             lbMem.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            lbMem.Location = new System.Drawing.Point(8, 565);
+            lbMem.Location = new System.Drawing.Point(8, 605);
             lbMem.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             lbMem.Name = "lbMem";
             lbMem.Size = new System.Drawing.Size(118, 93);
@@ -706,7 +707,7 @@
             // pbMem
             // 
             pbMem.Dock = System.Windows.Forms.DockStyle.Fill;
-            pbMem.Location = new System.Drawing.Point(140, 571);
+            pbMem.Location = new System.Drawing.Point(140, 611);
             pbMem.Margin = new System.Windows.Forms.Padding(6);
             pbMem.Name = "pbMem";
             pbMem.Size = new System.Drawing.Size(240, 81);
@@ -776,6 +777,13 @@
             tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableLayoutPanel5.Size = new System.Drawing.Size(1650, 1154);
             tableLayoutPanel5.TabIndex = 11;
+            // 
+            // 测试gptToolStripMenuItem
+            // 
+            测试gptToolStripMenuItem.Name = "测试gptToolStripMenuItem";
+            测试gptToolStripMenuItem.Size = new System.Drawing.Size(103, 32);
+            测试gptToolStripMenuItem.Text = "测试gpt";
+            测试gptToolStripMenuItem.Click += 测试gptToolStripMenuItem_Click;
             // 
             // FormMonitor
             // 
@@ -874,6 +882,7 @@
         private System.Windows.Forms.ToolStripMenuItem 清空私聊窗口ToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip3;
         private System.Windows.Forms.ToolStripMenuItem 清空群聊窗口ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 测试gptToolStripMenuItem;
     }
 }
 

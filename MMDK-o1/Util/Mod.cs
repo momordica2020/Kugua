@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MeowMiraiLib.Msg.Sender;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -45,6 +46,8 @@ namespace MMDK.Util
         /// <param name="client"></param>
         public void InitMiraiClient(MeowMiraiLib.Client _client);
 
+        public void OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
+        public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
     }
 
     #endregion

@@ -23,6 +23,11 @@ using System.Windows.Interop;
 using MeowMiraiLib.GenericModel;
 using System.Reflection;
 using System.Text;
+using System.Linq;
+using ChatGPT.Net;
+using ChatGPT.Net.DTO;
+using System.Windows.Media.Media3D;
+using ChatGPT.Net.DTO.ChatGPT;
 
 namespace MMDK
 {
@@ -41,11 +46,8 @@ namespace MMDK
 
         public List<Mod> Mods = new List<Mod>();
 
-        public HistoryManager history = new HistoryManager();
 
-
-
-
+        
 
 
 
@@ -187,6 +189,8 @@ namespace MMDK
                 Logger.Instance.Log($"启用过滤器...");
                 IOFilter.Instance.Init();
 
+                
+
                 Logger.Instance.Log($"开始启动bot...");
                 Mods = new List<Mod>
                 {
@@ -215,7 +219,7 @@ namespace MMDK
                     string HistoryPath = Config.Instance.ResourceFullPath("HistoryPath");
                     if (!Directory.Exists(HistoryPath)) Directory.CreateDirectory(HistoryPath);
                     Logger.Instance.Log($"历史记录保存在 {HistoryPath} 里");
-                    history.Init(HistoryPath);
+                    HistoryManager.Instance.Init(HistoryPath);
                 }
                 else
                 {
@@ -253,23 +257,11 @@ namespace MMDK
                     ClientX._OnServeiceError += OnServeiceError;
                     ClientX._OnServiceDropped += OnServiceDropped;
 
-                    foreach (var mod in Mods)
-                    {
-                        try
-                        {
-                            if (mod is ModWithMirai modWithMirai)
-                            {
-                                Logger.Instance.Log($"模块{mod.GetType().Name}已用mirai初始化");
-                                modWithMirai.InitMiraiClient(ClientX);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Instance.Log(ex);
-                        }
-                    }
+
                     ClientX.Connect();
 
+                    Logger.Instance.Log($"启用GPT接口...");
+                    GPT.Instance.Init(ClientX);
 
                     ClientX.OnFriendMessageReceive += OnFriendMessageReceive;
                     ClientX.OnGroupMessageReceive += OnGroupMessageReceive;
@@ -278,7 +270,23 @@ namespace MMDK
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
 
 
-
+                    foreach (var mod in Mods)
+                    {
+                        try
+                        {
+                            if (mod is ModWithMirai modWithMirai)
+                            {
+                                Logger.Instance.Log($"用mirai初始化模块{mod.GetType().Name}");
+                                modWithMirai.InitMiraiClient(ClientX);
+                                ClientX.OnFriendMessageReceive += modWithMirai.OnFriendMessageReceive;
+                                ClientX.OnGroupMessageReceive += modWithMirai.OnGroupMessageReceive;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Log(ex);
+                        }
+                    }
                 }
                 else
                 {
@@ -533,7 +541,12 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             if (!Config.Instance.AllowPlayer(s.id)) return; // 黑名单
             Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
-            history.saveMsg(0, s.id, e.MGetPlainString());
+            var uinfo = Config.Instance.GetPlayerInfo(s.id);
+            uinfo.Name = s.nickname;
+            uinfo.Mark = s.remark;
+
+            var sourceItem = e.First() as Source;
+            HistoryManager.Instance.saveMsg(sourceItem.id, 0, s.id, e.MGetPlainString());
             string cmd = e.MGetPlainString();
             if (string.IsNullOrWhiteSpace(cmd)) return;
             cmd = cmd.Trim();
@@ -556,7 +569,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 {
                     var msgFilted = IOFilter.Instance.Filting(msg, FilterType.Normal);
                     if (string.IsNullOrWhiteSpace(msgFilted)) continue;
-                    
+
                     var output = new MeowMiraiLib.Msg.Type.Message[]
                     {
                         new Plain(msgFilted)
@@ -583,8 +596,13 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
-            Logger.Instance.Log($"群友信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
-            history.saveMsg(s.group.id, s.id, e.MGetPlainString());
+
+            var sourceItem = e.First() as Source;
+            Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
+            HistoryManager.Instance.saveMsg(sourceItem.id, s.group.id, s.id, e.MGetPlainString());
+            var uinfo = Config.Instance.GetPlayerInfo(s.id);
+            uinfo.Name = s.memberName;
+            
 
             // 检查群聊是否需要bot回复
             bool isAtMe = false;
@@ -629,7 +647,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
             var rres = res.ToArray();
             int sendNum = 0;
-            foreach(var r in rres)
+            foreach (var r in rres)
             {
                 var textFilted = IOFilter.Instance.Filting(r, FilterType.Normal);
                 if (string.IsNullOrWhiteSpace(textFilted)) continue;
@@ -639,10 +657,10 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     output.Add(new At(s.id, s.memberName));
                 }
                 output.Add(new Plain(textFilted));
-                
+
 
                 new GroupMessage(s.group.id, output.ToArray()).Send(ClientX);
-                
+
 
                 sendNum++;
             }
@@ -766,7 +784,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     }
 
                 }
-                history.run = false;
+                HistoryManager.Instance.Dispose();
                 Config.Instance.Save();
 
                 Logger.Instance.Close();
@@ -1055,6 +1073,47 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             DealFilterFile("FilterNormal");
             DealFilterFile("FilterStrict");
+        }
+
+
+        private async void workTest()
+        {
+            //var opt = new ChatGptUnofficialOptions
+            //{
+            //    BaseUrl = "http://127.0.0.1:8000/switch-model",
+            //    Model = "rwkv"
+            //};
+            var opt2 = new ChatGptOptions();
+            opt2.BaseUrl = "http://127.0.0.1:8000";
+            opt2.Model = "rwkv2";
+            opt2.Temperature = 0.9; // Default: 0.9;
+            opt2.TopP = 1.0; // Default: 1.0;
+            opt2.MaxTokens = 100; // Default: 64;
+            opt2.Stop = ["User:"]; // Default: null;
+            opt2.PresencePenalty = 0.5; // Default: 0.0;
+            opt2.FrequencyPenalty = 0.5; // Default: 0.0;
+
+            var bot = new ChatGpt("", opt2);
+
+            // get response
+            string ask = $"你好?有没有旅行建议？他说：";
+            Logger.Instance.Log($"[AskAI]{ask}");
+            var response = await bot.Ask(ask);
+            Logger.Instance.Log($"[AI]{response}");
+            //Console.WriteLine(response);
+
+
+            // get response for a specific conversation
+            //response = await bot.Ask("今天天气如何", "conversation name");
+            //Logger.Instance.Log($"[AI]{response}");
+            //Console.WriteLine(response);
+
+
+        }
+
+        private void 测试gptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            workTest();
         }
     }
 

@@ -156,18 +156,19 @@ namespace MMDK.Mods
                         if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ ) //临时：只有测试群可查详细信息
                         {
                             DateTime startTime = Config.Instance.App.Log.StartTime;
-                            rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{Util.StaticUtil.GetBuildDate().ToString("F")}）\r\n";
-                            rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\r\n";
-                            rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\r\n";
-                            rmsg += $"一共重启{Config.Instance.App.Log.beginTimes}次\r\n";
-                            rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\r\n";
-                            rmsg += $"在群里被乐{Config.Instance.App.Log.playTimeGroup}次\r\n";
-                            rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\r\n";
-                            rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\r\n";
+                            rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{Util.StaticUtil.GetBuildDate().ToString("F")}）\n";
+                            rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\n";
+                            rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\n";
+                            rmsg += $"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}\n";
+                            rmsg += $"一共重启{Config.Instance.App.Log.beginTimes}次\n";
+                            rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\n";
+                            rmsg += $"在群里被乐{Config.Instance.App.Log.playTimeGroup}次\n";
+                            rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\n";
+                            rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\n";
                         }
                         if (isGroup)
                         {
-                            rmsg += $"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}\r\n";
+                            rmsg += $"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}\n";
                         }
                         else
                         {

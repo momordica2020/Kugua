@@ -7,7 +7,8 @@ using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using ChatGPT.Net;
+using ChatGPT.Net.DTO.ChatGPT;
 using MMDK.Util;
 using SuperSocket.ClientEngine;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
@@ -213,8 +214,8 @@ namespace MMDK.Mods
                         Logger.Instance.Log($"模式行[ {line} ]加载失败，{ex.Message}\r\n{ex.StackTrace}");
                     }
                 }
-                modedict["测试"] = new ModeInfo { name = "测试", config = { "默认" } };
-
+                modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
+                modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
                 // replace
                 wordReplace = new Dictionary<string, string>();
                 var lines = FileManager.ReadLines($"{PluginPath}/{replacefile}");
@@ -474,7 +475,12 @@ namespace MMDK.Mods
                         break;
 
 
-
+                    case "AI":
+                        results = new List<string>();
+                        string uName = Config.Instance.GetPlayerInfo(userId).Name;
+                        if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
+                        GPT.Instance.AIReply(groupId, userId, uName, inputText);
+                        return true;   // 不在此处理
                     default:
                         answer.Add(mode.getRandomSentence(inputText));
                         break;
@@ -509,19 +515,23 @@ namespace MMDK.Mods
 
         private ModeInfo getGroupMode(Playgroup group)
         {
-            if (group.Tags == null) return null;
-            foreach (var tag in group.Tags)
+            if (group.Tags != null)
             {
-                if (tag.EndsWith("模式"))
+                foreach (var tag in group.Tags)
                 {
-                    string findName = tag.Substring(0, tag.Length - 2);
-                    ModeInfo mode = null;
-                    if (modedict.TryGetValue(findName, out mode))
+                    if (tag.EndsWith("模式"))
                     {
-                        return mode;
+                        string findName = tag.Substring(0, tag.Length - 2);
+                        ModeInfo mode = null;
+                        if (modedict.TryGetValue(findName, out mode))
+                        {
+                            return mode;
+                        }
                     }
                 }
+
             }
+            if (modedict.TryGetValue("正常", out var val)) return val;
             return null;
         }
 
@@ -940,5 +950,8 @@ namespace MMDK.Mods
                 return result;
             }
         }
+
+
+
     }
 }

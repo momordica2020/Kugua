@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NvAPIWrapper.GPU;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -303,5 +304,36 @@ namespace MMDK.Util
         //    return Apps;
         //}
         //#endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public static string GetNvidiaGpuAndMemoryUsage()
+        {
+            // 获取物理 GPU 的第一个实例
+            var gpu = PhysicalGPU.GetPhysicalGPUs()[0];
+
+            // 获取 GPU 使用率
+            var utilization = gpu.UsageInformation;
+            int gpuUsagePercent = utilization.GPU.Percentage; // 使用 GPU.Usage 获取百分比
+
+            // 获取显存使用率
+            var memoryInfo = gpu.MemoryInformation;
+            float totalMemory = memoryInfo.AvailableDedicatedVideoMemoryInkB; // 总显存（MB）
+            float unusedMemory = memoryInfo.CurrentAvailableDedicatedVideoMemoryInkB; // 已用显存（MB）
+            float memoryUsagePercent = (1 - (unusedMemory / totalMemory)) * 100;
+
+            // 格式化成字符串
+            return $"GPU({gpuUsagePercent.ToString(".0")}%) 显存({memoryUsagePercent.ToString(".0")}%)";
+        }
     }
 }

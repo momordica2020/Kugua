@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 using GoogleTranslateFreeApi;
 
 using MMDK.Util;
-using Microsoft.VisualBasic.ApplicationServices;
 using System.Windows.Interop;
-using GoogleTranslateFreeApi;
 using System.Net.Http;
 using System.Net;
 

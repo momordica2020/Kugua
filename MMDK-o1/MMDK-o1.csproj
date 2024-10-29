@@ -25,10 +25,12 @@
     <Page Remove="dlls\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ChatGPT.Net" Version="2.0.0" />
     <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
     <PackageReference Include="GoogleTranslateFreeApi" Version="1.1.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
