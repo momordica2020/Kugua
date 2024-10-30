@@ -260,6 +260,14 @@ namespace MMDK
 
                     ClientX.Connect();
 
+                    foreach (var mod in Mods)
+                    {
+                        if(mod is ModWithMirai modWithMirai)
+                        {
+                            modWithMirai.InitMiraiClient(ClientX);
+                        }
+                    }
+
                     Logger.Instance.Log($"启用GPT接口...");
                     GPT.Instance.Init(ClientX);
 
@@ -270,23 +278,6 @@ namespace MMDK
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
 
 
-                    foreach (var mod in Mods)
-                    {
-                        try
-                        {
-                            if (mod is ModWithMirai modWithMirai)
-                            {
-                                Logger.Instance.Log($"用mirai初始化模块{mod.GetType().Name}");
-                                modWithMirai.InitMiraiClient(ClientX);
-                                ClientX.OnFriendMessageReceive += modWithMirai.OnFriendMessageReceive;
-                                ClientX.OnGroupMessageReceive += modWithMirai.OnGroupMessageReceive;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Instance.Log(ex);
-                        }
-                    }
                 }
                 else
                 {
@@ -583,6 +574,27 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             Player p = Config.Instance.GetPlayerInfo(s.id);
             p.Name = s.nickname;
             p.Mark = s.remark;
+
+
+
+            // 若消息尚未被处理，则处理其他直连mod的调用
+            foreach (var mod in Mods)
+            {
+                try
+                {
+                    if (mod is ModWithMirai modWithMirai)
+                    {
+                        modWithMirai.OnFriendMessageReceive(s,e);
+                        //modWithMirai.OnGroupMessageReceive;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Log(ex);
+                }
+            }
+
+
             // 计数统计
             if (talked)
             {
@@ -596,7 +608,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
-
+            if (e == null) return;
             var sourceItem = e.First() as Source;
             Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
             HistoryManager.Instance.saveMsg(sourceItem.id, s.group.id, s.id, e.MGetPlainString());

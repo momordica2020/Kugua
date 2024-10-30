@@ -58,7 +58,7 @@ namespace MMDK.Util
 
 
                 input = input.Replace("“", "").Replace("”", "");
-                string text = $"我叫“苦瓜公主”。\n最近我的朋友\"{userName}\"写信问我：“{input}”我只好{emotion}地花一个下午详细回信：\n";
+                string text = $"最近我的朋友\"{userName}\"写信问我：“{input}”我只好{emotion}地花一个下午详细回信：我叫“苦瓜公主”,\n";
                 JObject json = new JObject();
                 json.Add("frequency_penalty", 1);
                 json.Add("max_tokens", 200);

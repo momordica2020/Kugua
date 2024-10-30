@@ -13,7 +13,6 @@ using MeowMiraiLib.GenericModel;
 using MeowMiraiLib.Msg;
 using MeowMiraiLib.Msg.Sender;
 using MeowMiraiLib.Msg.Type;
-using Microsoft.VisualBasic.ApplicationServices;
 using MMDK.Util;
 
 namespace MMDK.Mods
@@ -42,16 +41,6 @@ namespace MMDK.Mods
 
 
 
-
-
-        
-
-
-
-
-
-
-
         public void Exit()
         {
         }
@@ -67,65 +56,41 @@ namespace MMDK.Mods
             TaskTimer = new(1000 * 10);
             TaskTimer.AutoReset = true;
             TaskTimer.Start();
-
+            TaskTimer.Elapsed += TaskTimer_Elapsed;
 
 
             
 
         }
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
+
+        private void TaskTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            return false;   // 暂时屏蔽这个入口，改用直连mirai
-            
-
-        }
-
-
-        int TaskRemove(long userId, long groupId)
-        {
-            int haveTask = 0;
-            for (int i = tasks.Count - 1; i >= 0; i--)
+            for(int i = tasks.Count - 1; i >= 0; i--)
             {
-                var task = tasks[i];
-                if (task.UserId == userId && task.GroupId == groupId)
+                try
                 {
-                    haveTask++;
-                    tasks.RemoveAt(i); // 倒序删除元素不会影响遍历
+                    var t = tasks[i];
+                    if (DateTime.Now >= t.Time)
+                    {
+                        new MeowMiraiLib.Msg.GroupMessage(t.GroupId, [
+                            new At(t.UserId, ""),
+                                    new Plain($"{DateTime.Now.ToString("HH:mm")}到了{(string.IsNullOrEmpty(t.Message)?"":$"，{t.Message}，请")}")
+                            ]).Send(client);
+                        //new MeowMiraiLib.Msg.FriendMessage(userId, new Message[] { new Plain($"{DateTime.Now.Hour}点 啦!") }).Send(c);
+
+                        tasks.Remove(t);
+                    }
                 }
+                catch { }
             }
 
-            return haveTask;
         }
 
-
-        void ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        public bool HandleText(long userId, long groupId, string message, List<string> results)
         {
-            //throw new NotImplementedException();
-        }
 
-        void ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
-        {
-            
-            var message = e.MGetPlainString();
-            long groupId = s.group.id;
-            long userId = s.id;
-            if (!isAskMe(e)) return ;
             try
             {
-                //var group = Config.Instance.GetGroupInfo(groupId);
-                //if (group.Is("AI模式"))
-                //{
-                //    string sentence = e.MGetPlainString();
-                //    // 用rwkv回复
-                //    AIReply(groupId, userId, sentence);
-                //    e = new List<MeowMiraiLib.Msg.Type.Message>().ToArray();    // 在此截断
-                //    return;
-                //}
-
-
-
-
-
                 var regex = new Regex(@"帮我撤回(\d{1,2})?条?");
                 var match = regex.Match(message);
                 if (match.Success)
@@ -146,7 +111,7 @@ namespace MMDK.Mods
                                 ]).Send(client);
                         new Recall(historys[i].messageId).Send(client);
                     }
-                    return;
+                    return true;
                     //new MeowMiraiLib.Msg.GroupMessage(groupId, [
                     //new At(userId, ""),
                     //    new Plain($"?")
@@ -161,11 +126,11 @@ namespace MMDK.Mods
                     var res = new BotProfile().Send(client);
                     string data = "";
                     data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
-                    foreach (var msg in e)
-                    {
-                        data += $"{msg.type}/";
+                    //foreach (var msg in e)
+                    //{
+                    //    data += $"{msg.type}/";
 
-                    }
+                    //}
                     new GroupMessage(groupId, [
                             //new At(userId, ""),
                             new Plain($"{data}")
@@ -181,20 +146,22 @@ namespace MMDK.Mods
                     //    //new At(userId, ""),
                     //    new Plain($"{data}")
                     //    ]).Send(client);
-                    return;
+                    return true;
                 }
 
-                regex = new Regex(@"(\d{1,2})[:：点](\d{1,2})(分)?[叫喊]我(.*)");
+                regex = new Regex(@"(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)");
                 match = regex.Match(message);
                 if (match.Success)
                 {
                     string hourString = match.Groups[1].Value;
-                    string minuteString = match.Groups[2].Value;
-                    string alertMsg = match.Groups.Count > 3 ? match.Groups[3].Value.Trim() : "";
-                    int hour = int.Parse(hourString);
-                    int minute = int.Parse(minuteString);
+                    string minuteString = match.Groups[3].Value;
+                    string alertMsg = match.Groups[4].Value;
+                    if (string.IsNullOrWhiteSpace(alertMsg)) alertMsg = "";
+                    int hour;int minute;
+                    if (!int.TryParse(hourString, out hour)) return false;
+                    if (!int.TryParse(minuteString, out minute)) minute = 0;
                     DateTime alertTime = DateTime.Today.AddHours(hour).AddMinutes(minute);
-                    if (alertTime < DateTime.Now) alertTime.AddDays(1);
+                    if (alertTime < DateTime.Now) alertTime = alertTime.AddDays(1);
 
                     MyTask newTask = new MyTask
                     {
@@ -203,28 +170,54 @@ namespace MMDK.Mods
                         Time = alertTime,
                         Message = alertMsg,
                     };
-
+                    tasks.Add(newTask);
                     new MeowMiraiLib.Msg.GroupMessage(groupId, [
                         new At(userId, ""),
-                            new Plain($"帮你设了{alertTime.ToString("dd号HH点mm分")}{alertMsg}的闹钟")
+                            new Plain($"帮你设了{alertTime.ToString("d号H点m分")}{alertMsg}的闹钟")
                         ]).Send(client);
 
 
-                    TaskTimer.Elapsed += (s, e) =>
+
+                    return true;
+                }
+
+                regex = new Regex(@"闹钟(信息|状态)\b+");
+                match = regex.Match(message);
+                if (match.Success)
+                {
+                    string res = "";
+                    int no = 1;
+                    for(int i = tasks.Count - 1; i >=0; i--)
                     {
-                        if (DateTime.Now >= alertTime)
+                        try
                         {
-                            new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                                new At(userId, ""),
-                                    new Plain($"{DateTime.Now.ToString("HH:mm")}到了{(string.IsNullOrEmpty(alertMsg)?"":$"，{alertMsg}，请")}")
-                                ]).Send(client);
-                            //new MeowMiraiLib.Msg.FriendMessage(userId, new Message[] { new Plain($"{DateTime.Now.Hour}点 啦!") }).Send(c);
-
+                            var task = tasks[i];
+                            if(task.UserId==userId && task.GroupId == groupId)
+                            {
+                                res += $"{no++}:{task.Time.ToString("MM月dd日HH时mm分")} {task.Message}\n";
+                            }
                         }
-                    };
-
-                    tasks.Add(newTask);
-                    return;
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Log(ex);
+                        }
+                    }
+                    if (no > 1)
+                    {
+                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                new At(userId, ""),
+                                new Plain($"你在本群订了{no-1}个闹钟：\n{res}")
+                            ]).Send(client);
+                        return true;
+                    }
+                    else
+                    {
+                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                new At(userId, ""),
+                                new Plain($"你没设过闹钟")
+                            ]).Send(client);
+                        return true;
+                    }
                 }
 
                 regex = new Regex(@"别[叫喊][了我]?");
@@ -238,7 +231,7 @@ namespace MMDK.Mods
                             new At(userId, ""),
                                 new Plain($"彳亍!{haveTask}个闹钟以取消")
                             ]).Send(client);
-                        return;
+                        return true;
                     }
                 }
 
@@ -247,6 +240,44 @@ namespace MMDK.Mods
             {
                 Logger.Instance.Log(ex);
             }
+            return false;
+
+        }
+
+
+        int TaskRemove(long userId, long groupId)
+        {
+            int haveTask = 0;
+            for (int i = tasks.Count - 1; i >= 0; i--)
+            {
+                try
+                {
+                    var task = tasks[i];
+                    if (task.UserId == userId && task.GroupId == groupId)
+                    {
+                        haveTask++;
+                        tasks.RemoveAt(i); // 倒序删除元素不会影响遍历
+                    }
+                }
+                catch { }
+            }
+
+            return haveTask;
+        }
+
+
+        void ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        void ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        {
+            if (s == null || e == null) return;
+            var message = e.MGetPlainString();
+            long groupId = s.group.id;
+            long userId = s.id;
+            
 
             return ;
         }
