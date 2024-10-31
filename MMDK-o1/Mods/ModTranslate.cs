@@ -90,8 +90,8 @@ namespace MMDK.Mods
 
                             Language l1 = GoogleTranslator.GetLanguageByISO(lang1);
                             Language l2 = GoogleTranslator.GetLanguageByISO(lang2);
-                            var res =  Translate(tempResult, l1, l2);
-                            tempResult = res.Result;
+                            //var res =  Translate(tempResult, l1, l2);
+                            //tempResult = res.Result;
                         }
                         results.Add(tempResult);
                         return true;
@@ -116,43 +116,41 @@ namespace MMDK.Mods
 
 
 
-        static async Task<string> Translate(string message, Language from, Language to)
-        {
-            try
-            {
-                var rr = WebLinker.getData("http://qq.com");
+        //static async Task<string> Translate(string message, Language from, Language to)
+        //{
+        //    try
+        //    {
+        //        var rr = WebLinker.getData("http://qq.com");
 
-                // 设置本机 HTTP 代理的地址和端口
-                var proxyAddress = "http://127.0.0.1:7897"; // 根据实际情况修改
-                var proxyUri = new Uri(proxyAddress);
+        //        // 设置本机 HTTP 代理的地址和端口
+        //        var proxyAddress = "http://127.0.0.1:7897"; // 根据实际情况修改
+        //        var proxyUri = new Uri(proxyAddress);
 
-                // 创建 HttpClientHandler 并配置代理
-                var httpClientHandler = new HttpClientHandler
-                {
-                    //Proxy = new WebProxy(proxyUri),
-                    //UseProxy = true
-                };
+        //        // 创建 HttpClientHandler 并配置代理
+        //        var httpClientHandler = new HttpClientHandler
+        //        {
+        //            //Proxy = new WebProxy(proxyUri),
+        //            //UseProxy = true
+        //        };
 
-                // 创建 HttpClient 实例
-                using (var httpClient = new HttpClient(httpClientHandler))
-                {
-                    try
-                    {
-                        // 发起 GET 请求
-                        var response = await httpClient.GetAsync("http://qq.com"); // 更改为所需访问的网站
-                        //response.EnsureSuccessStatusCode(); // 确保请求成功
+        //        // 创建 HttpClient 实例
+        //        using (var httpClient = new HttpClient(httpClientHandler))
+        //        {
+        //            try
+        //            {
+        //                // 发起 GET 请求
+        //                var response = await httpClient.GetAsync("http://qq.com"); // 更改为所需访问的网站
+        //                //response.EnsureSuccessStatusCode(); // 确保请求成功
 
-                        // 读取响应内容
-                        var content = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine(content); // 输出响应内容
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"请求失败: {ex.Message}");
-                    }
-                }
-
-
+        //                // 读取响应内容
+        //                var content = await response.Content.ReadAsStringAsync();
+        //                Console.WriteLine(content); // 输出响应内容
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine($"请求失败: {ex.Message}");
+        //            }
+        //        }
 
 
 
@@ -167,27 +165,29 @@ namespace MMDK.Mods
 
 
 
-                var translator = new GoogleTranslator();
-                Proxy proxy = new Proxy(new Uri("http://localhost:7897"));
-                translator.Proxy = proxy;
-                TranslationResult result = await translator.TranslateLiteAsync(message, from, to);
+
+
+        //        var translator = new GoogleTranslator();
+        //        Proxy proxy = new Proxy(new Uri("http://localhost:7897"));
+        //        translator.Proxy = proxy;
+        //        TranslationResult result = await translator.TranslateLiteAsync(message, from, to);
                 
-                //The result is separated by the suggestions and the '\n' symbols
-                string[] resultSeparated = result.FragmentedTranslation;
+        //        //The result is separated by the suggestions and the '\n' symbols
+        //        string[] resultSeparated = result.FragmentedTranslation;
 
-                //You can get all text using MergedTranslation property
-                string resultMerged = result.MergedTranslation;
+        //        //You can get all text using MergedTranslation property
+        //        string resultMerged = result.MergedTranslation;
 
-                //There is also original text transcription
-                string transcription = result.TranslatedTextTranscription; // Kon'nichiwa! Ogenkidesuka?
+        //        //There is also original text transcription
+        //        string transcription = result.TranslatedTextTranscription; // Kon'nichiwa! Ogenkidesuka?
 
-                return resultMerged;
-            }
-            catch(Exception ex)
-            {
+        //        return resultMerged;//}
+        //    }
+        //    catch(Exception ex)
+        //    {
 
-            }
-            return null;
-        }
+        //    }
+        //    return null;
+        
     }
 }

@@ -14,6 +14,9 @@ using MeowMiraiLib.Msg;
 using MeowMiraiLib.Msg.Sender;
 using MeowMiraiLib.Msg.Type;
 using MMDK.Util;
+using MeowMiraiLib.Event;
+using System.Reflection.PortableExecutable;
+using System.IO;
 
 namespace MMDK.Mods
 {
@@ -91,6 +94,8 @@ namespace MMDK.Mods
 
             try
             {
+                
+
                 var regex = new Regex(@"帮我撤回(\d{1,2})?条?");
                 var match = regex.Match(message);
                 if (match.Success)
@@ -133,7 +138,8 @@ namespace MMDK.Mods
                     //}
                     new GroupMessage(groupId, [
                             //new At(userId, ""),
-                            new Plain($"{data}")
+                            new Plain($"{data}"),
+                            new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif")
                             ]).Send(client);
                     //var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
                     //var res2 = new Anno_list(groupId).Send(client);
@@ -181,7 +187,7 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"闹钟(信息|状态)\b+");
+                regex = new Regex(@"闹钟(列表|信息|状态)\b+");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -194,7 +200,7 @@ namespace MMDK.Mods
                             var task = tasks[i];
                             if(task.UserId==userId && task.GroupId == groupId)
                             {
-                                res += $"{no++}:{task.Time.ToString("MM月dd日HH时mm分")} {task.Message}\n";
+                                res += $"- {task.Time.ToString("MM月dd日HH时mm分")} {task.Message}\n";
                             }
                         }
                         catch (Exception ex)
@@ -220,7 +226,7 @@ namespace MMDK.Mods
                     }
                 }
 
-                regex = new Regex(@"别[叫喊][了我]?");
+                regex = new Regex(@"(删除闹钟|别[叫喊][了我]?)");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -266,25 +272,73 @@ namespace MMDK.Mods
         }
 
 
-        void ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        bool ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             //throw new NotImplementedException();
+            return false;
         }
 
-        void ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        bool ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
-            if (s == null || e == null) return;
+            if (s == null || e == null) return false;
             var message = e.MGetPlainString();
             long groupId = s.group.id;
             long userId = s.id;
-            
+            var group = Config.Instance.GetGroupInfo(groupId);
+            var user = Config.Instance.GetPlayerInfo(userId);
+            var source = e.First() as Source;
 
-            return ;
+            if (!isAskMe(e))
+            {
+                //if(userId == Config.Instance.App.Avatar.adminQQ)
+                {
+                    // save images!
+                    foreach(var item in e)
+                    {
+                        if(item is Image itemImg)
+                        {
+                            string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{userId}";
+                            if(!Directory.Exists(userImgDict))Directory.CreateDirectory(userImgDict);
+                            WebLinker.DownloadImageAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
+                        }
+                       //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
+                        
+                        if (userId == Config.Instance.App.Avatar.adminQQ)
+                        {
+                            //if (item is ForwardMessage gmsg)
+                            {
+                                new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                    new At(userId, ""),
+                                    //new ForwardMessage()
+                                    //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
+                                //new ForwardMessage.Node()
+                            ]).Send(client);
+                                return true;
+                            }
+                        }
+
+                    }
+                    return true;
+                }
+                return false;
+            }
+            else 
+            { 
+
+            }
+
+
+
+            return false;
         }
 
 
 
-
+        /// <summary>
+        /// 查看并截断掉Message里的提示词
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
         bool isAskMe(MeowMiraiLib.Msg.Type.Message[] e)
         {
             foreach(var item in e)

@@ -58,16 +58,16 @@ namespace MMDK.Util
 
 
                 input = input.Replace("“", "").Replace("”", "");
-                string text = $"最近我的朋友\"{userName}\"写信问我：“{input}”我只好{emotion}地花一个下午详细回信：我叫“苦瓜公主”,\n";
+                string text = $"最近本公主的朋友\"{userName}\"写信来问我：“{input}”我只好{emotion}地写了内容极为详细的回答：\n";
                 JObject json = new JObject();
                 json.Add("frequency_penalty", 1);
                 json.Add("max_tokens", 200);
-                json.Add("model", "rwkv");
-                json.Add("presence_penalty", 0);
+                //json.Add("model", "rwkv");
+                //json.Add("presence_penalty", 0);
                 json.Add("prompt", text);
                 json.Add("stream", false);
-                json.Add("temperature", 1);
-                json.Add("top_p", 0.3);
+                //json.Add("temperature", 1);
+                //json.Add("top_p", 0.3);
                 //string json = @"{
                 //      'frequency_penalty': 1,
                 //      'max_tokens': 100,
@@ -81,8 +81,9 @@ namespace MMDK.Util
 
                 string url = "http://127.0.0.1:8000/completions";
 
-                var res = await PostJsonAsync(url, json.ToString());
-
+                var responseBody = await WebLinker.PostJsonAsync(url, json.ToString());
+                JObject jsonResponse = JObject.Parse(responseBody);
+                string res = jsonResponse["choices"].First()["text"].ToString();
 
                 // 后处理
                 res = res.Replace("\"", "").Replace("“","").Replace("”","");

@@ -283,7 +283,7 @@ namespace MMDK.Mods
         }
 
 
-
+        
         bool UserHasAdminAuthority(long userId)
         {
             if (userId <= 0) return false;

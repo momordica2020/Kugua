@@ -46,8 +46,8 @@ namespace MMDK.Util
         /// <param name="client"></param>
         public void InitMiraiClient(MeowMiraiLib.Client _client);
 
-        public void OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
-        public void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
+        public bool OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
+        public bool OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
     }
 
     #endregion

@@ -553,6 +553,16 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     {
                         break;
                     }
+
+                    if (mod is ModWithMirai modWithMirai)
+                    {
+                        succeed = modWithMirai.OnFriendMessageReceive(s, e);
+                        //modWithMirai.OnGroupMessageReceive;
+                    }
+                    if (succeed)
+                    {
+                        break;
+                    }
                 }
 
 
@@ -575,24 +585,6 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             p.Name = s.nickname;
             p.Mark = s.remark;
 
-
-
-            // 若消息尚未被处理，则处理其他直连mod的调用
-            foreach (var mod in Mods)
-            {
-                try
-                {
-                    if (mod is ModWithMirai modWithMirai)
-                    {
-                        modWithMirai.OnFriendMessageReceive(s,e);
-                        //modWithMirai.OnGroupMessageReceive;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Log(ex);
-                }
-            }
 
 
             // 计数统计
@@ -639,24 +631,34 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             List<string> res = new List<string>();
 
 
+            // 调用各个mod来处理
+            bool succeed = false;
             foreach (var mod in Mods)
             {
-                if (!isAtMe)
+                // text模式则要看有at才传递被截断提示词后的cmd
+                if (isAtMe)
                 {
-                    //if(mod is ModRandomChat)
-                    //{
-                    //    //无需at也传输进去
-
-                    //}
-                    continue;
+                    succeed = mod.HandleText(s.id, s.group.id, cmd, res);
+                    if (succeed)
+                    {
+                        break;
+                    }
                 }
-                var succeed = mod.HandleText(s.id, s.group.id, cmd, res);
+
+                // mirai-mod则不检查是否at我，直接原文传递即可
+                if (mod is ModWithMirai modWithMirai)
+                {
+                    succeed = modWithMirai.OnGroupMessageReceive(s, e);
+                    //modWithMirai.OnGroupMessageReceive;
+                }
+                
                 if (succeed)
                 {
                     break;
                 }
             }
 
+            // thie part sendout res message array to Mirai server
             var rres = res.ToArray();
             int sendNum = 0;
             foreach (var r in rres)
@@ -690,9 +692,9 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void ServiceConnected(string e)
         {
-            Logger.Instance.Log($"连接成功：{e}", LogType.System);
+            Logger.Instance.Log($"***连接成功：{e}", LogType.Mirai);
 
-
+            
 
 
 
@@ -706,17 +708,17 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnServeiceError(Exception e)
         {
-            Logger.Instance.Log($"连接出错：{e.Message}\r\n{e.StackTrace}", LogType.Mirai);
+            Logger.Instance.Log($"***连接出错：{e.Message}\r\n{e.StackTrace}", LogType.Mirai);
         }
 
         void OnServiceDropped(string e)
         {
-            Logger.Instance.Log($"连接中断：{e}", LogType.Mirai);
+            Logger.Instance.Log($"***连接中断：{e}", LogType.Mirai);
         }
 
         void OnClientOnlineEvent(OtherClientOnlineEvent e)
         {
-            Logger.Instance.Log($"其他平台登录（标识：{e.id}，平台：{e.platform}", LogType.Mirai);
+            Logger.Instance.Log($"***其他平台登录（标识：{e.id}，平台：{e.platform}", LogType.Mirai);
         }
         void OnEventBotInvitedJoinGroupRequestEvent(BotInvitedJoinGroupRequestEvent e)
         {
