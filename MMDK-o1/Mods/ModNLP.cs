@@ -142,8 +142,8 @@ namespace MMDK.Mods
                     return pinyinMapping[index]; // 返回首字母
                 }
             }
-            if (character >= 'a' && character <= 'z') return character.ToString();
-            if (character >= 'A' && character <= 'Z') return character.ToString();
+            if (character >= 'a' && character <= 'z') return character.ToString().Replace("i", "y").Replace("u", "w").Replace("v", "w");
+            if (character >= 'A' && character <= 'Z') return character.ToString().ToLower().Replace("i", "y").Replace("u", "w").Replace("v", "w");
             return "";
         }
 
@@ -178,93 +178,6 @@ namespace MMDK.Mods
             //states = string[];// new HashSet<string>();
         }
 
-        // 从语料文件训练模型
-        public void TrainModel(string trainingFile)
-        {
-            //segmenter = new JiebaSegmenter();
-            var lines = File.ReadAllLines(trainingFile);
-            List<string> stateList = new List<string>();
-            foreach (var line in lines)
-            {
-                string[] words = line.Where(e => (e >= 0x4E00 && (int)e <= 0x9FFF)).Select(e => e.ToString()).ToArray();
-
-                //List<char> wordslist = new List<char>();
-                //foreach(var c in wordsPre)
-                //{
-                //    if ((int)c < 0x4E00 || (int)c > 0x9FFF) continue;
-                //    wordslist.Add(c);
-                //}
-                if (words.Length == 0) continue;
-
-                // 更新初始概率
-                if (!startProb.ContainsKey(words[0]))
-                    startProb[words[0]] = 0;
-                startProb[words[0]]++;
-
-                // 更新状态集合
-                foreach (var word in words)
-                {
-                    stateList.Add(word);
-                    if (!emitProb.ContainsKey(word))
-                        emitProb[word] = new Dictionary<string, double>();
-
-                    // 统计发射概率
-                    string py = fatherModel.GetPinyinSingle(word[0]); // 获取拼音首字母
-                    if (!string.IsNullOrWhiteSpace(py))
-                    {
-                        string pyFirst = py[0].ToString();
-                        if (!emitProb[word].ContainsKey(pyFirst))
-                            emitProb[word][pyFirst] = 0;
-                        emitProb[word][py]++;
-                    }
-                }
-
-                // 更新转移概率
-                for (int i = 0; i < words.Length - 1; i++)
-                {
-                    if (!transProb.ContainsKey(words[i]))
-                        transProb[words[i]] = new Dictionary<string, double>();
-
-                    if (!transProb[words[i]].ContainsKey(words[i + 1]))
-                        transProb[words[i]][words[i + 1]] = 0;
-                    transProb[words[i]][words[i + 1]]++;
-                }
-            }
-            states = stateList.ToArray();
-            // 计算概率
-            NormalizeProbabilities();
-        }
-
-        // 归一化概率
-        private void NormalizeProbabilities()
-        {
-            // 计算初始概率
-            double totalStartCount = startProb.Values.Sum();
-            foreach (var key in startProb.Keys.ToList())
-            {
-                startProb[key] /= totalStartCount;
-            }
-
-            // 计算转移概率
-            foreach (var fromState in transProb.Keys)
-            {
-                double totalCount = transProb[fromState].Values.Sum();
-                foreach (var toState in transProb[fromState].Keys.ToList())
-                {
-                    transProb[fromState][toState] /= totalCount;
-                }
-            }
-
-            // 计算发射概率
-            foreach (var state in emitProb.Keys)
-            {
-                double totalCount = emitProb[state].Values.Sum();
-                foreach (var firstLetter in emitProb[state].Keys.ToList())
-                {
-                    emitProb[state][firstLetter] /= totalCount;
-                }
-            }
-        }
 
         public string GetSamePinyinSentnse(string inputSequence)
         {
@@ -273,7 +186,7 @@ namespace MMDK.Mods
             if (string.IsNullOrWhiteSpace(inputSequence)) return output;
 
             int beginIndex = 0;
-            int endIndex = 0;
+            int endIndex = -1;
             for (int i = 0; i < inputSequence.Length; i++)
             {
                 if (inputSequence[i] >= 'a' && inputSequence[i] <= 'z')
@@ -453,40 +366,6 @@ namespace MMDK.Mods
 
 
 
-
-        // 保存模型到文件
-        public void SaveModel(string filePath)
-        {
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                // 保存初始概率
-                writer.WriteLine("StartProb");
-                foreach (var entry in startProb)
-                {
-                    writer.WriteLine($"{entry.Key}\t{entry.Value}");
-                }
-
-                // 保存转移概率
-                writer.WriteLine("TransProb");
-                foreach (var fromState in transProb.Keys)
-                {
-                    foreach (var toState in transProb[fromState].Keys)
-                    {
-                        writer.WriteLine($"{fromState}\t{toState}\t{transProb[fromState][toState]}");
-                    }
-                }
-
-                // 保存发射概率
-                writer.WriteLine("EmitProb");
-                foreach (var state in emitProb.Keys)
-                {
-                    foreach (var observation in emitProb[state].Keys)
-                    {
-                        writer.WriteLine($"{state}\t{observation}\t{emitProb[state][observation]}");
-                    }
-                }
-            }
-        }
 
         // 从文件加载模型
         public bool LoadModel(string filePath)
