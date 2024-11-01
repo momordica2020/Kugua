@@ -202,6 +202,7 @@ namespace MMDK
                     new ModZhanbu(),
                     //new ModTranslate(),
                     new ModTimerTask(),
+                    new ModNLP(),
                     new ModRandomChat(),    // 这个会用闲聊收尾
 
                 };

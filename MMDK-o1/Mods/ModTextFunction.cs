@@ -373,7 +373,6 @@ namespace MMDK.Mods
             BL,         // 生成攻受文
             Joke,       // 生成苏联笑话
             //Symbol,     // 符号类生成器
-            Lianxiang  // 首字母合理联想
 
         }
         // 存储可匹配的命令
@@ -385,7 +384,6 @@ namespace MMDK.Mods
             { "什么是", CommandType.WordSalad},
             { "随机", CommandType.LoremIpsum},
             { "讽刺", CommandType.Joke},
-            { "联想", CommandType.Joke},
             // CommandType.BL 攻受文不是前缀，所以单独触发
         };
         static bool TryReadCommand(string input, out CommandType commandType, out List<string> param)
