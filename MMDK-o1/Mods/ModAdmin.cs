@@ -40,9 +40,9 @@ namespace MMDK.Mods
 
             CommandType cmd = CommandType.None;
             bool isGroup = groupId > 0;
-            var user = Config.Instance.GetPlayerInfo(userId);
+            var user = Config.Instance.UserInfo(userId);
             
-            var group = Config.Instance.GetGroupInfo(groupId);
+            var group = Config.Instance.GroupInfo(groupId);
             if (TryReadCommand(ref message, out cmd))
             {
                 
@@ -52,7 +52,7 @@ namespace MMDK.Mods
                         results.Add(getWelcomeString());
                         return true;
                     case CommandType.Ban:
-                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (!Config.Instance.UserHasAdminAuthority(userId)) return false;
                         var targetUserId = 0;
                         if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
                         {
@@ -61,13 +61,13 @@ namespace MMDK.Mods
                         }
                         else
                         {
-                            var targetUser = Config.Instance.GetPlayerInfo(targetUserId);
+                            var targetUser = Config.Instance.UserInfo(targetUserId);
                             targetUser.Tags.Add("黑名单"); // 临时性拉黑，没有加type设置
                             results.Add($"已全局屏蔽{targetUser.Name}({targetUserId})");
                             return true;
                         }
                     case CommandType.UnBan:
-                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (!Config.Instance.UserHasAdminAuthority(userId)) return false;
                         var targetUserId2 = 0;
                         if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
                         {
@@ -76,13 +76,13 @@ namespace MMDK.Mods
                         }
                         else
                         {
-                            var targetUser = Config.Instance.GetPlayerInfo(targetUserId2);
+                            var targetUser = Config.Instance.UserInfo(targetUserId2);
                             targetUser.Tags.Remove("黑名单"); 
                             results.Add($"已解除屏蔽{targetUser.Name}({targetUserId2})");
                             return true;
                         }
                     case CommandType.TagAdd:
-                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (!Config.Instance.UserHasAdminAuthority(userId)) return false;
                         if (string.IsNullOrWhiteSpace(message))
                         {
                             results.Add($"请在指令后接tag名称");
@@ -101,7 +101,7 @@ namespace MMDK.Mods
                             return true;
                         }
                     case CommandType.TagRemove:
-                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (!Config.Instance.UserHasAdminAuthority(userId)) return false;
                         if (string.IsNullOrWhiteSpace(message))
                         {
                             results.Add($"请在指令后接tag名称");
@@ -120,7 +120,7 @@ namespace MMDK.Mods
                             return true;
                         }
                     case CommandType.TagRemoveAll:
-                        if (!UserHasAdminAuthority(userId)) return false;
+                        if (!Config.Instance.UserHasAdminAuthority(userId)) return false;
                         if (string.IsNullOrWhiteSpace(message))
                         {
                             if (isGroup)
@@ -153,7 +153,7 @@ namespace MMDK.Mods
                         }
                     case CommandType.CheckState:
                         string rmsg = "";
-                        if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ ) //临时：只有测试群可查详细信息
+                        if (Config.Instance.GroupHasAdminAuthority(groupId) || Config.Instance.UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ ) //临时：只有测试群可查详细信息
                         {
                             DateTime startTime = Config.Instance.App.Log.StartTime;
                             rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{Util.StaticUtil.GetBuildDate().ToString("F")}）\n";
@@ -179,7 +179,7 @@ namespace MMDK.Mods
                         return true;
                     case CommandType.SaveConfig:
                         // 存档咯
-                        if (GroupHasAdminAuthority(groupId) || UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ)
+                        if (Config.Instance.GroupHasAdminAuthority(groupId) || Config.Instance.UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ)
                         {
                             Config.Instance.Save();
                             results.Add($"配置文件以存档 {DateTime.Now.ToString("F")}");
@@ -284,25 +284,7 @@ namespace MMDK.Mods
 
 
         
-        bool UserHasAdminAuthority(long userId)
-        {
-            if (userId <= 0) return false;
-            if (userId == Config.Instance.App.Avatar.adminQQ) return true;
-            var user = Config.Instance.GetPlayerInfo(userId);
-            if (user.Is("管理员")) return true;
-            if (user.Type == PlayerType.Admin) return true;
-            return false;
-        }
 
-        bool GroupHasAdminAuthority(long groupId)
-        {
-            if (groupId <= 0) return false;
-            if (groupId == Config.Instance.App.Avatar.adminGroup) return true;
-            var group = Config.Instance.GetGroupInfo(groupId);
-            if (group.Is("测试")) return true;
-            if (group.Type == PlaygroupType.Test) return true;
-            return false;
-        }
 
 
     }

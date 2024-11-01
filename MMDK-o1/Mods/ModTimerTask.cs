@@ -88,7 +88,76 @@ namespace MMDK.Mods
             }
 
         }
+        /// <summary>
+        /// 刷新好友列表并更新配置文件
+        /// </summary>
+        public void RefreshFriendList()
+        {
+            try
+            {
+                if (client != null)
+                {
+                    var fp = new FriendList().Send(client);
+                    Config.Instance.friends.Clear();
+                    if (fp == null)
+                    {
+                        Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
 
+                    }
+                    else
+                    {
+                        foreach (var f in fp)
+                        {
+                            var friend = Config.Instance.UserInfo(f.id);
+                            friend.Name = f.nickname;
+                            //friend.Mark = f.remark;
+                            friend.Tags.Add("好友");
+                            //friend.Type = PlayerType.Normal;
+                            Config.Instance.friends.Add(f.id, f);
+                        }
+                    }
+
+
+
+
+                    var gp = new GroupList().Send(client);
+                    Config.Instance.groups.Clear();
+                    Config.Instance.groupMembers.Clear();
+                    if (gp == null)
+                    {
+                        Logger.Instance.Log($"不会吧不会吧不会没有群吧");
+
+                    }
+                    else
+                    {
+                        foreach (var g in gp)
+                        {
+                            var group = Config.Instance.GroupInfo(g.id);
+                            group.Name = g.name;
+                            var groupMembers = g.GetMemberList(client);
+                            if (groupMembers == null)
+                            {
+                                Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+                                continue;
+                            }
+                            Config.Instance.groups.Add(g.id, g);
+                            Config.Instance.groupMembers.Add(g.id, groupMembers);
+                            foreach (var gf in groupMembers)
+                            {
+                                var member = Config.Instance.UserInfo(gf.id);
+                                member.Mark = gf.memberName;    //群昵称？
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+
+        }
         public bool HandleText(long userId, long groupId, string message, List<string> results)
         {
 
@@ -96,9 +165,9 @@ namespace MMDK.Mods
             {
                 
 
-                var regex = new Regex(@"帮我撤回(\d{1,2})?条?");
+                var regex = new Regex(@"^帮我撤回(\d{1,2})?条?");
                 var match = regex.Match(message);
-                if (match.Success)
+                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
                 {
                     int quantity = 1;
                     if (match.Groups[1].Success)
@@ -124,7 +193,37 @@ namespace MMDK.Mods
                     //return true;
                 }
 
-                regex = new Regex(@"你什么情况？");
+                regex = new Regex(@"^刷新列表");
+                match = regex.Match(message);
+                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+                {
+                    Logger.Instance.Log($"更新好友列表和群列表...");
+                    RefreshFriendList();
+                    Logger.Instance.Log($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+                    new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                        new Plain($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...")
+                        ]).Send(client);
+                    return true;
+                }
+
+                regex = new Regex(@"来点狐狸");
+                match = regex.Match(message);
+                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+                {
+                    var files = Directory.GetFiles(@"D:\Projects\TestFunctions\bin\Debug\net8.0-windows\gifs", "*.gif");
+                    if (files != null)
+                    {
+                        string fname = files[MyRandom.Next(files.Length)];
+                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                            new Image(null,null,fname)
+                        ]).Send(client);
+                    }
+                    
+                    return true;
+                }
+
+
+                regex = new Regex(@"^你什么情况？");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -139,14 +238,19 @@ namespace MMDK.Mods
                     new GroupMessage(groupId, [
                             //new At(userId, ""),
                             new Plain($"{data}"),
-                            new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif")
+                            new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
+                            
                             ]).Send(client);
-                    //var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
-                    //var res2 = new Anno_list(groupId).Send(client);
-                    //foreach(var ano in res2)
-                    //{
-                    //    data += $"{ano.content}\n望周知！\n";
-                    //}
+
+                    new GroupMessage(groupId, [
+                        new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.amr")
+                        ]).Send(client);
+                    var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
+                    var res2 = new Anno_list(groupId).Send(client);
+                    foreach (var ano in res2)
+                    {
+                        data += $"{ano.content}\n望周知！\n";
+                    }
 
                     //new GroupMessage(groupId, [
                     //    //new At(userId, ""),
@@ -155,7 +259,7 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)");
+                regex = new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -187,7 +291,7 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"闹钟(列表|信息|状态)\b+");
+                regex = new Regex(@"^闹钟(列表|信息|状态)\b+");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -226,7 +330,7 @@ namespace MMDK.Mods
                     }
                 }
 
-                regex = new Regex(@"(删除闹钟|别[叫喊][了我]?)");
+                regex = new Regex(@"^(删除闹钟|别[叫喊][了我]?)");
                 match = regex.Match(message);
                 if (match.Success)
                 {
@@ -284,8 +388,8 @@ namespace MMDK.Mods
             var message = e.MGetPlainString();
             long groupId = s.group.id;
             long userId = s.id;
-            var group = Config.Instance.GetGroupInfo(groupId);
-            var user = Config.Instance.GetPlayerInfo(userId);
+            var group = Config.Instance.GroupInfo(groupId);
+            var user = Config.Instance.UserInfo(userId);
             var source = e.First() as Source;
 
             if (!isAskMe(e))
@@ -307,13 +411,13 @@ namespace MMDK.Mods
                         {
                             //if (item is ForwardMessage gmsg)
                             {
-                                new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                                    new At(userId, ""),
+                               // new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                  //  new At(userId, ""),
                                     //new ForwardMessage()
                                     //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
                                 //new ForwardMessage.Node()
-                            ]).Send(client);
-                                return true;
+                            //]).Send(client);
+                                //return true;
                             }
                         }
 

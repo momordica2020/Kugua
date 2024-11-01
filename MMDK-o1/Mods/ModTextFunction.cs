@@ -202,8 +202,8 @@ namespace MMDK.Mods
             CommandType cmd = CommandType.None;
             List<string> param = new List<string>();
             bool isGroup = groupId > 0;
-            var user = Config.Instance.GetPlayerInfo(userId);
-            var group = Config.Instance.GetGroupInfo(groupId);
+            var user = Config.Instance.UserInfo(userId);
+            var group = Config.Instance.GroupInfo(groupId);
             if (TryReadCommand(message, out cmd, out param))
             {
                 switch (cmd)
@@ -373,6 +373,7 @@ namespace MMDK.Mods
             BL,         // 生成攻受文
             Joke,       // 生成苏联笑话
             //Symbol,     // 符号类生成器
+            Lianxiang  // 首字母合理联想
 
         }
         // 存储可匹配的命令
@@ -384,6 +385,7 @@ namespace MMDK.Mods
             { "什么是", CommandType.WordSalad},
             { "随机", CommandType.LoremIpsum},
             { "讽刺", CommandType.Joke},
+            { "联想", CommandType.Joke},
             // CommandType.BL 攻受文不是前缀，所以单独触发
         };
         static bool TryReadCommand(string input, out CommandType commandType, out List<string> param)

@@ -385,7 +385,7 @@ namespace MMDK.Util
 
 
         #region 用户Player相关
-        public Player GetPlayerInfo(long id)
+        public Player UserInfo(long id)
         {
             if (players.TryGetValue(id, out Player p))
             {
@@ -420,7 +420,7 @@ namespace MMDK.Util
             {
                 
                 if (id == App.Avatar.myQQ) return false;   // 不许套娃
-                var u = GetPlayerInfo(id);
+                var u = UserInfo(id);
                 if (u.Type == PlayerType.Blacklist || u.Is("屏蔽")) return false;
                 
                 // 默认皆可应答
@@ -434,14 +434,34 @@ namespace MMDK.Util
             
             return false;
         }
+
+        public bool UserHasAdminAuthority(long userId)
+        {
+            if (userId <= 0) return false;
+            if (userId == App.Avatar.adminQQ) return true;
+            var user = UserInfo(userId);
+            if (user.Is("管理员")) return true;
+            if (user.Type == PlayerType.Admin) return true;
+            return false;
+        }
+
+
         #endregion
 
-
+        public bool GroupHasAdminAuthority(long groupId)
+        {
+            if (groupId <= 0) return false;
+            if (groupId ==App.Avatar.adminGroup) return true;
+            var group = GroupInfo(groupId);
+            if (group.Is("测试")) return true;
+            if (group.Type == PlaygroupType.Test) return true;
+            return false;
+        }
 
 
 
         #region 群组Group相关
-        public Playgroup GetGroupInfo(long id)
+        public Playgroup GroupInfo(long id)
         {
             if(playgroups.TryGetValue(id, out Playgroup g))
             {
@@ -473,7 +493,7 @@ namespace MMDK.Util
             try
             {
 
-                var g = GetGroupInfo(id);
+                var g = GroupInfo(id);
                 if (g.Type == PlaygroupType.Blacklist || g.Is("屏蔽")) return false;
 
                 // 默认皆可应答

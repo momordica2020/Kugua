@@ -317,8 +317,8 @@ namespace MMDK.Mods
             }
 
             bool isGroup = groupId > 0;
-            var user = Config.Instance.GetPlayerInfo(userId);
-            var group = Config.Instance.GetGroupInfo(groupId);
+            var user = Config.Instance.UserInfo(userId);
+            var group = Config.Instance.GroupInfo(groupId);
             Regex modereg = new Regex(@"(\S+)模式\s*(on)", RegexOptions.IgnoreCase);
             var moderes = modereg.Match(message);
             if (moderes.Success)
@@ -422,7 +422,7 @@ namespace MMDK.Mods
 
         private bool UserBanned(long userId)
         {
-            var user = Config.Instance.GetPlayerInfo(userId);
+            var user = Config.Instance.UserInfo(userId);
             if (user.Is("黑名单")) return true;
             if (user.Type == PlayerType.Blacklist) return true;
             return false;
@@ -431,7 +431,7 @@ namespace MMDK.Mods
 
         private bool GroupBanned(long groupId)
         {
-            var group = Config.Instance.GetGroupInfo(groupId);
+            var group = Config.Instance.GroupInfo(groupId);
             if (group.Is("黑名单")) return true;
             if (group.Type == PlaygroupType.Blacklist) return true;
             return false;
@@ -477,7 +477,7 @@ namespace MMDK.Mods
 
                     case "AI":
                         results = new List<string>();
-                        string uName = Config.Instance.GetPlayerInfo(userId).Name;
+                        string uName = Config.Instance.UserInfo(userId).Name;
                         if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         GPT.Instance.AIReply(groupId, userId, uName, inputText);
                         return true;   // 不在此处理
@@ -588,7 +588,7 @@ namespace MMDK.Mods
         {
             if (userId <= 0) return false;
             if (userId == Config.Instance.App.Avatar.adminQQ) return true;
-            var user = Config.Instance.GetPlayerInfo(userId);
+            var user = Config.Instance.UserInfo(userId);
             if (user.Is("管理员")) return true;
             if (user.Type == PlayerType.Admin) return true;
             return false;
@@ -598,7 +598,7 @@ namespace MMDK.Mods
         {
             if (groupId <= 0) return false;
             if (groupId == Config.Instance.App.Avatar.adminGroup) return true;
-            var group = Config.Instance.GetGroupInfo(groupId);
+            var group = Config.Instance.GroupInfo(groupId);
             if (group.Is("测试")) return true;
             if (group.Type == PlaygroupType.Test) return true;
             return false;

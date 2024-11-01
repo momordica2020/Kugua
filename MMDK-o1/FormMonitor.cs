@@ -472,7 +472,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     {
                         foreach (var f in fp)
                         {
-                            var friend = Config.Instance.GetPlayerInfo(f.id);
+                            var friend = Config.Instance.UserInfo(f.id);
                             friend.Name = f.nickname;
                             //friend.Mark = f.remark;
                             friend.Tags.Add("好友");
@@ -496,7 +496,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     {
                         foreach (var g in gp)
                         {
-                            var group = Config.Instance.GetGroupInfo(g.id);
+                            var group = Config.Instance.GroupInfo(g.id);
                             group.Name = g.name;
                             var groupMembers = g.GetMemberList(ClientX);
                             if (groupMembers == null)
@@ -508,7 +508,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                             Config.Instance.groupMembers.Add(g.id, groupMembers);
                             foreach (var gf in groupMembers)
                             {
-                                var member = Config.Instance.GetPlayerInfo(gf.id);
+                                var member = Config.Instance.UserInfo(gf.id);
                                 member.Mark = gf.memberName;    //群昵称？
                             }
                         }
@@ -532,7 +532,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             if (!Config.Instance.AllowPlayer(s.id)) return; // 黑名单
             Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
-            var uinfo = Config.Instance.GetPlayerInfo(s.id);
+            var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.nickname;
             uinfo.Mark = s.remark;
 
@@ -581,7 +581,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
             }
             // update player info
-            Player p = Config.Instance.GetPlayerInfo(s.id);
+            Player p = Config.Instance.UserInfo(s.id);
             p.Name = s.nickname;
             p.Mark = s.remark;
 
@@ -604,7 +604,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             var sourceItem = e.First() as Source;
             Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
             HistoryManager.Instance.saveMsg(sourceItem.id, s.group.id, s.id, e.MGetPlainString());
-            var uinfo = Config.Instance.GetPlayerInfo(s.id);
+            var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.memberName;
             
 
@@ -680,12 +680,12 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
 
             // update player info
-            Playgroup p = Config.Instance.GetGroupInfo(s.group.id);
+            Playgroup p = Config.Instance.GroupInfo(s.group.id);
             p.Name = s.group.name;
             if (sendNum > 0)
             {
                 //p.UseTimes += 1;
-                Config.Instance.GetPlayerInfo(s.id).UseTimes += 1;
+                Config.Instance.UserInfo(s.id).UseTimes += 1;
                 Config.Instance.App.Log.playTimeGroup += 1;
             }
         }
@@ -723,8 +723,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         void OnEventBotInvitedJoinGroupRequestEvent(BotInvitedJoinGroupRequestEvent e)
         {
             Logger.Instance.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}", LogType.Mirai);
-            var g = Config.Instance.GetGroupInfo(e.groupId);
-            var u = Config.Instance.GetPlayerInfo(e.fromId);
+            var g = Config.Instance.GroupInfo(e.groupId);
+            var u = Config.Instance.UserInfo(e.fromId);
             if (g.Is("黑名单") || u.Is("黑名单"))
             {
                 e.Deny(ClientX);
@@ -743,7 +743,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             if (!string.IsNullOrWhiteSpace(e.message) && e.message.StartsWith(Config.Instance.App.Avatar.askName))
             {
                 e.Grant(ClientX, "来了来了");
-                var user = Config.Instance.GetPlayerInfo(e.fromId);
+                var user = Config.Instance.UserInfo(e.fromId);
                 user.Name = e.nick;
                 //user.Mark = e.nick;
                 user.Tags.Add("好友");
@@ -758,7 +758,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         void OnEventFriendNickChangedEvent(FriendNickChangedEvent e)
         {
             Logger.Instance.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}", LogType.Mirai);
-            var user = Config.Instance.GetPlayerInfo(e.friend.id);
+            var user = Config.Instance.UserInfo(e.friend.id);
             user.Name = e.to;
 
         }

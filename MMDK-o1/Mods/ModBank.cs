@@ -108,7 +108,7 @@ namespace MMDK.Mods
         /// <param name="userqq"></param>
         public string DailyAttendance(long group, long userqq)
         {
-            var u = Config.Instance.GetPlayerInfo(userqq);
+            var u = Config.Instance.UserInfo(userqq);
             if (u.LastSignTime < DateTime.Today)
             {
                 int maxmoney = 114;
@@ -139,8 +139,8 @@ namespace MMDK.Mods
 
             try
             {
-                var user1 = Config.Instance.GetPlayerInfo(fromqq);
-                var user2 = Config.Instance.GetPlayerInfo(targetqq);
+                var user1 = Config.Instance.UserInfo(fromqq);
+                var user2 = Config.Instance.UserInfo(targetqq);
                 if (money <= 0)
                 {
                     return $"只允许正向转账";
@@ -252,7 +252,7 @@ namespace MMDK.Mods
 
         public string getUserInfo(long userqq)
         {
-            var u = Config.Instance.GetPlayerInfo(userqq);
+            var u = Config.Instance.UserInfo(userqq);
             return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
         }
 
