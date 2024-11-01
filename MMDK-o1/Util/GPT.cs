@@ -11,12 +11,16 @@ using MeowMiraiLib.Msg;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+using System.IO;
 
 namespace MMDK.Util
 {
     internal class GPT
     {
         private static readonly Lazy<GPT> instance = new Lazy<GPT>(() => new GPT());
+        public static GPT Instance => instance.Value;
+
         ChatGpt gptAgent;
 
         MeowMiraiLib.Client client;
@@ -46,7 +50,94 @@ namespace MMDK.Util
 
 
         // 公共静态属性获取实例
-        public static GPT Instance => instance.Value;
+       
+
+        public async void AITalk(long groupId, long userId, string input)
+        {
+            try
+            {
+                string json = "";
+                json += $"text={input}";
+                json += $"&prompt=[break_6]";
+                json += $"&voice=1031.pt";
+                json += $"&speed=5";
+                json += $"&temperature=0.1";
+                json += $"&top_p=0.701";
+                json += $"&top_k=20";
+                json += $"&refine_max_new_token=384";
+                json += $"&infer_max_new_token=2048";
+                json += $"&text_seed=42";
+                json += $"&skip_refine=1";
+                json += $"&is_stream=0";
+                json += $"&custom_voice=0";
+                //json.Add("text", "你好啊");
+                //json.Add("prompt", "[break_6]");
+                //json.Add("voice", "1031.pt");
+                //json.Add("speed", 5);
+                //json.Add("temperature", 0.1);
+                //json.Add("top_p", 0.701);
+                //json.Add("top_k", 20);
+                //json.Add("refine_max_new_token", 384);
+                //json.Add("infer_max_new_token", 2048);
+                //json.Add("text_seed", 42);
+                //json.Add("skip_refine", 1);
+                //json.Add("is_stream", 0);
+                //json.Add("custom_voice", 0);
+                string url = "http://127.0.0.1:9966/tts";
+                //{code:0,
+                //msg:'ok',
+                //audio_files:[{
+                //  filename: D:/Projects/chattts/win-ChatTTS-ui-v1.0/static/wavs/1101-234740_4.7s-seed1031.pt-temp0.1-top_p0.701-top_k20-len18-91128-merge.wav,
+                //  url: http://127.0.0.1:9966/static/wavs/1101-234740_4.7s-seed1031.pt-temp0.1-top_p0.701-top_k20-len18-91128-merge.wav
+                //  }]}
+                var responseBody = await WebLinker.PostAsync(url, json);
+                JObject jsonResponse = JObject.Parse(responseBody);
+                //Logger.Instance.Log(responseBody,LogType.Mirai);
+                string res = jsonResponse["audio_files"].First()["filename"].ToString();
+
+
+                string amrFile = Wav2Amr(res);
+                //Logger.Instance.Log($"=> {amrFile}");
+
+
+                new GroupMessage(groupId, [
+                        new Voice(null,null,amrFile)
+                        ]).Send(client);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+        }
+
+        string Wav2Amr(string inputFile)
+        {
+            // 命令行指令
+            inputFile=Path.GetFullPath(inputFile);
+            string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.amr";
+            string cmd = "D:\\ffmpeg\\bin\\ffmpeg.exe";
+            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=20dB\" {outputFile}";
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = cmd,
+                Arguments = param,
+                CreateNoWindow = true
+            };
+            process.StartInfo = startInfo;
+
+            process.Start();
+            process.WaitForExit();
+
+            int exitCode = process.ExitCode;
+            if (exitCode != 0)
+            {
+                Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
+                //throw new Exception($"FFmpeg exited with code {exitCode}");
+            }
+            return outputFile;
+
+        }
 
         public async void AIReply(long groupId, long userId, string userName, string input)
         {

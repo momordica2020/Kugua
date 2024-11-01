@@ -230,27 +230,32 @@ namespace MMDK.Mods
                     var res = new BotProfile().Send(client);
                     string data = "";
                     data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
+
+                    GPT.Instance.AITalk(groupId, userId, $"你是谁啊？");
+
+
                     //foreach (var msg in e)
                     //{
                     //    data += $"{msg.type}/";
 
                     //}
-                    new GroupMessage(groupId, [
-                            //new At(userId, ""),
-                            new Plain($"{data}"),
-                            new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
-                            
-                            ]).Send(client);
 
-                    new GroupMessage(groupId, [
-                        new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.amr")
-                        ]).Send(client);
-                    var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
-                    var res2 = new Anno_list(groupId).Send(client);
-                    foreach (var ano in res2)
-                    {
-                        data += $"{ano.content}\n望周知！\n";
-                    }
+
+
+                    //new GroupMessage(groupId, [
+                    //        //new At(userId, ""),
+                    //        new Plain($"{data}"),
+                    //        new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
+                            
+                    //        ]).Send(client);
+
+                    
+                    //var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
+                    //var res2 = new Anno_list(groupId).Send(client);
+                    //foreach (var ano in res2)
+                    //{
+                    //    data += $"{ano.content}\n望周知！\n";
+                    //}
 
                     //new GroupMessage(groupId, [
                     //    //new At(userId, ""),

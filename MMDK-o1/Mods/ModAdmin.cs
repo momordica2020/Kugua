@@ -182,6 +182,7 @@ namespace MMDK.Mods
                         if (Config.Instance.GroupHasAdminAuthority(groupId) || Config.Instance.UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ)
                         {
                             Config.Instance.Save();
+                            ModRaceHorse.Instance.save();
                             results.Add($"配置文件以存档 {DateTime.Now.ToString("F")}");
                             return true;
                         }

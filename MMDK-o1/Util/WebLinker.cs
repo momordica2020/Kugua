@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,12 +9,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Security;
 
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace MMDK.Util
 {
@@ -50,6 +53,39 @@ namespace MMDK.Util
 
             }
         }
+
+        public static async Task<string> PostAsync(string url, string paramString)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // 设置请求体为 JSON 格式
+                var sp=System.Web.HttpUtility.UrlPathEncode(paramString);
+                HttpContent content = new StringContent(sp, Encoding.UTF8, "application/x-www-form-urlencoded");
+                //client(new UrlEncodedFormEntity(list, "UTF-8"));
+                try
+                {
+                    // 发送 POST 请求
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // 确认响应状态
+                    response.EnsureSuccessStatusCode();
+
+                    // 读取响应内容
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    //Console.WriteLine("Received response: " + responseBody);
+
+                    return responseBody;
+                }
+                catch (HttpRequestException e)
+                {
+                    Logger.Instance.Log(e);
+                }
+            }
+
+            return "";
+            
+        }
+
         public static async Task<string> PostJsonAsync(string url, string jsonContent)
         {
             using (HttpClient client = new HttpClient())

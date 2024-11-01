@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ChatGPT.Net;
 using MeowMiraiLib;
 using MMDK.Util;
 
@@ -14,6 +15,14 @@ namespace MMDK.Mods
     /// </summary>
     public class ModBank : Mod
     {
+        private static readonly Lazy<ModBank> instance = new Lazy<ModBank>(() => new ModBank());
+        public static ModBank Instance => instance.Value;
+        private ModBank()
+        {
+
+
+        }
+
         public static string unitName = "马币";
 
 
@@ -44,12 +53,12 @@ namespace MMDK.Mods
                 return true;
             }
 
-            if (message == "个人信息")
-            {
-                string res = $"{getUserInfo(userId)}";
-                results.Add(res);
-                return true;
-            }
+            //if (message == "个人信息")
+            //{
+            //    string res = $"{getUserInfo(userId)}";
+            //    results.Add(res);
+            //    return true;
+            //}
 
             Regex zzs = new Regex("给(.+)转(\\d+)");
             var matchzzs = zzs.Match(message);

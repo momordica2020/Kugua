@@ -195,7 +195,8 @@ namespace MMDK
                 Mods = new List<Mod>
                 {
                     new ModAdmin(),
-                    new ModBank(),
+                    ModBank.Instance,
+                    ModRaceHorse.Instance,
                     new ModDice(),
                     new ModProof(),
                     new ModTextFunction(),

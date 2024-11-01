@@ -283,63 +283,6 @@ namespace MMDK.Mods
             return counter;
         }
 
-        //string weakProof()
-        //{
-        //    string result = "";
-        //    calculation = 0;
-        //    counter = 0;
-        //    Queue<char> q = new Queue<char>();
-        //    q.Enqueue('1');
-        //    q.Enqueue('1');
-        //    q.Enqueue('4');
-        //    q.Enqueue('5');
-        //    q.Enqueue('1');
-        //    q.Enqueue('4');
-        //    List<double> v = new List<double>();
-        //    choose(q, v);
-        //    if (counter >= 1)
-        //    {
-        //        result += "Strong numerical proof found " + counter.ToString() + " solutions.\r\n";
-        //    }
-        //    else
-        //    {
-        //        result += "Strong numerical proof found " + counter.ToString() + " solution.\r\n";
-        //    }
-        //    result += "Performed " + calculation + " calculations.";
-        //    return result;
-        //}
-
-        void choose(Queue<char> remain, List<double> current)
-        {
-            string input = "";
-            if (remain.Count <= 0)
-            {
-                tbase = current;
-                int max_length = current.Count * 2 - 1;
-                if (max_length > 2 && max_length < 11)
-                {
-                    List<int> array = new List<int>();
-                    array.Add(0);
-                    array.Add(0);
-                    put(array, max_length);
-                    array.Clear();
-                    array.Add(-1);
-                    array.Add(0);
-                    put(array, max_length);
-                }
-                return;
-            }
-            while (remain.Count > 0)
-            {
-                input += remain.Peek();
-                remain.Dequeue();
-                current.Add(double.Parse(input));
-                // used++;
-
-                choose(remain, current);
-                current.RemoveAt(current.Count - 1);
-            }
-        }
 
         void put(List<int> v, int max_length)
         {
@@ -452,6 +395,53 @@ namespace MMDK.Mods
 
         }
 
+        
+
+        //print RPN.
+        string print(List<int> seed)
+        {
+            // cout << "print called" << endl;
+
+            int numCount = 0;
+            // int i;
+            string output = "";
+            foreach (int i in seed)
+            {
+                switch (i)
+                {
+                    case -1:
+                        output += ((int)tbase[0]).ToString();
+                        output += "- ";
+                        numCount++;
+                        break;
+                    case 0:
+                        output += ((int)tbase[numCount]).ToString();
+                        output += " ";
+                        numCount++;
+                        break;
+                    case 1:
+                        output += "+ ";
+                        break;
+                    case 2:
+                        output += "- ";
+                        break;
+                    case 3:
+                        output += "* ";
+                        break;
+                    case 4:
+                        output += "/ ";
+                        break;
+                    case 5:
+                        output += "^ ";
+                        break;
+                }
+            }
+            //cout << output << endl;
+            // cout << std::to_string(desired) + "=" + output << endl;
+            string resstr = $"{translate(output)}";
+            proofres.Add(resstr);
+            return $"{desired} = {translate(output)} \r\n";
+        }
         string translate(string input)
         {
             // cout << "translate called" << endl;
@@ -504,54 +494,7 @@ namespace MMDK.Mods
             }
             return output.Peek();
         }
-
-        //print RPN.
-        string print(List<int> seed)
-        {
-            // cout << "print called" << endl;
-
-            int numCount = 0;
-            // int i;
-            string output = "";
-            foreach (int i in seed)
-            {
-                switch (i)
-                {
-                    case -1:
-                        output += ((int)tbase[0]).ToString();
-                        output += "- ";
-                        numCount++;
-                        break;
-                    case 0:
-                        output += ((int)tbase[numCount]).ToString();
-                        output += " ";
-                        numCount++;
-                        break;
-                    case 1:
-                        output += "+ ";
-                        break;
-                    case 2:
-                        output += "- ";
-                        break;
-                    case 3:
-                        output += "* ";
-                        break;
-                    case 4:
-                        output += "/ ";
-                        break;
-                    case 5:
-                        output += "^ ";
-                        break;
-                }
-            }
-            //cout << output << endl;
-            // cout << std::to_string(desired) + "=" + output << endl;
-            string resstr = $"{translate(output)}";
-            proofres.Add(resstr);
-            return $"{desired} = {translate(output)} \r\n";
-        }
-    
-}
+    }
 
 
 }
