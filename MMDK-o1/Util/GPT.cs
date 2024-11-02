@@ -68,19 +68,20 @@ namespace MMDK.Util
                 var ss = s;
                 foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "”" })
                 {
-                    //ss=ss.Replace(signal,  "，");
-                    ss = ss.Replace(signal, "[lbreak]");
+                    ss=ss.Replace(signal,  " ");
+                    //ss = ss.Replace(signal, "[uv_break]");
                 }
                // ss= ss.Replace("\n", "[lbreak]");
                 res += ss + "[uv_break]";
                 if (res.Length > 200)
                 {
                     // 太长了截断了
-                    res += "。啊，后面编不下去了";
+                    res += "[uv_break]啊[uv_break]后面编不下去了";
                     break;
                 }
                 
             }
+            res = res.Replace("[uv_break] [uv_break]", "[uv_break]").Replace("哈哈", "哈哈[laugh]");
             res += "";
             //res = "[laugh]" + res;// + "[laugh]";
 
