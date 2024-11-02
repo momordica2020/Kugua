@@ -20,6 +20,15 @@ namespace MMDK.Mods
     /// </summary>
     public class ModRandomChat : Mod
     {
+        //private static readonly Lazy<ModRandomChat> instance = new Lazy<ModRandomChat>(() => new ModRandomChat());
+        //public static ModRandomChat Instance => instance.Value;
+
+
+        //private ModRandomChat()
+        //{
+
+
+        //}
 
         public string replacefile = "replacewords.txt";
         string modeIndexName = "_index.txt";
@@ -216,6 +225,8 @@ namespace MMDK.Mods
                 }
                 modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
                 modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
+                modedict["喷人"] = new ModeInfo { name = "喷人", config = { "隐藏" } };
+                modedict["语音"] = new ModeInfo { name = "语音", config = { "隐藏" } };
                 // replace
                 wordReplace = new Dictionary<string, string>();
                 var lines = FileManager.ReadLines($"{PluginPath}/{replacefile}");
@@ -480,6 +491,12 @@ namespace MMDK.Mods
                         string uName = Config.Instance.UserInfo(userId).Name;
                         if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         GPT.Instance.AIReply(groupId, userId, uName, inputText);
+                        return true;   // 不在此处理
+                    case "语音":
+                        results = new List<string>();
+                        // string gong = getGong();
+                        var r = getHistoryReact(groupId, userId);
+                        foreach(var rs in r) GPT.Instance.AITalk(groupId, userId, rs);
                         return true;   // 不在此处理
                     default:
                         answer.Add(mode.getRandomSentence(inputText));

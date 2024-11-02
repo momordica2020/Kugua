@@ -206,9 +206,9 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"来点狐狸");
+                regex = new Regex(@"^来点狐狸");
                 match = regex.Match(message);
-                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+                if (match.Success)
                 {
                     var files = Directory.GetFiles(@"D:\Projects\TestFunctions\bin\Debug\net8.0-windows\gifs", "*.gif");
                     if (files != null)
@@ -219,6 +219,19 @@ namespace MMDK.Mods
                         ]).Send(client);
                     }
                     
+                    return true;
+                }
+
+                regex = new Regex(@"^说(.+)", RegexOptions.Singleline);
+                match = regex.Match(message);
+                if (match.Success)
+                {
+                    string speakSentence = match.Groups[1].Value;
+                    if (string.IsNullOrWhiteSpace(speakSentence)) return false;
+
+                        GPT.Instance.AITalk(groupId, userId, $"{speakSentence}");
+                    
+
                     return true;
                 }
 

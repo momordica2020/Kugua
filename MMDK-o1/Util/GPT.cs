@@ -52,21 +52,63 @@ namespace MMDK.Util
         // 公共静态属性获取实例
        
 
+
+        /// <summary>
+        /// 预处理加语气、停顿等prompt
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public string AITalkPre(string input)
+        {
+            var sentences = input.Split([ '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+            string res = "";
+
+            foreach(var s in sentences)
+            {
+                var ss = s;
+                foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "”" })
+                {
+                    //ss=ss.Replace(signal,  "，");
+                    ss = ss.Replace(signal, "[lbreak]");
+                }
+               // ss= ss.Replace("\n", "[lbreak]");
+                res += ss + "[uv_break]";
+                if (res.Length > 200)
+                {
+                    // 太长了截断了
+                    res += "。啊，后面编不下去了";
+                    break;
+                }
+                
+            }
+            res += "";
+            //res = "[laugh]" + res;// + "[laugh]";
+
+            return res;
+        }
+
+
         public async void AITalk(long groupId, long userId, string input)
         {
             try
             {
+                
+
+                input = AITalkPre(input);
+                Logger.Instance.Log($"+))){input}");
                 string json = "";
                 json += $"text={input}";
-                json += $"&prompt=[break_6]";
-                json += $"&voice=1031.pt";
+                json += $"&prompt=[oral_3][laugh_5][break_9]";
+                json += $"&voice=seed_1694_restored_emb-covert.pt";
+                
                 json += $"&speed=5";
-                json += $"&temperature=0.1";
-                json += $"&top_p=0.701";
-                json += $"&top_k=20";
+                json += $"&temperature=0.08";
+                json += $"&top_p=0.03";
+                json += $"&top_k=15";
                 json += $"&refine_max_new_token=384";
                 json += $"&infer_max_new_token=2048";
-                json += $"&text_seed=42";
+                //json += $"&text_seed={MyRandom.Next(23,50)}";
+                //json += $"&text_seed=43";
                 json += $"&skip_refine=1";
                 json += $"&is_stream=0";
                 json += $"&custom_voice=0";
@@ -97,12 +139,14 @@ namespace MMDK.Util
 
 
                 string amrFile = Wav2Amr(res);
+                System.IO.File.Delete(res);
                 //Logger.Instance.Log($"=> {amrFile}");
 
 
                 new GroupMessage(groupId, [
                         new Voice(null,null,amrFile)
                         ]).Send(client);
+                //System.IO.File.Delete(amrFile);
             }
             catch (Exception ex)
             {
@@ -116,7 +160,7 @@ namespace MMDK.Util
             inputFile=Path.GetFullPath(inputFile);
             string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.amr";
             string cmd = "D:\\ffmpeg\\bin\\ffmpeg.exe";
-            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=20dB\" {outputFile}";
+            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=12dB\" {outputFile}";
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
