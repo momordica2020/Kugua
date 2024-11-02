@@ -366,6 +366,36 @@ namespace MMDK.Util
         }
 
 
+        /// <summary>
+        /// 查看我自己的QQ
+        /// 这个函数就是为了外面调用起来简短点
+        /// </summary>
+        /// <returns></returns>
+        public long BotQQ
+        {
+            get
+            {
+                if (App != null && App.Avatar != null) return App.Avatar.myQQ;
+
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// 调用bot时喊的名字
+        /// 这个函数就是为了外面调用起来简短点
+        /// </summary>
+        /// <returns></returns>
+        public string BotName
+        {
+            get
+            {
+                if (App != null && App.Avatar != null) return App.Avatar.askName;
+
+                return null;
+            }
+            
+        }
 
         /// <summary>
         /// 看看这句话是不是在at我，也就是句首有无我的昵称。
@@ -375,7 +405,7 @@ namespace MMDK.Util
         /// <returns></returns>
         public bool isAskMe(string msg)
         {
-            if (msg != null && msg.Length > 0 && msg.StartsWith(App.Avatar.askName))
+            if (msg != null && msg.Length > 0 && msg.StartsWith(BotName))
             {
                 //msg = msg.Substring(appConfig.Avatar.askName.Length);
                 return true;

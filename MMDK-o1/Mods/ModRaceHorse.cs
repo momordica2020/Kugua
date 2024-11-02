@@ -10,14 +10,17 @@ using System.Linq;
 using System.Printing;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Timers;
+using System.Windows.Documents;
+using System.Windows.Media;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace MMDK.Mods
 {
 
-
+    /// <summary>
+    /// 赛马模块
+    /// </summary>
     class ModRaceHorse : Mod, ModWithMirai
     {
         private static readonly Lazy<ModRaceHorse> instance = new Lazy<ModRaceHorse>(() => new ModRaceHorse());
@@ -44,7 +47,6 @@ namespace MMDK.Mods
         public TimeSpan raceBegin = new TimeSpan(21, 0, 0);
         public TimeSpan raceEnd = new TimeSpan(23, 0, 0);
 
-        Task mainTask;
 
         public bool Init(string[] args)
         {
@@ -79,80 +81,99 @@ namespace MMDK.Mods
 
         public void Exit()
         {
-            save();
+            try
+            {
+                foreach (var match in matches)
+                {
+                    match.Value.StopRaceLoop();
+                }
+                save();
+            }
+            catch { }
+
         }
 
         public bool HandleText(long userId, long groupId, string cmd, List<string> results)
         {
             try
-            {
+            {   
+                if (string.IsNullOrWhiteSpace(cmd)) return false;
+
                 if (!users.ContainsKey(userId)) users[userId] = new RHUser(userId);
                 RHUser user = users[userId];
 
                 //BOT.log("赛马 "+cmd);
-                if (cmd == "赛马介绍" || cmd == "赛马玩法" || cmd == "赛马说明")
+                cmd = cmd.Trim();
+                var cmdFilter = Regex.Match(cmd, @"^赛马(介绍|玩法)", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
-                    results.Add( getIntroduction());
-                    return true;
-                }
-                if (cmd == "富豪榜" || cmd == "富人榜")
-                {
-                    results.Add( ModBank.Instance.showRichest());
+                    results.Add(getIntroduction());
                     return true;
                 }
 
-                if (cmd == "穷人榜")
+                cmdFilter = Regex.Match(cmd, @"^个人信息", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
-                    results.Add(ModBank.Instance.showPoorest());
+                    results.Add($"{ModBank.Instance.getUserInfo(userId)}\r\n{getRHInfo(userId)}");
                     return true;
                 }
-                if (cmd == "个人信息")
-                {
-                    results.Add($"{ModBank.Instance.getUserInfo(userId)}\r\n{ getRHInfo(userId)}");
-                    return true;
-                }
-                else if (cmd == "赛马")
+
+
+                cmdFilter = Regex.Match(cmd, @"^赛马", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
                     int num = 5;
+                    int len = 100;
                     if (!matches.ContainsKey(groupId)) matches[groupId] = new RHMatch(groupId);
-                    matches[groupId].begin(num, 100);
+                    matches[groupId].ReStart(num, len);
                     return true;
                 }
-                else if (cmd == "胜率榜")
+
+                cmdFilter = Regex.Match(cmd, @"^胜率榜", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
                     results.Add($"{showBigWinner()}");
                     return true;
                 }
-                else if (cmd == "败率榜")
+
+                cmdFilter = Regex.Match(cmd, @"^败率榜", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
                     results.Add($"{showBigLoser()}");
                     return true;
                 }
-                else if (cmd == "赌狗榜")
+
+                cmdFilter = Regex.Match(cmd, @"^赌狗榜", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
                     results.Add($"{showMostPlayTime()}");
                     return true;
                 }
-                else
+
+                cmdFilter = Regex.Match(cmd, @"^(\d+)号(\d+)", RegexOptions.Singleline);
+                if (cmdFilter.Success)
                 {
-                    var trygetbet = Regex.Match(cmd, @"(\d+)号(\d+)");
-                    if (trygetbet.Success)
+                    try
                     {
-                        try
+                        int roadnum = 0;
+                        int money = 0;
+                        if (int.TryParse(cmdFilter.Groups[1].Value, out roadnum)
+                         && int.TryParse(cmdFilter.Groups[2].Value, out money))
                         {
-                            int roadnum = int.Parse(trygetbet.Groups[1].ToString());
-                            int money = int.Parse(trygetbet.Groups[2].ToString());
-                            results.Add(addBet(groupId, user, roadnum, money));
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Instance.Log(ex);
+                            if (matches.TryGetValue(groupId, out var matchInfo))
+                            {
+                                string result = matchInfo.bet(user, roadnum, money);
+                                if (string.IsNullOrWhiteSpace(result)) return false;
+                                results.Add(result);
+                                return true;
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Log(ex);
+                    }
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -199,32 +220,6 @@ namespace MMDK.Mods
 
 
 
-        /// <summary>
-        /// 下注
-        /// </summary>
-        /// <param name="matchid"></param>
-        /// <param name="user"></param>
-        /// <param name="road"></param>
-        /// <param name="money"></param>
-        public string addBet(long matchid, RHUser user, int road, long money)
-        {
-            try
-            {
-                if (matches.ContainsKey(matchid))
-                {
-                    string res = matches[matchid].bet(user, road, money);
-                    if (!string.IsNullOrWhiteSpace(res))
-                    {
-                        return res;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-            return "";
-        }
 
 
 
@@ -273,7 +268,7 @@ namespace MMDK.Mods
                     ulong playtime = users[index].wintime + users[index].losetime;
                     if (playtime > mintime)
                     {
-                        sb.Append($"{showtime + 1}:{getNickName(users[index])},{Math.Round(users[index].getWinPercent(), 2)}%({users[index].wintime}/{playtime})\r\n");
+                        sb.Append($"{showtime + 1}:{Config.Instance.UserInfo(users[index].id).Name},{Math.Round(users[index].getWinPercent(), 2)}%({users[index].wintime}/{playtime})\r\n");
                         showtime += 1;
                     }
                     index += 1;
@@ -318,7 +313,7 @@ namespace MMDK.Mods
                     ulong playtime = users[index].wintime + users[index].losetime;
                     if (playtime > mintime)
                     {
-                        sb.Append($"{showtime + 1}:{getNickName(users[index])},{Math.Round(users[index].getLosePercent(), 2)}%({users[index].losetime}/{playtime})\r\n");
+                        sb.Append($"{showtime + 1}:{Config.Instance.UserInfo(users[index].id).Name},{Math.Round(users[index].getLosePercent(), 2)}%({users[index].losetime}/{playtime})\r\n");
                         showtime += 1;
                     }
                     index += 1;
@@ -362,7 +357,7 @@ namespace MMDK.Mods
                 });
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
-                    sb.Append($"{i + 1}:{getNickName(users[i])},赌了{users[i].wintime + users[i].losetime}次\r\n");
+                    sb.Append($"{i + 1}:{Config.Instance.UserInfo(users[i].id).Name},赌了{users[i].wintime + users[i].losetime}次\r\n");
                 }
                 return sb.ToString();
             }
@@ -382,7 +377,7 @@ namespace MMDK.Mods
         {
             if (!users.ContainsKey(userqq)) users[userqq] = new RHUser(userqq);
             var u = users[userqq];
-            return $"您在赌马上消费过{u.hrmoney}枚{moneyName()}，共下注{u.losetime + u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%";
+            return $"您在赌马上消费过{u.hrmoney}枚{ModBank.unitName}，共下注{u.losetime + u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%";
             //outputMessage(group, userqq, $"您在赌马上消费过{u.hrmoney}枚{BTCActor.unitName}，共下注{u.losetime+u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%");
         }
 
@@ -395,45 +390,20 @@ namespace MMDK.Mods
                 $"其他指令包括“签到”“个人信息”“富豪榜”“穷人榜”“胜率榜”“败率榜”“赌狗榜”";
         }
 
-        public RHUser getUser(long id)
-        {
-            return users[id];
-        }
+        //public RHUser getUser(long id)
+        //{
+        //    return users[id];
+        //}
 
-        public long changeMoney(RHUser user, long num)
-        {
-            var u = Config.Instance.UserInfo(user.id);
-            u.Money += num;
-            return num;
-        }
+
 
         public List<RHHorse> getHorseInfos()
         {
             return horses.Values.ToList();
         }
 
-        public string moneyName()
-        {
-            return ModBank.unitName;
-        }
+        
 
-        public long getMoney(RHUser user)
-        {
-            return Config.Instance.UserInfo(user.id).Money;
-        }
-
-        public string getNickName(RHUser user)
-        {
-            return Config.Instance.UserInfo(user.id).Name;
-        }
-
-
-        public void Dispose()
-        {
-
-            RHMatch.run = false;
-
-        }
 
         internal void showMessage(long groupId, int userId, string s)
         {
@@ -599,88 +569,126 @@ namespace MMDK.Mods
 
     enum RHStatus
     {
-        None, Bet, Run, End
+        Idling,   // 未开始
+        Betting,    // 下注时间
+        Playing,    // 比赛时间
+        Finishing     // 结果通报
     }
 
     class RHMatch
     {
         // getQQNickHandler getQQNick;
         //  public sendQQGroupMsgHandler showScene;
+        
+        // 单个用户可用下多个赛道的赌注
+        Dictionary<RHUser, Dictionary<int, long>> bets = new Dictionary<RHUser, Dictionary<int, long>>();
+        Dictionary<int, RHRoad> roads = new Dictionary<int, RHRoad>();
 
-        public Dictionary<RHUser, Dictionary<int, long>> bets = new Dictionary<RHUser, Dictionary<int, long>>();
-        public Dictionary<int, RHRoad> roads = new Dictionary<int, RHRoad>();
+        long id = -1;  //用qq群号作为比赛唯一标识，避免同一个群同时多局
+        int roadnum = 0;
+        int roadlen = 0;
 
-        public long id = -1;  //用qq群号作为比赛唯一标识，避免同一个群同时多局
-        public int roadnum = 0;
-        public int roadlen = 0;
+        int MaxBetTime = 2;
         // public int maxTurn;
         //public int turn;
-        /// <summary>
-        /// 比赛状态
-        /// 0 未开始
-        /// 1 下注中
-        /// 2 开赛中
-        /// 3 比赛结束
-        /// </summary>
-        public RHStatus status = RHStatus.None;
 
-        public const int betWaitTime = 30;    // 单位是秒
-        public const int turnWaitTime = 3;
-        public const int GameoverTime = 1;
-        public int nowTime = 0;
-        public int winnerRoad = 0;
+        RHStatus currentState;
+
+        const int betWaitTime = 30;    // 单位是秒
+        const int turnWaitTime = 3;
+        const int GameoverTime = 1;
+        int nowF = 0;
+        int winnerRoad = 0;
         string skillDescription = "";
 
-        public static Thread raceLoopThread;
-        public static bool run = false;
-        public static int loopSpanMs = 1000;
+        Timer raceLoopTimer = null;
+        static readonly int loopSpanMs = 1000;
 
         public RHMatch(long _id)
         {
             id = _id;
+            currentState = RHStatus.Idling;
+
+            
+            raceLoopTimer = new Timer(loopSpanMs);
+            raceLoopTimer.Elapsed += OnTimedEvent;
+            raceLoopTimer.AutoReset = false; // 设置定时器自动重置
+            raceLoopTimer.Enabled = true; // 启动定时器
+
+            //raceLoopTimer.Start();
         }
 
-        public void begin(int _roadnum, int _roadlen)
+        /// <summary>
+        /// 启动game，可以指定赛道数量和跑道长度
+        /// </summary>
+        /// <param name="_roadnum"></param>
+        /// <param name="_roadlen"></param>
+        /// <returns></returns>
+        public bool ReStart(int _roadnum, int _roadlen)
         {
             try
             {
-                if (status != RHStatus.None) return;
-                //horses = _horses;
-                //showScene = handle;
-                //getQQNick = getqq;
+                if (currentState != RHStatus.Idling)
+                {
+                    // 尚未完赛
+                    return false;
+                }
                 roadnum = _roadnum;
                 roadlen = _roadlen;
+                winnerRoad = 0;
+                nowF = 0;
                 roads.Clear();
                 bets.Clear();
-                initHorses(ModRaceHorse.Instance.getHorseInfos());
-                status = RHStatus.Bet;
-                nowTime = 0;
+                InitHorses(ModRaceHorse.Instance.getHorseInfos());
+                currentState = RHStatus.Betting;
                 skillDescription = "";
-
-
-                raceLoopThread = new Thread(raceLoop);
-                run = true;
-                raceLoopThread.Start();
+                
             }
             catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
+
+            return true;
+        }
+
+
+
+        /// <summary>
+        /// 仅在要清理全部比赛信息时才调用
+        /// 将清空所有动态数据和赌注，也不会返还已下的资金
+        /// </summary>
+        public void StopRaceLoop()
+        {
+            try
+            {
+                //status = RHStatus.Idling;
+                if (raceLoopTimer != null)
+                {
+                    raceLoopTimer.Stop();
+                    raceLoopTimer.Dispose(); // 清理定时器
+                }
+                roads.Clear();
+                bets.Clear();
+                nowF = 0;
+                skillDescription = "";
+            }
+            catch { }
+
+
         }
 
         /// <summary>
         /// 给赛道分配🐎
         /// </summary>
         /// <param name="_horses"></param>
-        public void initHorses(List<RHHorse> _horses)
+        public void InitHorses(List<RHHorse> _horses)
         {
-            //FileIOActor.log("init horses. horse type " + _horses.Count);
-            if (roadnum > 0 && _horses.Count > 0)
+            if (_horses != null && _horses.Count > 0)
             {
                 for (int i = 1; i <= roadnum; i++)
                 {
                     roads[i] = new RHRoad(i, _horses[MyRandom.Next(_horses.Count)]);
-                    //      FileIOActor.log("road " + i + " horse " + roads[i].horse.emoji);
                 }
             }
         }
@@ -688,48 +696,57 @@ namespace MMDK.Mods
         /// <summary>
         /// 下注
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="betUser"></param>
         /// <param name="roadnum"></param>
-        /// <param name="money"></param>
+        /// <param name="betMoney"></param>
         /// <returns></returns>
-        public string bet(RHUser user, int roadnum, long money)
+        public string bet(RHUser betUser, int roadnum, long betMoney)
         {
             try
             {
-                int maxbet = 2;
-                if (status != RHStatus.Bet || money <= 0) return "";
+                
+                if (currentState != RHStatus.Betting || betMoney <= 0 || betUser==null) return "";
 
-                var betuser = ModRaceHorse.Instance.getUser(user.id);  //ra.btc.getUser(user.userid);
-                if (user == null) return "";
+                if (roadnum <= 0 || roadnum > this.roadnum) return $"没有第{roadnum}条赛道";
 
-                if (roadnum <= 0 || roadnum > this.roadnum) return $"在？没有第{roadnum}条赛道";
+                long userHadMoney = ModBank.Instance.GetMoney(betUser.id);
+                if (userHadMoney <= 0) return $"一分钱都没有，下你🐎的注呢？";
 
-                if (ModRaceHorse.Instance.getMoney(betuser) <= 0) return $"一分钱都没有，下你🐎的注呢？";
 
-                if (!bets.ContainsKey(user)) bets[user] = new Dictionary<int, long>();
+                if (!bets.ContainsKey(betUser)) bets[betUser] = new Dictionary<int, long>();
 
-                if (bets[user].Keys.Count >= maxbet && !bets[user].ContainsKey(roadnum))
+                if (bets[betUser].Keys.Count >= MaxBetTime && !bets[betUser].ContainsKey(roadnum))
                 {
-                    return $"最多押{maxbet}匹，你已经押了{string.Join("、", bets[user].Keys)}。";
+                    return $"最多押{MaxBetTime}匹，你已经押了{string.Join("、", bets[betUser].Keys)}。";
                 }
 
+
                 string res = "";
-                if (money >= ModRaceHorse.Instance.getMoney(betuser))
+                if(userHadMoney <= betMoney)
                 {
-                    money = ModRaceHorse.Instance.getMoney(betuser);
-                    res = $"all in!把手上的{money}枚{ModRaceHorse.Instance.moneyName()}都押了{roadnum}号马";
+                    betMoney = userHadMoney;
+                    res = $"All in!把手上的{userHadMoney}枚{ModBank.unitName}都押了{roadnum}号马";
                 }
                 else
                 {
-                    res = $"成功在{roadnum}号马下注{money}枚{ModRaceHorse.Instance.moneyName()}";
+                    res = $"成功在{roadnum}号马下注{betMoney}枚{ModBank.unitName}"; 
                 }
+                string outMsg = "";
+                long tranResult = ModBank.Instance.TransMoney(betUser.id, Config.Instance.BotQQ, betMoney, out outMsg);
+                if (tranResult == betMoney)
+                {
+                    // 转账成功
+                    betUser.hrmoney += (ulong)betMoney;
+                    if (!bets[betUser].ContainsKey(roadnum)) bets[betUser][roadnum] = 0;
+                    bets[betUser][roadnum] += betMoney;
 
-                ModRaceHorse.Instance.changeMoney(betuser, -1 * money);
-                user.hrmoney += (ulong)money;
-                if (!bets[user].ContainsKey(roadnum)) bets[user][roadnum] = 0;
-                bets[user][roadnum] += money;
-
-                res += $"，账户余额{ModRaceHorse.Instance.getMoney(betuser)}";
+                    res += $"，账户余额{ModBank.Instance.GetMoney(betUser.id)}";
+                }
+                else
+                {
+                    // 转账失败
+                    res = $"下注失败：{outMsg}";
+                }
                 return res;
             }
             catch (Exception ex)
@@ -739,33 +756,6 @@ namespace MMDK.Mods
             }
 
         }
-
-        /// <summary>
-        /// 当前赛场画面
-        /// </summary>
-        /// <returns></returns>
-        public string getMatchScene()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append("🏁\r\n");
-            int len = 40;
-            for (int i = 1; i <= roadnum; i++)
-            {
-                sb.Append(i);
-                if (i != winnerRoad) sb.Append("|");
-                int space = (int)(len * (1 - (double)roads[i].nowlen / roadlen));
-                if (space > 0) sb.Append(' ', space);
-                sb.Append(roads[i].horse.emoji);
-                if (roads[i].buff != null) sb.Append(roads[i].buff.emoji);
-                sb.Append("\r\n");
-            }
-            if (!string.IsNullOrWhiteSpace(skillDescription)) sb.Append(skillDescription + "\r\n");
-            skillDescription = "";
-
-            return sb.ToString();
-        }
-
 
         /// <summary>
         /// 计算当前帧的比赛进度
@@ -835,6 +825,9 @@ namespace MMDK.Mods
 
         /// <summary>
         /// 结算
+        /// 分账规则：总奖金=所有人下注金额+庄下注金额（苦瓜对所有押单匹的1赔4，押两匹的1赔2）
+        /// 胜利者拿到（其对应倍率的赔付+其他人下注总额分成）*（1-抽水比例%）
+        /// 多个胜利者，则每人的分成是均分失败者下注总额
         /// </summary>
         /// <param name="winnerroad"></param>
         /// <returns></returns>
@@ -842,150 +835,228 @@ namespace MMDK.Mods
         {
             StringBuilder sb = new StringBuilder();
 
-            long allmoney = 0;
-            foreach (var bet in bets.Values) foreach (var money in bet.Values) allmoney += money;
-            List<RHUser> winners = new List<RHUser>();
-            double pl = MyRandom.Next(1000, 6666);
-            long othermoneys = 0;
-            long winnermoneys = 0;
+
+            //foreach (var bet in bets.Values) foreach (var money in bet.Values) allmoney += money;
+            List<(RHUser user, double multi, long betMoney)> winners = new List<(RHUser user, double multi, long betMoney)>();
+
+            long loserMoneys = 0;
             foreach (var bet in bets)
             {
-                bool win = false;
-                foreach (var betpair in bet.Value)
+                var betUser = bet.Key;
+                var betList = bet.Value;
+                double multi = -1;
+                long winBetMoney = 0;
+                long loseBetMoney = 0;
+                foreach (var betpair in betList)
                 {
+                    
                     if (betpair.Key == winnerroad)
                     {
-                        winnermoneys += betpair.Value;
-                        winners.Add(bet.Key);
-                        win = true;
+                        // 猜中了
+                        winBetMoney += betpair.Value; // 猜中项的本金
+                        if (bet.Value.Count == 1)
+                        {
+                            // 只押了一匹，倍率为4
+                            multi = 4.0;
+                        }
+                        else if (bet.Value.Count >= 2)
+                        {
+                            //两匹 2.0
+                            multi = 2.0;
+                        }
+                        break;
                     }
                     else
                     {
-                        othermoneys += betpair.Value;
+                        loseBetMoney += betpair.Value; // 一去不回的钱
                     }
                 }
-                if (!win)
+                if (winBetMoney > 0)
                 {
-                    bet.Key.losetime += 1;
+                    // 赢家
+                    winners.Add((betUser, multi, winBetMoney));
+                    betUser.wintime += 1;
                 }
+                else
+                {
+                    // 输家
+                    betUser.losetime += 1;
+                }
+                loserMoneys += loseBetMoney;
             }
+
+
             if (winners.Count <= 0)
             {
-                sb.Append("很遗憾，本场无人猜中！");
+                sb.Append($"很遗憾，本场无人猜中！本场入账{loserMoneys}。");
+                // 已经预先转账了，这里不需要再入账 ModBank.Instance.TransMoney()
+                // 钱入苦瓜账上
+                
             }
             else
             {
-                double bl = othermoneys / winnermoneys + 2;
+                // 分账
+                double rakeP = 0.05;    // 抽水5%
+
+                // 这里判断如果我苦账上钱不够了，则只把现有的钱有多少分多少瓜分给用户
+                long allNeed = 0;
                 foreach (var winner in winners)
                 {
-                    long money = (long)(Math.Ceiling(bets[winner][winnerroad] * bl)) + 1;
-                    var btcuser = ModRaceHorse.Instance.getUser(winner.id);
-                    long realMoney = ModRaceHorse.Instance.changeMoney(btcuser, money);
-                    if (realMoney == 0) sb.Append($"{ModRaceHorse.Instance.getNickName(winner)}赢了！恭喜！但可惜他钱包满了，没有新的入账\r\n");
-                    else sb.Append($"{ModRaceHorse.Instance.getNickName(winner)}赢了{realMoney}枚{ModBank.unitName}！恭喜\r\n");
-                    winner.wintime += 1;
+                    allNeed  += (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
+                }
+                if(ModBank.Instance.GetMoney(Config.Instance.BotQQ) < allNeed)
+                {
+                    // 账上钱不够了
+                    sb.Append($"{Config.Instance.BotName}账上钱不够了，这次先欠着!!!!!!!!!!");
+                }
+                else
+                {
+                    foreach (var winner in winners)
+                    {
+                        var money = (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
+                        string msg;
+                        long res = ModBank.Instance.TransMoney(Config.Instance.BotQQ, winner.user.id, money, out msg);
+                        sb.Append($"{Config.Instance.UserInfo(winner.user.id).Name}赢了{money}枚{ModBank.unitName}！恭喜\n");
+                        if (res == 0)
+                        {
+                            // failed
+                            sb.Append($"{res}");
+
+                        }
+                    }
                 }
             }
+            sb.Append($"目前总奖池{ModBank.Instance.GetMoney(Config.Instance.BotQQ)}");
             return sb.ToString();
         }
-
-        /// <summary>
-        /// 进行下一帧
-        /// </summary>
-        public void runNextFrame()
+       
+        
+        
+        private void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             try
             {
-                switch (status)
+                switch (currentState)
                 {
-                    case RHStatus.None:
-                        //  未开始
-                        return;
-                    case RHStatus.Bet:
-                        // 下注中
-                        if (nowTime == 0)
-                        {
-                            // 输出马的介绍信息
-                            string s = "";
-                            s += $"现在是赛🐎比赛下注时间，请下注您看好的马（输入赛道对应数字）。比赛将于{betWaitTime}秒后自动开始\r\n";
-                            //showScene(id, -1, s);
-                            //s = "";
-                            foreach (var road in roads.Values)
-                            {
-                                s += $"{road.num}号：{road.horse.emoji} {road.horse.name}\r\n";
-                            }
-                            ModRaceHorse.Instance.showMessage(id, -1, s);
-                        }
-                        else if (nowTime >= betWaitTime)
-                        {
-                            status = RHStatus.Run;
-                            nowTime = 0;
-                        }
+                    case RHStatus.Idling:
+                        // 未开始
+                        nowF = -1;
                         break;
-                    case RHStatus.Run:
-                        // 比赛中
-                        if (nowTime == 1)
-                        {
-                            // 输出比赛开始场景，初始化各赛道
 
-                            ModRaceHorse.Instance.showMessage(id, -1, "赛🐎比赛正式开始！！");
-                            ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
-                        }
-                        else if (nowTime >= turnWaitTime)
-                        {
-                            nextLoop();
-                            ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
-                            if (winnerRoad > 0)
-                            {
-                                status = RHStatus.End;
-                                ModRaceHorse.Instance.showMessage(id, -1, $"比赛结束！{winnerRoad}号马赢了！");
-                                ModRaceHorse.Instance.showMessage(id, -1, calBetResult(winnerRoad));
-                                winnerRoad = -1;
-                            }
-                            nowTime = 1;
-                        }
+                    case RHStatus.Betting:
+                        HandleBetting();
                         break;
-                    case RHStatus.End:
-                        // 比赛结束
-                        // 重置
-                        status = 0;
-                        nowTime = 0;
-                        run = false;
+
+                    case RHStatus.Playing:
+                        HandlePlaying();
                         break;
+
+                    case RHStatus.Finishing:
+                        HandleFinishing();
+                        break;
+
                     default:
                         break;
                 }
-                nowTime += 1;
+                nowF += 1;
+
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                //Logger.Instance.Log(ex, LogType.Debug);
             }
-
+            raceLoopTimer.Start();
         }
+
+
+        private void HandleBetting()
+        {
+            if (nowF == 0)
+            {
+                string message = $"现在是赛🐎比赛下注时间，请下注您看好的马（输入赛道对应数字）。比赛将于{betWaitTime}秒后自动开始\r\n";
+                foreach (var road in roads.Values)
+                {
+                    message += $"{road.num}号：{road.horse.emoji} {road.horse.name}\r\n";
+                }
+                ModRaceHorse.Instance.showMessage(id, -1, message);
+            }
+            else
+            {
+                if (nowF >= betWaitTime)
+                {
+                    nowF = -1;
+                    currentState = RHStatus.Playing;
+                }
+            }
+            
+        }
+
+
+        private void HandlePlaying()
+        {
+            if (nowF == 0)
+            {
+                ModRaceHorse.Instance.showMessage(id, -1, "赛🐎比赛正式开始！！");
+                ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
+                nowF = 1;
+                return;
+            }
+            else if (nowF >= turnWaitTime)
+            {
+                nextLoop();
+                ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
+
+                if (winnerRoad > 0)
+                {
+                    currentState = RHStatus.Finishing;
+                    nowF = -1;
+                } 
+            }
+        }
+
+
+        private void HandleFinishing()
+        {
+            ModRaceHorse.Instance.showMessage(id, -1, $"比赛结束！{winnerRoad}号马赢了！");
+            ModRaceHorse.Instance.showMessage(id, -1, calBetResult(winnerRoad));
+
+            // Reset for the next race
+            
+            winnerRoad = -1;
+            nowF = -1;
+            currentState = RHStatus.Idling;
+            ModRaceHorse.Instance.save(); 
+        }
+
+
 
 
         /// <summary>
-        /// 赛马主循环
+        /// 当前赛场画面
         /// </summary>
-        public void raceLoop()
+        /// <returns></returns>
+        public string getMatchScene()
         {
-            while (run)
-            {
-                Thread.Sleep(loopSpanMs);
-                try
-                {
-                    if (!run) break;
-                    runNextFrame();
-                    if (!run) break;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Log(ex);
-                }
+            StringBuilder sb = new StringBuilder();
 
+            sb.Append("🏁\r\n");
+            int len = 40;
+            for (int i = 1; i <= roadnum; i++)
+            {
+                sb.Append(i);
+                if (i != winnerRoad) sb.Append("|");
+                int space = (int)(len * (1 - (double)roads[i].nowlen / roadlen));
+                if (space > 0) sb.Append(' ', space);
+                sb.Append(roads[i].horse.emoji);
+                if (roads[i].buff != null) sb.Append(roads[i].buff.emoji);
+                sb.Append("\r\n");
             }
+            if (!string.IsNullOrWhiteSpace(skillDescription)) sb.Append(skillDescription + "\r\n");
+            skillDescription = "";
+
+            return sb.ToString();
         }
+
 
     }
 

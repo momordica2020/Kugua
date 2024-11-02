@@ -53,7 +53,7 @@ namespace MMDK.Mods
         {
 
             string PluginPath = Config.Instance.ResourceFullPath("ModePath");
-            randomChar = FileManager.ReadResource("ModePath").Trim();
+            randomChar = FileManager.Read($"{PluginPath}/{randomch}").Trim();
 
             // gongshou
             gongshou = new List<string>();
@@ -632,15 +632,15 @@ namespace MMDK.Mods
         /// <returns>生成的字符串</returns>
         string GenerateRandomStringHans(int rows, int columns)
         {
+            if (string.IsNullOrWhiteSpace(randomChar)) return "";
             StringBuilder sb = new StringBuilder();
-            Random random = new Random();
 
             // 生成随机字符
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
                 {
-                    char rc = randomChar[random.Next(randomChar.Length)]; 
+                    char rc = randomChar[MyRandom.Next(randomChar.Length)]; 
                     sb.Append(rc);
                 }
                 sb.AppendLine(); 

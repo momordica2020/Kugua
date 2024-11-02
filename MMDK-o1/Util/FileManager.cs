@@ -33,13 +33,32 @@ namespace MMDK.Util
             try
             {
                 string realPath = Config.Instance.ResourceFullPath(resourceName);
-                if (File.Exists(realPath))
+                return Read(realPath, IsCompress);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 读一个文件全文进来
+        /// </summary>
+        /// <param name="fullPath">完整路径</param>
+        /// <param name="IsCompress">true表示是压缩文件，会用默认方式将之解压先</param>
+        /// <returns></returns>
+        public static string Read(string fullPath, bool IsCompress = false)
+        {
+            try
+            {
+                if (File.Exists(fullPath))
                 {
                     string result = "";
                     if (IsCompress)
                     {
                         // 压缩文件，将之解压先
-                        using (FileStream fileStream = new FileStream(realPath, FileMode.Open))
+                        using (FileStream fileStream = new FileStream(fullPath, FileMode.Open))
                         using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
                         using (StreamReader reader = new StreamReader(gzipStream))
                         {
@@ -48,7 +67,7 @@ namespace MMDK.Util
                     }
                     else
                     {
-                        using (FileStream fileStream = new FileStream(realPath, FileMode.Open))
+                        using (FileStream fileStream = new FileStream(fullPath, FileMode.Open))
                         using (StreamReader reader = new StreamReader(fileStream))
                         {
                             result = reader.ReadToEnd();

@@ -82,9 +82,9 @@ namespace MMDK.Mods
                     else
                     {
                         long money = long.Parse(matchzzs.Groups[2].ToString());
-                        res = TransMoney(userId, targetqq, money);
-
+                        long succeedMoney = TransMoney(userId, targetqq, money, out res);
                     }
+
                     if (!string.IsNullOrWhiteSpace(res))
                     {
                         results.Add(res);
@@ -135,69 +135,98 @@ namespace MMDK.Mods
             }
         }
 
+
+
+        public string getUserInfo(long userqq)
+        {
+            var u = Config.Instance.UserInfo(userqq);
+            return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
+        }
+
+        /// <summary>
+        /// 查看账户余额
+        /// </summary>
+        /// <param name="userqq"></param>
+        /// <returns></returns>
+        public long GetMoney(long userqq)
+        {
+            var user = Config.Instance.UserInfo(userqq);
+            return user.Money;
+        }
+
         /// <summary>
         /// 转账
         /// </summary>
-        /// <param name="fromqq"></param>
-        /// <param name="targetqq"></param>
-        /// <param name="money"></param>
-        /// <returns></returns>
-        public string TransMoney(long fromqq, long targetqq, long money)
+        /// <param name="fromqq">发起转账的用户QQ</param>
+        /// <param name="targetqq">接收转账的用户QQ</param>
+        /// <param name="money">转账金额</param>
+        /// <param name="message">转账结果信息</param>
+        /// <returns>成功钱数，失败为0</returns>
+        public long TransMoney(long fromqq, long targetqq, long money, out string message)
         {
-            string res = "";
+            message = "";
+            if (money <= 0)
+            {
+                message = "只允许正向转账";
+            }
 
+            var user1 = Config.Instance.UserInfo(fromqq);
+            var user2 = Config.Instance.UserInfo(targetqq);
+
+            if (user1.Money < money)
+            {
+                message = $"您的余额不足。当前余额{user1.Money}{unitName}";
+                return 0;
+            }
+
+            message = $"您向{targetqq}转了{money}枚{unitName}，";
+            long user1OldMoney = user1.Money;
+            long user2OldMoney = user2.Money;
             try
             {
-                var user1 = Config.Instance.UserInfo(fromqq);
-                var user2 = Config.Instance.UserInfo(targetqq);
-                if (money <= 0)
+                
+                checked
                 {
-                    return $"只允许正向转账";
+                    user1.Money -= money;
+                    user2.Money += money;
                 }
-                if (user1.Money < money)
-                {
-                    return $"您的余额不足。当前余额{user1.Money}{unitName}";
-                }
-
-                res = $"您向{targetqq}发起转账{money}枚{unitName}，";
-                long user1oldmoney = user1.Money;
-                long user2oldmoney = user2.Money;
-                bool succeed = false;
-                try
-                {
-
-                    checked
-                    {
-                        user1.Money -= money;
-                        user2.Money += money;
-                    }
-                    succeed = true;
-                }
-                catch (OverflowException)
-                {
-                    //Console.WriteLine("转账失败：超出 long 数据范围");
-                    string errMsg = $"转账失败：{user1}或{user2}的{ModBank.unitName}溢出，所转数额{money}, 自己钱包有{user1.Money}，目标钱包已有{user2.Money}。";
-                    res += errMsg;
-                    Logger.Instance.Log(errMsg);
-                    user1.Money = user1oldmoney;
-                    user2.Money = user2oldmoney;
-                    succeed = false;
-                }
-                if (succeed)
-                {
-                    //writeRecord(new BankRecord(fromqq, targetqq, realMoney, "转账", realMoney == money ? "成功。"));
-
-                }
-
-                res += $"余额{user1.Money}{unitName}";
+            }
+            catch (OverflowException)
+            {
+                message += $"转账失败：{user1}或{user2}的{unitName}溢出，所转数额{money}，发起者余额{user1.Money}，接收者余额{user2.Money}。";
+                Logger.Instance.Log(message);
+                user1.Money = user1OldMoney; // 恢复余额
+                user2.Money = user2OldMoney; // 恢复余额
+                return 0;
             }
             catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
-                res += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
+                message += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
+                return 0;
             }
-            return res;
+            message += $"转账成功，您的{unitName}余额{user1.Money}，对方余额{user2.Money}";
+
+            return money;
         }
+
+        public bool ProcessTransfer(Player user1, Player user2, long money)
+        {
+            
+
+
+           
+
+            // 可以记录转账记录
+            // WriteRecord(new BankRecord(user1.QQ, user2.QQ, money, "转账", "成功"));
+            return true;
+
+
+        }
+
+
+
+
 
         /// <summary>
         /// 富人榜
@@ -229,6 +258,8 @@ namespace MMDK.Mods
             }
         }
 
+
+
         /// <summary>
         /// 穷人榜
         /// </summary>
@@ -259,15 +290,19 @@ namespace MMDK.Mods
             }
         }
 
-        public string getUserInfo(long userqq)
-        {
-            var u = Config.Instance.UserInfo(userqq);
-            return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
-        }
+
 
     }
 
 
+    #region 遗弃
+
+
+
+    /// <summary>
+    /// 转账记录
+    ///  * 暂时不用
+    /// </summary>
     class BankRecord
     {
         public long src;
@@ -328,4 +363,10 @@ namespace MMDK.Mods
             return $"{src}\t{tar}\t{time.ToString("yyyy-MM-dd HH:mm:ss")}\t{money}\t{reason}\t{result}";
         }
     }
+    
+    
+    
+    #endregion
+
+
 }
