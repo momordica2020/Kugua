@@ -478,12 +478,39 @@ namespace MMDK.Mods
 
     class RHHorse
     {
-        public string emoji = "";
+        /// <summary>
+        /// 🐎的样子
+        /// </summary>
+        public string emoji = "";       
+
+        /// <summary>
+        /// 🐎显示的名称
+        /// </summary>
         public string name = "";
+
+        /// <summary>
+        /// 最小速度
+        /// </summary>
         public int minspeed = 0;
+
+        /// <summary>
+        /// 最大速度
+        /// </summary>
         public int maxspeed = 0;
+
+        /// <summary>
+        /// 技能类型
+        /// </summary>
         public int triggerType = 0;
+
+        /// <summary>
+        /// 技能参数
+        /// </summary>
         public int triggerParam = 0;
+
+        /// <summary>
+        /// 技能特效
+        /// </summary>
         public string triggerEmoji = "";
 
         public RHHorse()
@@ -856,15 +883,14 @@ namespace MMDK.Mods
                         winBetMoney += betpair.Value; // 猜中项的本金
                         if (bet.Value.Count == 1)
                         {
-                            // 只押了一匹，倍率为4
-                            multi = 4.0;
+                            // 只押了一匹，倍率
+                            multi = 5.0;
                         }
                         else if (bet.Value.Count >= 2)
                         {
-                            //两匹 2.0
-                            multi = 2.0;
+                            //两匹 
+                            multi = 3.0;
                         }
-                        break;
                     }
                     else
                     {
@@ -903,7 +929,9 @@ namespace MMDK.Mods
                 foreach (var winner in winners)
                 {
                     allNeed  += (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
+                    Logger.Instance.Log($"[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
                 }
+                
                 if(ModBank.Instance.GetMoney(Config.Instance.BotQQ) < allNeed)
                 {
                     // 账上钱不够了

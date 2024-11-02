@@ -78,7 +78,7 @@ namespace MMDK.Mods
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");
 
                 // pen
-                var penlist = FileManager.ReadLines($"{PluginPath}/{penName}").ToList();
+                penlist = FileManager.ReadLines($"{PluginPath}/{penName}").ToList();
 
 
 
@@ -354,10 +354,15 @@ namespace MMDK.Mods
                             // 隐藏模式，且没有相应权限就不启动
                             if (
                                 (isGroup && !GroupHasAdminAuthority(groupId))
-                              ||(!isGroup && !UserHasAdminAuthority(groupId))
+                                
+                                //||(!isGroup && !UserHasAdminAuthority(groupId))
                                 ) {
                                 results.Add(printModeList());
                                 return true;
+                            }
+                            if ((!isGroup))
+                            {
+                                // allowed
                             }
                         }
                         // 切换模式tag

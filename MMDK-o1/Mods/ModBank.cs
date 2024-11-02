@@ -42,6 +42,7 @@ namespace MMDK.Mods
 
         public bool HandleText(long userId, long groupId, string message, List<string> results)
         {
+            bool isGroup = groupId > 0;
             if (string.IsNullOrWhiteSpace(message)) return false;
             message = message.Trim();
             // 货币系统
@@ -52,21 +53,29 @@ namespace MMDK.Mods
                 results.Add(message);
                 return true;
             }
+            var match = new Regex("^(富人榜|富豪榜)").Match(message);
+            if (match.Success)
+            {
+                string res = $"{showRichest()}";
+                results.Add(res);
+                return true;
+            }
 
-            //if (message == "个人信息")
-            //{
-            //    string res = $"{getUserInfo(userId)}";
-            //    results.Add(res);
-            //    return true;
-            //}
+            match = new Regex("^(穷人榜)").Match(message);
+            if (match.Success)
+            {
+                string res = $"{showPoorest()}";
+                results.Add(res);
+                return true;
+            }
 
-            Regex zzs = new Regex("给(.+)转(\\d+)");
-            var matchzzs = zzs.Match(message);
-            if (matchzzs.Success)
+
+            match = new Regex(@"给(.+)转(\d+)").Match(message);
+            if (match.Success)
             {
                 try
                 {
-                    string target = matchzzs.Groups[1].ToString().Trim();
+                    string target = match.Groups[1].ToString().Trim();
                     long targetqq = -1;
                     if (!long.TryParse(target, out targetqq))
                     {
@@ -81,7 +90,7 @@ namespace MMDK.Mods
                     }
                     else
                     {
-                        long money = long.Parse(matchzzs.Groups[2].ToString());
+                        long money = long.Parse(match.Groups[2].ToString());
                         long succeedMoney = TransMoney(userId, targetqq, money, out res);
                     }
 

@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MeowMiraiLib.Msg.Type;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MMDK.Util
@@ -27,6 +29,14 @@ namespace MMDK.Util
             return symbols.Contains(ch);
         }
 
+        public static string RemoveEmojis(string input)
+        {
+            // 正则表达式匹配 Emoji 字符
+            string emojiPattern = @"[\u203C-\u3299\u1F300-\u1F5FF\u1F600-\u1F64F\u1F680-\u1F6FF\u1F700-\u1F77F\u1F780-\u1F7FF\u1F800-\u1F8FF\u1F900-\u1F9FF\u2600-\u26FF\u2700-\u27BF]";
+
+            // 替换 Emoji 字符为空字符串
+            return Regex.Replace(input, emojiPattern, string.Empty);
+        }
 
         /// <summary>
         /// 去除字符串中的中英文标点和特殊字符

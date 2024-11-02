@@ -163,11 +163,11 @@ namespace MMDK.Mods
 
             try
             {
-                
+                bool isGroup = groupId > 0;
 
                 var regex = new Regex(@"^帮我撤回(\d{1,2})?条?");
                 var match = regex.Match(message);
-                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+                if (isGroup && Config.Instance.UserHasAdminAuthority(userId) && match.Success)
                 {
                     int quantity = 1;
                     if (match.Groups[1].Success)
@@ -195,7 +195,7 @@ namespace MMDK.Mods
 
                 regex = new Regex(@"^刷新列表");
                 match = regex.Match(message);
-                if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+                if (isGroup && Config.Instance.UserHasAdminAuthority(userId) && match.Success)
                 {
                     Logger.Instance.Log($"更新好友列表和群列表...");
                     RefreshFriendList();
@@ -214,9 +214,22 @@ namespace MMDK.Mods
                     if (files != null)
                     {
                         string fname = files[MyRandom.Next(files.Length)];
-                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                            new Image(null,null,fname)
-                        ]).Send(client);
+
+                        if (isGroup)
+                        {
+                            new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                                        new Image(null,null,fname)
+                                                    ]).Send(client);
+                        }
+                        else
+                        {
+                                // friend
+                                new MeowMiraiLib.Msg.FriendMessage(userId, [
+                                new Image(null,null,fname)
+                            ]).Send(client);
+                        }
+
+                        
                     }
                     
                     return true;
@@ -299,10 +312,19 @@ namespace MMDK.Mods
                         Message = alertMsg,
                     };
                     tasks.Add(newTask);
-                    new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                    if (isGroup)
+                    {
+new MeowMiraiLib.Msg.GroupMessage(groupId, [
                         new At(userId, ""),
                             new Plain($"帮你设了{alertTime.ToString("d号H点m分")}{alertMsg}的闹钟")
                         ]).Send(client);
+                    }
+                    else
+                    {
+                        new MeowMiraiLib.Msg.FriendMessage(userId, [
+                            new Plain($"帮你设了{alertTime.ToString("d号H点m分")}{alertMsg}的闹钟")
+                        ]).Send(client);
+                    }
 
 
 
@@ -330,21 +352,43 @@ namespace MMDK.Mods
                             Logger.Instance.Log(ex);
                         }
                     }
-                    if (no > 1)
+                    if (isGroup)
                     {
-                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                                new At(userId, ""),
+                        if (no > 1)
+                        {
+
+                            new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                    new At(userId, ""),
                                 new Plain($"你在本群订了{no-1}个闹钟：\n{res}")
-                            ]).Send(client);
-                        return true;
+                                ]).Send(client);
+                            return true;
+                        }
+                        else
+                        {
+                            new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                                    new At(userId, ""),
+                                new Plain($"你没设过闹钟")
+                                ]).Send(client);
+                            return true;
+                        }
                     }
                     else
                     {
-                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                                new At(userId, ""),
+                        if (no > 1)
+                        {
+
+                            new MeowMiraiLib.Msg.FriendMessage(userId, [
+                                new Plain($"你订了{no-1}个闹钟：\n{res}")
+                                ]).Send(client);
+                            return true;
+                        }
+                        else
+                        {
+                            new MeowMiraiLib.Msg.FriendMessage(userId, [
                                 new Plain($"你没设过闹钟")
-                            ]).Send(client);
-                        return true;
+                                ]).Send(client);
+                            return true;
+                        }
                     }
                 }
 
@@ -355,11 +399,22 @@ namespace MMDK.Mods
                     int haveTask = TaskRemove(userId, groupId);
                     if (haveTask > 0)
                     {
-                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                        if (isGroup)
+                        {
+                            new MeowMiraiLib.Msg.GroupMessage(groupId, [
                             new At(userId, ""),
                                 new Plain($"彳亍!{haveTask}个闹钟以取消")
                             ]).Send(client);
-                        return true;
+                            return true;
+                        }
+                        else
+                        {
+                            new MeowMiraiLib.Msg.FriendMessage(groupId, [
+                                new Plain($"彳亍!{haveTask}个闹钟以取消")
+                            ]).Send(client);
+                            return true;
+                        }
+                        
                     }
                 }
 

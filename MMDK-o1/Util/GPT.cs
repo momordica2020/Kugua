@@ -58,57 +58,58 @@ namespace MMDK.Util
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public string AITalkPre(string input)
+        public string[] AITalkPre(string input)
         {
-            var sentences = input.Split([ '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+            var sentences = input.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+            List<string> resList = new List<string>();
             string res = "";
-
             foreach(var s in sentences)
             {
                 var ss = s;
-                foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "”" })
+                foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "'", "”" })
                 {
                     ss=ss.Replace(signal,  " ");
                     //ss = ss.Replace(signal, "[uv_break]");
                 }
                // ss= ss.Replace("\n", "[lbreak]");
-                res += ss + "[uv_break]";
-                if (res.Length > 200)
+                res += ss + "  ";
+                if (res.Length > 100)
                 {
                     // 太长了截断了
-                    res += "[uv_break]啊[uv_break]后面编不下去了";
-                    break;
+                    var c = res + "";
+                    resList.Add(c);
+                    res = "";
+                    //break;
                 }
                 
             }
-            res = res.Replace("[uv_break] [uv_break]", "[uv_break]").Replace("哈哈", "哈哈[laugh]");
-            res += "";
+            if(!string.IsNullOrWhiteSpace(res))resList.Add(res);
+            //if (res.EndsWith("[uv_break]")) res = res.Remove(res.Length - "[uv_break]".Length);
+            //res = res.Replace("哈哈", "哈哈[laugh]");
+            //res += "。";
             //res = "[laugh]" + res;// + "[laugh]";
 
-            return res;
+            return resList.ToArray();
         }
 
 
-        public async void AITalk(long groupId, long userId, string input)
+        public async Task AITalkSingle(long groupId, long userId, string input)
         {
             try
             {
-                
-
-                input = AITalkPre(input);
                 Logger.Instance.Log($"+))){input}");
                 string json = "";
                 json += $"text={input}";
-                json += $"&prompt=[oral_3][laugh_5][break_9]";
+                json += $"&prompt={(input.Length < 10 ? "[oral_0][laugh_0][break_0]" : "[oral_3][laugh_5][break_5]")}";
                 json += $"&voice=seed_1694_restored_emb-covert.pt";
-                
-                json += $"&speed=5";
+
+                json += $"&speed={(input.Length < 10 ? 1 : 5)}";
                 json += $"&temperature=0.08";
                 json += $"&top_p=0.03";
                 json += $"&top_k=15";
                 json += $"&refine_max_new_token=384";
                 json += $"&infer_max_new_token=2048";
-                //json += $"&text_seed={MyRandom.Next(23,50)}";
+                json += $"&text_seed={MyRandom.Next(1, 50)}";
                 //json += $"&text_seed=43";
                 json += $"&skip_refine=1";
                 json += $"&is_stream=0";
@@ -143,16 +144,34 @@ namespace MMDK.Util
                 System.IO.File.Delete(res);
                 //Logger.Instance.Log($"=> {amrFile}");
 
-
-                new GroupMessage(groupId, [
+                if (groupId > 0)
+                {
+                    new GroupMessage(groupId, [
                         new Voice(null,null,amrFile)
                         ]).Send(client);
+                }
+                else
+                {
+                    new FriendMessage(userId, [
+                        new Voice(null,null,amrFile)
+                        ]).Send(client);
+                }
                 //System.IO.File.Delete(amrFile);
-            }
-            catch (Exception ex)
+            }catch(Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
+        }
+        public async void AITalk(long groupId, long userId, string input)
+        {
+                var inputs = AITalkPre(input);
+                if (inputs != null)
+                {
+                    foreach (var ipt in inputs)
+                    {
+                        await AITalkSingle(groupId, userId, ipt);
+                    }
+                }
         }
 
         string Wav2Amr(string inputFile)
@@ -244,12 +263,19 @@ namespace MMDK.Util
 
                 // 回复
                 //var res = await gptAgent.Ask($"{prompt}{input}");
+                
                 if (groupId > 0)
                 {
                     new GroupMessage(groupId, [
                          new At(userId, ""),
                         new Plain($"{res}")
                                 ]).Send(client);
+                }
+                else
+                {
+                    new GroupMessage(userId, [
+                        new Plain($"{res}")
+                               ]).Send(client);
                 }
             }
             catch (Exception ex)
