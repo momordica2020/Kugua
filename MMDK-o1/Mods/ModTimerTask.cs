@@ -17,6 +17,8 @@ using MMDK.Util;
 using MeowMiraiLib.Event;
 using System.Reflection.PortableExecutable;
 using System.IO;
+using Microsoft.VisualBasic.Devices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MMDK.Mods
 {
@@ -451,6 +453,36 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
 
         bool ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
+            if (e == null || e.Length < 2) return false;
+
+            var source = e[0];
+            foreach(var msg in e)
+            {
+                if(msg is Plain plain)
+                {
+                    var str = plain.text;
+                    if (str == "测试")
+                    {
+                        //new FriendMessage(s.id, [
+                        //new Voice(null,voice.url)
+                        //]).Send(client);
+                    }
+                    //string msg2 = StaticUtil.RemoveEmojis(plain.text);
+                    //if (string.IsNullOrWhiteSpace(msg2)) return false;
+                    //new FriendMessage(s.id, [
+                    //    new Plain(msg2)
+                    //    ]).Send(client);
+                    return false;
+                }
+                if(msg is Voice voice)
+                {
+                    new FriendMessage(s.id, [
+                        new Voice(null,voice.url)
+                        ]).Send(client);
+                    return true;
+                }
+            }
+
             //throw new NotImplementedException();
             return false;
         }
@@ -465,46 +497,68 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
             var user = Config.Instance.UserInfo(userId);
             var source = e.First() as Source;
 
-            if (!isAskMe(e))
+            var ask = isAskMe(e);
+            if (ask)
             {
-                //if(userId == Config.Instance.App.Avatar.adminQQ)
+                // 
+                foreach(var msg in e)
                 {
-                    // save images!
-                    foreach(var item in e)
+                    
+                    if(msg is Plain plain)
                     {
-                        if(item is Image itemImg)
+                        if (plain.text == "测试下")
                         {
-                            string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{userId}";
-                            if(!Directory.Exists(userImgDict))Directory.CreateDirectory(userImgDict);
-                            WebLinker.DownloadImageAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
-                        }
-                       //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
-                        
-                        if (userId == Config.Instance.App.Avatar.adminQQ)
-                        {
-                            //if (item is ForwardMessage gmsg)
-                            {
-                               // new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                                  //  new At(userId, ""),
-                                    //new ForwardMessage()
-                                    //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
-                                //new ForwardMessage.Node()
-                            //]).Send(client);
-                                //return true;
-                            }
-                        }
+                            new GroupMessage(s.group.id, [
+                                new Voice(null,null,@"D:\Videos\20241103-124142-2.amr")
+                                ]).Send(client);
 
+                            //return true;
+                        }
                     }
+                }
+            }
+
+
+            string logstr = "";
+            foreach (var msg in e)
+            {
+                logstr += $",{msg.GetType()}";
+            }
+            Logger.Instance.Log(logstr);
+                
+            foreach(var msg in e)
+            {
+                if (msg is Voice voice)
+                {
+                    new GroupMessage(s.group.id, [
+                            new Voice(voice.voiceId)
+                            ]).Send(client);
+
                     return true;
                 }
-                return false;
+
+                if (msg is Image itemImg)
+                {
+                    string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{userId}";
+                    if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+                    WebLinker.DownloadImageAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
+                }
+                //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
+
+                //if (userId == Config.Instance.App.Avatar.adminQQ)
+                //{
+                //    //if (item is ForwardMessage gmsg)
+                //    {
+                //        // new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                //        //  new At(userId, ""),
+                //        //new ForwardMessage()
+                //        //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
+                //        //new ForwardMessage.Node()
+                //        //]).Send(client);
+                //        //return true;
+                //    }
+                //}
             }
-            else 
-            { 
-
-            }
-
-
 
             return false;
         }

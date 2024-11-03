@@ -541,11 +541,11 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             var sourceItem = e.First() as Source;
             HistoryManager.Instance.saveMsg(sourceItem.id, 0, s.id, e.MGetPlainString());
             string cmd = e.MGetPlainString();
-            if (string.IsNullOrWhiteSpace(cmd)) return;
+           // if (string.IsNullOrWhiteSpace(cmd)) return;
             cmd = cmd.Trim();
             bool talked = false;
 
-            if (cmd.Length > 0)
+            //if (cmd.Length > 0)
             {
                 List<string> res = new List<string>();
                 foreach (var mod in Mods)
@@ -729,7 +729,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             var u = Config.Instance.UserInfo(e.fromId);
             if (g.Is("黑名单") || u.Is("黑名单"))
             {
-                e.Deny(ClientX);
+                e.Deny(ClientX, "非好友不接受邀请谢谢");
                 return;
             }
             if (Config.Instance.friends.ContainsKey(e.fromId) || u.Is("管理员") || u.Is("好友") || e.fromId == Config.Instance.App.Avatar.adminQQ)
@@ -753,7 +753,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
             else
             {
-                e.Deny(ClientX);
+                e.Deny(ClientX,"密码错误");
             }
         }
 

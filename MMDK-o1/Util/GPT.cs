@@ -60,7 +60,9 @@ namespace MMDK.Util
         /// <returns></returns>
         public string[] AITalkPre(string input)
         {
-            var sentences = input.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+            string filterdInput = StaticUtil.RemoveEmojis(input);
+            if (string.IsNullOrWhiteSpace(filterdInput)) return null;
+            var sentences = filterdInput.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
             List<string> resList = new List<string>();
             string res = "";
             foreach(var s in sentences)
@@ -72,19 +74,29 @@ namespace MMDK.Util
                     //ss = ss.Replace(signal, "[uv_break]");
                 }
                // ss= ss.Replace("\n", "[lbreak]");
-                res += ss + "  ";
+                res += ss + "[uv_break]";
                 if (res.Length > 100)
                 {
                     // 太长了截断了
                     var c = res + "";
+                    if (c.EndsWith("[uv_break]")) c = c.Remove(c.Length - "[uv_break]".Length);
                     resList.Add(c);
+                    
                     res = "";
                     //break;
                 }
                 
             }
-            if(!string.IsNullOrWhiteSpace(res))resList.Add(res);
-            //if (res.EndsWith("[uv_break]")) res = res.Remove(res.Length - "[uv_break]".Length);
+
+
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                if (res.EndsWith("[uv_break]")) res = res.Remove(res.Length - "[uv_break]".Length);
+                resList.Add(res);
+            }
+                
+                
+            
             //res = res.Replace("哈哈", "哈哈[laugh]");
             //res += "。";
             //res = "[laugh]" + res;// + "[laugh]";
@@ -180,7 +192,7 @@ namespace MMDK.Util
             inputFile=Path.GetFullPath(inputFile);
             string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.amr";
             string cmd = "D:\\ffmpeg\\bin\\ffmpeg.exe";
-            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=12dB\" {outputFile}";
+            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=12dB\" -y {outputFile}";
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
