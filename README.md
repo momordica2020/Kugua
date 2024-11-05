@@ -2,6 +2,7 @@
 
 一款基于 Mirai 框架的QQ聊天机器人。
 
+> 暂停开发，开始向基于[Ariadne](https://github.com/GraiaProject/Ariadne)的新框架转移！移步：(https://github.com/momordica2020/PMiraiKugua)
 > *超绝重构中！ 2024.10.26*
 
 ![我苦](https://s3.bmp.ovh/imgs/2024/10/26/7c122c98a1627ffb.png)
