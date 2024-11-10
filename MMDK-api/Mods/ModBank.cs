@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ChatGPT.Net;
 using MeowMiraiLib;
 using MMDK.Util;
+using MMDK.Mods;
 
 namespace MMDK.Mods
 {
@@ -27,8 +28,6 @@ namespace MMDK.Mods
 
 
 
-
-
         public bool Init(string[] args)
         {
 
@@ -46,14 +45,35 @@ namespace MMDK.Mods
             if (string.IsNullOrWhiteSpace(message)) return false;
             message = message.Trim();
             // 货币系统
-            if (message == "签到")
+            var match = new Regex(@"^签到", RegexOptions.Singleline).Match(message);
+            if (match.Success)
             {
                 message = DailyAttendance(groupId, userId);
                 //racehorse.dailyAttendance(group, user);
                 results.Add(message);
                 return true;
+
             }
-            var match = new Regex("^(富人榜|富豪榜)").Match(message);
+
+            match = new Regex(@"发币(\d+)", RegexOptions.Singleline).Match(message);
+            if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
+            {
+                if (long.TryParse(match.Groups[1].Value, out long money))
+                {
+                    message = AddMoney(groupId, Config.Instance.BotQQ, money);
+                    //racehorse.dailyAttendance(group, user);
+                    results.Add(message);
+                    return true;
+                }
+               
+
+            }
+
+
+
+
+
+            match = new Regex("^(富人榜|富豪榜)").Match(message);
             if (match.Success)
             {
                 string res = $"{showRichest()}";
@@ -113,8 +133,30 @@ namespace MMDK.Mods
 
 
 
+        /// <summary>
+        /// 给特定玩家铸币！
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="userqq"></param>
+        /// <param name="money"></param>
+        /// <returns></returns>
+        public string AddMoney(long group, long userqq, long money)
+        {
+            string answer = "";
+            try
+            {
 
+                var u = Config.Instance.UserInfo(userqq);
 
+                u.Money += money;
+                answer += $"{u.Name} 新到账 {money}元。{unitName}余额：{u.Money}";
+            }
+            catch(Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            return answer;
+        }
 
 
 
@@ -177,6 +219,7 @@ namespace MMDK.Mods
             if (money <= 0)
             {
                 message = "只允许正向转账";
+                return 0;
             }
 
             var user1 = Config.Instance.UserInfo(fromqq);
@@ -184,8 +227,18 @@ namespace MMDK.Mods
 
             if (user1.Money < money)
             {
-                message = $"您的余额不足。当前余额{user1.Money}{unitName}";
-                return 0;
+                if(fromqq == Config.Instance.BotQQ)
+                {
+                    // bot向外转账可以负数
+
+                }
+                else
+                {
+                    message = $"您的余额不足。当前余额{user1.Money}{unitName}";
+                    return 0;
+                }
+
+               
             }
 
             message = $"您向{targetqq}转了{money}枚{unitName}，";
@@ -247,7 +300,7 @@ namespace MMDK.Mods
             {
                 StringBuilder sb = new StringBuilder();
                 int maxnum = 10;
-                var users = Config.Instance.players.Values.ToList();
+                var users = Config.Instance.players.Values.Where(p => p.UseTimes > 0).ToList();
                 users.Sort((left, right) =>
                 {
                     return -1 * left.Money.CompareTo(right.Money);
@@ -279,7 +332,7 @@ namespace MMDK.Mods
             {
                 StringBuilder sb = new StringBuilder();
                 int maxnum = 10;
-                var users = Config.Instance.players.Values.ToList();
+                var users = Config.Instance.players.Values.Where(p=>p.UseTimes > 0).ToList();
                 users.Sort((left, right) =>
                 {
                     return left.Money.CompareTo(right.Money);

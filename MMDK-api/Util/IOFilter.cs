@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
+﻿
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using static System.Windows.Forms.LinkLabel;
 
 namespace MMDK.Util
 {
@@ -148,7 +140,7 @@ namespace MMDK.Util
                     if (res != input)
                     {
                         // filted!
-                        Logger.Instance.Log($"以拦截！{input} => {res}", LogType.Debug);
+                        Logger.Instance.Log($"以拦截！{input} => {res}");
                     }
                     result = (input == res);
                     break;
@@ -157,6 +149,60 @@ namespace MMDK.Util
             }
 
             return result;
+        }
+
+        public string BannedTip(int len=-1)
+        {
+            if(len <= 0 || len> 10) len = MyRandom.Next(1,10);
+            return new string('█', len);
+        }
+
+        public string FiltingBySentense(string input, FilterType type)
+        {
+            //string BannedTipP= "【数据删除】";
+            if (!isLoaded || type == FilterType.None || string.IsNullOrWhiteSpace(input)) return input;
+
+            StringBuilder sb = new StringBuilder();
+            int beginIndex = 0;
+            for(int i=1;i<input.Length; i++)
+            {
+                if (new char[] { '\n','，','。','？','：','！', '…' }.Contains(input[i]))
+                {
+                    // cut forward
+                    if (i > beginIndex)
+                    {
+                        var thisSentense = input.Substring(beginIndex, i - beginIndex);
+                        if (IsPass(thisSentense, type))
+                        {
+                            sb.Append(thisSentense);
+                            sb.Append(input[i]);
+                        }
+                        else
+                        {
+                            sb.Append(BannedTip(thisSentense.Length /2 ));
+                        }
+                    }
+                    
+                    beginIndex = i + 1;
+                    
+                }
+            }
+            if (beginIndex < input.Length)
+            {
+                var thisSentense = input.Substring(beginIndex);
+                if (IsPass(thisSentense, type))
+                {
+                    sb.Append(thisSentense);
+                }
+                else
+                {
+                    sb.Append(BannedTip(thisSentense.Length / 2));
+                }
+            }
+
+            string res = sb.ToString();
+            //res.Replace(BannedTipP + BannedTipP, BannedTip);
+            return sb.ToString();
         }
 
         /// <summary>

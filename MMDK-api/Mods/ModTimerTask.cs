@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
+﻿
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ChatGPT.Net.DTO.ChatGPT;
-using ChatGPT.Net;
 using MeowMiraiLib;
-using MeowMiraiLib.GenericModel;
 using MeowMiraiLib.Msg;
 using MeowMiraiLib.Msg.Sender;
 using MeowMiraiLib.Msg.Type;
 using MMDK.Util;
-using MeowMiraiLib.Event;
-using System.Reflection.PortableExecutable;
-using System.IO;
-using Microsoft.VisualBasic.Devices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using MMDK.Mods;
+
 
 namespace MMDK.Mods
 {
@@ -167,8 +155,7 @@ namespace MMDK.Mods
             {
                 bool isGroup = groupId > 0;
 
-                var regex = new Regex(@"^帮我撤回(\d{1,2})?条?");
-                var match = regex.Match(message);
+                var match = new Regex(@"^帮我撤回(\d{1,2})?条?").Match(message);
                 if (isGroup && Config.Instance.UserHasAdminAuthority(userId) && match.Success)
                 {
                     int quantity = 1;
@@ -195,8 +182,7 @@ namespace MMDK.Mods
                     //return true;
                 }
 
-                regex = new Regex(@"^刷新列表");
-                match = regex.Match(message);
+                match = new Regex(@"^刷新列表").Match(message);
                 if (isGroup && Config.Instance.UserHasAdminAuthority(userId) && match.Success)
                 {
                     Logger.Instance.Log($"更新好友列表和群列表...");
@@ -208,11 +194,10 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"^来点狐狸");
-                match = regex.Match(message);
+                match = new Regex(@"^来点狐狸").Match(message);
                 if (match.Success)
                 {
-                    var files = Directory.GetFiles(@"D:\Projects\TestFunctions\bin\Debug\net8.0-windows\gifs", "*.gif");
+                    var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifs", "*.gif");
                     if (files != null)
                     {
                         string fname = files[MyRandom.Next(files.Length)];
@@ -237,8 +222,7 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"^说(.+)", RegexOptions.Singleline);
-                match = regex.Match(message);
+                match = new Regex(@"^说(.+)", RegexOptions.Singleline).Match(message);
                 if (match.Success)
                 {
                     string speakSentence = match.Groups[1].Value;
@@ -251,8 +235,7 @@ namespace MMDK.Mods
                 }
 
 
-                regex = new Regex(@"^你什么情况？");
-                match = regex.Match(message);
+                match = new Regex(@"^你什么情况？").Match(message);
                 if (match.Success)
                 {
                     var res = new BotProfile().Send(client);
@@ -292,8 +275,7 @@ namespace MMDK.Mods
                     return true;
                 }
 
-                regex = new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)");
-                match = regex.Match(message);
+                match = new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)").Match(message);
                 if (match.Success)
                 {
                     string hourString = match.Groups[1].Value;
@@ -316,7 +298,7 @@ namespace MMDK.Mods
                     tasks.Add(newTask);
                     if (isGroup)
                     {
-new MeowMiraiLib.Msg.GroupMessage(groupId, [
+                        new MeowMiraiLib.Msg.GroupMessage(groupId, [
                         new At(userId, ""),
                             new Plain($"帮你设了{alertTime.ToString("d号H点m分")}{alertMsg}的闹钟")
                         ]).Send(client);
@@ -333,8 +315,7 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
                     return true;
                 }
 
-                regex = new Regex(@"^闹钟(列表|信息|状态)\b+");
-                match = regex.Match(message);
+                match = new Regex(@"^闹钟(列表|信息|状态)\b+").Match(message);
                 if (match.Success)
                 {
                     string res = "";
@@ -394,8 +375,7 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
                     }
                 }
 
-                regex = new Regex(@"^(删除闹钟|别[叫喊][了我]?)");
-                match = regex.Match(message);
+                match = new Regex(@"^(删除闹钟|别[叫喊][了我]?)").Match(message);
                 if (match.Success)
                 {
                     int haveTask = TaskRemove(userId, groupId);
@@ -451,7 +431,7 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
         }
 
 
-        bool ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        async Task<bool>  ModWithMirai.OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (e == null || e.Length < 2) return false;
 
@@ -487,7 +467,7 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
             return false;
         }
 
-        bool ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        async Task<bool>  ModWithMirai.OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (s == null || e == null) return false;
             var message = e.MGetPlainString();
@@ -500,21 +480,58 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
             var ask = isAskMe(e);
             if (ask)
             {
+                if (Config.Instance.GroupInfo(groupId).Is("正常模式"))
+                {
+                    List<string> imgPaths = new List<string>();
+                    string cmd = e.MGetPlainString();
+                    foreach (var item in e)
+                    {
+                        if (item is Image image)
+                        {
+                            //Logger.Instance.Log("img!");
+                            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
+                            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+                            //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
+                            //WebLinker.DownloadImageAsync(image.url, imgPath);
+                            var base64data = await WebLinker.ConvertImageUrlToBase64(image.url);
+                            imgPaths.Add(base64data);
+                        }
+                    }
+                    //Logger.Instance.Log($"{imgPaths.Count}");
+                    if (imgPaths.Count > 0)
+                    {
+                        GPT.Instance.AIReplyWithImage(groupId, userId, cmd, imgPaths.ToArray());
+                        return true;
+                    }
+                    
+                }
+
+
                 // 
-                foreach(var msg in e)
+                foreach (var msg in e)
                 {
                     
                     if(msg is Plain plain)
                     {
-                        if (plain.text == "测试下")
+                        if (plain.text == "发语音")
                         {
-                            new GroupMessage(s.group.id, [
-                                new Voice(null,null,@"D:\Videos\20241103-124142-2.amr")
-                                ]).Send(client);
+                            //string inputwav = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\1106-173028_9.4s-seedseed_1694_restored_emb-covert.pt-temp0.11-top_p0.05-top_k15-len28-86146-0-0.wav";
+                            //string inputpcm = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.pcm";
+                            //string outputSilk = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.silk";
+                            //string mp3file = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.mp3";
+                            //string amrfile = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.amr";
+                            ////SilkSharp.Encoder encoder = new();
+                            ////encoder.EncodeAsync(inputpcm, outputSilk);
+                            //new GroupMessage(s.group.id, [
+                            //    new Voice(null,null,amrfile)
+                            //    ]).Send(client);
 
                             //return true;
                         }
                     }
+
+                    
+ 
                 }
             }
 
@@ -528,14 +545,14 @@ new MeowMiraiLib.Msg.GroupMessage(groupId, [
                 
             foreach(var msg in e)
             {
-                if (msg is Voice voice)
-                {
-                    new GroupMessage(s.group.id, [
-                            new Voice(voice.voiceId)
-                            ]).Send(client);
+                //if (msg is Voice voice)
+                //{
+                //    new GroupMessage(s.group.id, [
+                //            new Voice(voice.voiceId)
+                //            ]).Send(client);
 
-                    return true;
-                }
+                //    return true;
+                //}
 
                 if (msg is Image itemImg)
                 {

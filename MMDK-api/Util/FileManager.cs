@@ -11,7 +11,7 @@ namespace MMDK.Util
     /// <summary>
     /// 本地文件管理模块
     /// </summary>
-    class FileManager
+    public class FileManager
     {
         public enum FileType
         {
@@ -166,7 +166,7 @@ namespace MMDK.Util
         }
 
 
-        /// <summary>
+        /// <summary> 
         /// 解压缩文件
         /// </summary>
         /// <param name="compressedFilePath"></param>

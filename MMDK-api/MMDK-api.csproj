@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MMDK</RootNamespace>
+    <UserSecretsId>6a21a186-a57b-4f15-aa7d-539bb646168b</UserSecretsId>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <BaseOutputPath>D:\Projects\momordica2020\MIraiKUgua\output</BaseOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="config.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChatGPT.Net" Version="2.0.0" />
+    <PackageReference Include="DrAbc.SilkSharp" Version="2.0.5" />
+    <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
+    <PackageReference Include="GoogleTranslateFreeApi" Version="1.1.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.70" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

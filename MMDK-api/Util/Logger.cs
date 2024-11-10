@@ -1,5 +1,4 @@
-﻿using Microsoft.Windows.Themes;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
@@ -109,7 +108,7 @@ namespace MMDK.Util
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+                    System.Diagnostics.Debug.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
                 }
             }
         }

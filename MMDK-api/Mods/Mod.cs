@@ -1,14 +1,20 @@
-﻿using MeowMiraiLib.Msg.Sender;
+﻿using MeowMiraiLib;
+using MeowMiraiLib.Msg.Sender;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace MMDK.Util
+namespace MMDK.Mods
 {
 
     #region Mod相关接口
+
+
+
+    public delegate string HandleCommandEvent(Match matchResults, long userId, long groupId);
     public interface Mod
     {
         /// <summary>
@@ -40,14 +46,8 @@ namespace MMDK.Util
     public interface ModWithMirai
     {
 
-        /// <summary>
-        /// 这类模块直接让他跟mirai客户端去连接吧，不管了
-        /// </summary>
-        /// <param name="client"></param>
-        public void InitMiraiClient(MeowMiraiLib.Client _client);
-
-        public bool OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
-        public bool OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e);
+        public Task<bool> OnFriendMessageReceive(FriendMessageSender s, MeowMiraiLib.Msg.Type.Message[] e, Client Target);
+        public Task<bool> OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e, Client Target);
     }
 
     #endregion

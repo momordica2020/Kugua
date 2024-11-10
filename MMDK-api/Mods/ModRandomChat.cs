@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using ChatGPT.Net;
 using ChatGPT.Net.DTO.ChatGPT;
 using MMDK.Util;
+using MMDK.Mods;
 using SuperSocket.ClientEngine;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace MMDK.Mods
 {
@@ -315,30 +315,40 @@ namespace MMDK.Mods
         {
             message = message.Trim();
 
-            
-
-
-            if (message.StartsWith("模式列表"))
-            {
-                string modeindexs = printModeList();
-                modeindexs += "~输入“xx模式on”即可切换模式~";
-
-                results.Add(modeindexs);
-                return true;
-            }
-
             bool isGroup = groupId > 0;
             var user = Config.Instance.UserInfo(userId);
             var group = Config.Instance.GroupInfo(groupId);
-            Regex modereg = new Regex(@"(\S+)模式\s*(on)", RegexOptions.IgnoreCase);
-            var moderes = modereg.Match(message);
-            if (moderes.Success)
+
+            var mc = new Regex(@"^模式列表", RegexOptions.Singleline).Match(message);
+            if (mc.Success)
+            {
+                string modeindexs = printModeList();
+                //modeindexs += "~输入“xx模式on”即可切换模式~";
+
+                results.Add(modeindexs);
+                return true;
+
+            }
+
+            mc = new Regex(@"^(清空记忆|清除记忆)").Match(message);
+            if (mc.Success)
+            {
+                GPT.Instance.AIClearMemory(groupId, userId);
+
+                results.Add($"*以清空AI模式下与你的聊天历史记录");
+                GPT.Instance.AISaveMemory();
+                return true;
+
+            }
+
+
+            mc = new Regex(@"(\S+)模式\s*(on)", RegexOptions.IgnoreCase).Match(message);
+            if (mc.Success)
             {
                 try
                 {
-                    if (moderes.Groups.Count < 2) { return false; } // 好像不可能小于2？
-                    string modeName = moderes.Groups[1].ToString().Trim();
-                    if (modeName.EndsWith("模式")) modeName = modeName.Replace("模式", "");
+                    if (mc.Groups.Count < 2) { return false; } // 好像不可能小于2？
+                    string modeName = mc.Groups[1].Value.Trim();
                     if (string.IsNullOrWhiteSpace(modeName))
                     {
                         // 输入不合法
@@ -474,6 +484,11 @@ namespace MMDK.Mods
                 switch (modeName)
                 {
                     case "正常":
+                    case "AI":
+                        string uName = Config.Instance.UserInfo(userId).Name;
+                        if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
+                        GPT.Instance.AIReply(groupId, userId, inputText);
+                        break;
                     case "混沌":
                         answer.Add(getAnswerChaos(userId, inputText));
                         break;
@@ -491,18 +506,24 @@ namespace MMDK.Mods
                         break;
 
 
-                    case "AI":
-                        results = new List<string>();
-                        string uName = Config.Instance.UserInfo(userId).Name;
-                        if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        GPT.Instance.AIReply(groupId, userId, uName, inputText);
-                        return true;   // 不在此处理
+                    
+                        
                     case "语音":
-                        results = new List<string>();
                         // string gong = getGong();
                         var r = getHistoryReact(groupId, userId);
-                        foreach(var rs in r) GPT.Instance.AITalk(groupId, userId, rs);
-                        return true;   // 不在此处理
+                        string sendString = "";
+                        foreach(var rs in r)
+                        {
+                            sendString += rs + "。";
+                            if(sendString.Length>50)
+                            {
+                                GPT.Instance.AITalk(groupId, userId, sendString);
+                                sendString = "";
+                            }
+                            
+                        }
+                        if (sendString.Length > 0) GPT.Instance.AITalk(groupId, userId, sendString);
+                        break;
                     default:
                         answer.Add(mode.getRandomSentence(inputText));
                         break;
@@ -633,15 +654,16 @@ namespace MMDK.Mods
         public string printModeList()
         {
             StringBuilder sb = new StringBuilder();
+            sb.Append($"模式列表：\r\n");
             foreach (var mode in modedict)
             {
                 if (!mode.Value.config.Contains("隐藏"))
                 { 
-                   sb.Append($"{mode.Key}模式\r\n");
+                   sb.Append($"{mode.Key} | ");
                 }
 
             }
-            sb.Append($"~输入“xxx模式on”即可切换模式~");
+            sb.Append($"~输入“xx模式on”即可切换模式~");
             return sb.ToString();
         }
 
@@ -743,14 +765,16 @@ namespace MMDK.Mods
             List<string> result = new List<string>();
 
             string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
-            var files = Directory.GetFiles(historyPath, "*.txt");
+            string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
+            var files = Directory.GetFiles(historyPath, "*.txt").ToList();
+            files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
             int maxtime = 10;
             try
             {
-                if (files.Length <= 0) return result;
+                if (files.Count <= 0) return result;
                 while (maxtime-- > 0)
                 {
-                    int findex = MyRandom.Next(files.Length);
+                    int findex = MyRandom.Next(files.Count);
                     string[] lines = FileManager.ReadLines(files[findex]).ToArray();
                     if (lines.Length < 100) continue;
                     int begin = MyRandom.Next(lines.Length - 5);

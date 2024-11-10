@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Shapes;
 
 namespace MMDK.Util
 {
@@ -206,7 +205,7 @@ namespace MMDK.Util
 
         private Config()
         {
-            configFile = $"{Directory.GetCurrentDirectory()}/config.json";
+            configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}config.json";
             isLoaded = false;
         }
 
@@ -219,7 +218,9 @@ namespace MMDK.Util
             {
                 if (!File.Exists(configFile))
                 {
-                    Logger.Instance.Log($"新建配置文件，路径是{configFile}", LogType.Debug);
+
+                    Logger.Instance.Log($"配置文件不存在，路径是{configFile}");
+                    return false;
                     CreateDefaultConfig();
                 }
                 string jsonString = File.ReadAllText(configFile);
@@ -227,25 +228,25 @@ namespace MMDK.Util
                 //SaveConfig();
 
 
-                string rootPath = System.IO.Path.GetDirectoryName(App.ResourcePath);
-                if (!string.IsNullOrEmpty(rootPath) && !Directory.Exists(rootPath))
+                //var rootPath = ResourceFullPath(App.ResourcePath);
+                if (!string.IsNullOrEmpty(ResourceRootPath) && !Directory.Exists(ResourceRootPath))
                 {
-                    Logger.Instance.Log($"新建路径{rootPath}", LogType.Debug);
-                    Directory.CreateDirectory(rootPath);
+                    Logger.Instance.Log($"新建路径{ResourceRootPath}");
+                    Directory.CreateDirectory(ResourceRootPath);
                     
                 }
 
                 string path = ResourceFullPath("Player");
                 if (!File.Exists(path))
                 {
-                    Logger.Instance.Log($"新建空白用户资料列表，路径是{path}", LogType.Debug);
+                    Logger.Instance.Log($"新建空白用户资料列表，路径是{path}");
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
                 players = JsonConvert.DeserializeObject<Dictionary<long, Player>>(jsonString);
                 if (players != null)
                 {
-                    Logger.Instance.Log($"从{path}读取了{players.Count}名用户资料", LogType.Debug);
+                    Logger.Instance.Log($"从{path}读取了{players.Count}名用户资料");
                     foreach(var p in players)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
@@ -255,14 +256,14 @@ namespace MMDK.Util
                 path = ResourceFullPath("Playgroup");
                 if (!File.Exists(path))
                 {
-                    Logger.Instance.Log($"新建空白群组资料列表，路径是{path}", LogType.Debug);
+                    Logger.Instance.Log($"新建空白群组资料列表，路径是{path}");
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
                 playgroups = JsonConvert.DeserializeObject<Dictionary<long, Playgroup>>(jsonString);
                 if (playgroups != null)
                 {
-                    Logger.Instance.Log($"从{path}读取了{playgroups.Count}个群组资料", LogType.Debug);
+                    Logger.Instance.Log($"从{path}读取了{playgroups.Count}个群组资料");
                     foreach (var p in playgroups)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
@@ -285,6 +286,20 @@ namespace MMDK.Util
         }
 
         
+        public string ResourceRootPath
+        {
+            get
+            {
+                if (App != null && !string.IsNullOrWhiteSpace(App.ResourcePath))
+                {
+                    return $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}{App.ResourcePath}{Path.DirectorySeparatorChar}";
+                }
+                return $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}";
+
+            }
+
+        }
+
 
         public string ResourceFullPath(string Name)
         {
@@ -294,22 +309,22 @@ namespace MMDK.Util
                 {
                     if (App.Resources.TryGetValue(Name, out Resource res))
                     {
-                        string fullPath = $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}/{res.Path}";
+                        string fullPath = $"{ResourceRootPath}{res.Path.Replace("/","\\")}";
                         //string fullFilePath = System.IO.Path.GetFullPath(fullPath);
                         if (res.Type == ResourceType.Path && !Directory.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"新建资源文件夹，路径是{fullPath}", LogType.Debug);
+                            Logger.Instance.Log($"新建资源文件夹，路径是{fullPath}");
                             Directory.CreateDirectory(fullPath);
                         }
                         if (res.Type==ResourceType.File && !File.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"资源文件不存在，路径是{fullPath}", LogType.Debug);
+                            Logger.Instance.Log($"资源文件不存在，路径是{fullPath}");
                         }
                         return fullPath;
                     }
                     else
                     {
-                        Logger.Instance.Log($"未找到资源 '{Name}' 。请在{Directory.GetCurrentDirectory}/{App.ResourcePath}/config.json 中配置！", LogType.Debug);
+                        Logger.Instance.Log($"未找到资源 '{Name}' 。请在{configFile} 中配置！");
                     }
                 }
             }
@@ -318,7 +333,7 @@ namespace MMDK.Util
                 Logger.Instance.Log(ex);
             }
 
-            return $"{Directory.GetCurrentDirectory()}/{App.ResourcePath}";
+            return ResourceRootPath;
         }
 
         public bool Save()
@@ -337,11 +352,13 @@ namespace MMDK.Util
                 jsonString = JsonConvert.SerializeObject(playgroups, Formatting.Indented);
                 File.WriteAllText(path, jsonString);
 
+                
 
                 return true;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"{ex.Message}\r\n{ex.StackTrace}");
                 return false;
             }
         }

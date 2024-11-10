@@ -3,7 +3,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <RootNamespace>MMDK</RootNamespace>
-    <AssemblyName>MMDK_o1</AssemblyName>
+    <AssemblyName>MMDK_Desktop</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
@@ -14,6 +14,7 @@
     <UseWPF>True</UseWPF>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
+    <BaseOutputPath>D:\Projects\momordica2020\MIraiKUgua\output</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="dlls\**" />
@@ -25,13 +26,15 @@
     <Page Remove="dlls\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ChatGPT.Net" Version="2.0.0" />
     <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
-    <PackageReference Include="GoogleTranslateFreeApi" Version="1.1.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.70" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MMDK-api\MMDK-api.csproj" />
   </ItemGroup>
 </Project>

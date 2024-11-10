@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 using GoogleTranslateFreeApi;
 
 using MMDK.Util;
-using System.Windows.Interop;
-using System.Net.Http;
-using System.Net;
+using MMDK.Mods;
+
 
 namespace MMDK.Mods
 {

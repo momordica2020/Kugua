@@ -1,13 +1,6 @@
-﻿using MeowMiraiLib.Msg.Type;
-using Microsoft.VisualBasic.ApplicationServices;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿
 using System.Text;
 using System.Timers;
-using System.Windows.Input;
-using System.Windows.Interop;
 
 namespace MMDK.Util
 {
@@ -112,7 +105,7 @@ namespace MMDK.Util
 
         public string path;
 
-        public Timer writeHistoryTask;
+        public System.Timers.Timer writeHistoryTask;
         //public object savemsgMutex = new object();
 
         Dictionary<string, MessageHistoryGroup> history = new Dictionary<string, MessageHistoryGroup>();
@@ -149,7 +142,7 @@ namespace MMDK.Util
 
 
             // 每10秒一归档
-            writeHistoryTask = new Timer(1000 * 10);
+            writeHistoryTask = new System.Timers.Timer(1000 * 10);
             writeHistoryTask.Start();
             writeHistoryTask.Elapsed += workDealHistory;
         }
