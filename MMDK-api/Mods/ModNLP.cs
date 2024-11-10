@@ -25,44 +25,19 @@ namespace MMDK.Mods
 
 
         //}
-        public void Exit()
-        {
-            
-        }
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if (string.IsNullOrWhiteSpace(message)) { return false; }
-            try
-            {
-                Regex reg = new Regex("^谐音(.+)", RegexOptions.Singleline);
-                Match m = reg.Match(message);
-                if (m.Success)
-                {
-                    string target = m.Groups[1].Value;
-                    if (!string.IsNullOrWhiteSpace(target))
-                    {
-                        string py = getPinyinFirstList(target);
-                        if (string.IsNullOrWhiteSpace(py)) return false;
-                        var bestSequence = model.GetSamePinyinSentnse(py);
-                        results.Add(bestSequence);
-                        return true;
-                    }
-                }
 
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-            
-            return false;
-        }
 
-        public bool Init(string[] args)
+
+        public override bool Init(string[] args)
         {
             try
             {
+                ModCommands[new Regex(@"^谐音(.+)", RegexOptions.Singleline)] = handleXieyin;
+
+
+
+
                 model = new ViterbiModel(this);
                 //string updateFile = "input.txt"; // 这里是输入的文本文件
                 string modelData = Config.Instance.ResourceFullPath("NLP_MODEL1");
@@ -93,14 +68,18 @@ namespace MMDK.Mods
             return true;
         }
 
-
-
-
-
-
-
-
-
+        private string handleXieyin(MessageContext context, string[] param)
+        {
+            string target = param[1];
+            if (!string.IsNullOrWhiteSpace(target))
+            {
+                string py = getPinyinFirstList(target);
+                if (string.IsNullOrWhiteSpace(py)) return "";
+                var bestSequence = model.GetSamePinyinSentnse(py);
+                return bestSequence;
+            }
+            return "";
+        }
 
         private string getPinyinFirstList(string input)
         {

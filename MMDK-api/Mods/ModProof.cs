@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using MMDK.Util;
 using MMDK.Mods;
+using MeowMiraiLib.Msg.Type;
 
 namespace MMDK.Mods
 {
@@ -33,10 +34,13 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
             try
             {
+                ModCommands[new Regex(@"^数字论证(.+)", RegexOptions.Singleline)] = GetProof;
+
+
                 bhdict = new Dictionary<string, int>();
                 var lines = FileManager.ReadResourceLines("Bihua");
                 foreach (var line in lines)
@@ -52,23 +56,9 @@ namespace MMDK.Mods
             return true;
         }
 
-        public void Exit()
+        private string GetProof(MessageContext context, string[] param)
         {
-            
-        }
-
-
-
-
-
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return false;
-            if (!message.Trim().StartsWith("数字论证"))
-            {
-                return false;
-            }
-            message = message.Replace("数字论证", "").Trim();
+            var message = param[1].Trim();
             long trynum;
             bool succeed = false;
             if (long.TryParse(message, out trynum))
@@ -76,8 +66,7 @@ namespace MMDK.Mods
                 succeed = getProof(trynum);
                 if (succeed)
                 {
-                    results.Add(finalproof);
-                    return true;
+                    return finalproof;
                 }
             }
 
@@ -85,25 +74,22 @@ namespace MMDK.Mods
             succeed = getProofEngIndex(message);
             if (succeed)
             {
-                results.Add(finalproof);
-                return true;
+                return finalproof;
             }
 
 
             succeed = getProofBh(message);
             if (succeed)
             {
-                results.Add(finalproof);
-                return true;
+                return finalproof;
             }
 
 
             if (string.IsNullOrWhiteSpace(finalproof))
             {
-                results.Add($"论 证 大 失 败");
-                return true;
+                return $"论 证 大 失 败";
             }
-            return false;
+            return "";
         }
 
 

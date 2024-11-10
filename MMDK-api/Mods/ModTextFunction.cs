@@ -54,14 +54,16 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
-            cmds.Add(new Regex(@"^反转(\S+)", RegexOptions.Singleline), handleReverse);
-            cmds.Add(new Regex(@"^乱序(\S+)", RegexOptions.Singleline), handleShuffle);
-            cmds.Add(new Regex(@"^(.+)攻(.+)受"), handleGongshou);
-            cmds.Add(new Regex(@"^随机(\d+)(?:\*(\d+))?"), handleRandomString);
-            cmds.Add(new Regex(@"^(\d+)切(?:(\d+)次)(.+)"), handleCutString);
-            cmds.Add(new Regex(@"^讽刺(.+)"), handleJoke);
+            ModCommands[new Regex(@"^反转(\S+)", RegexOptions.Singleline)] = handleReverse;
+            ModCommands[new Regex(@"^乱序(\S+)", RegexOptions.Singleline)] = handleShuffle;
+            ModCommands[new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline)] = handleGongshou;
+            ModCommands[new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline)] = handleRandomString;
+            ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)(.+)", RegexOptions.Singleline)] = handleCutString;
+            ModCommands[new Regex(@"^讽刺(.+)", RegexOptions.Singleline)] = handleJoke;
+
+
 
 
 
@@ -209,40 +211,16 @@ namespace MMDK.Mods
 
 
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return false;
-            message = message.Trim();
 
 
 
-            foreach (var cmd in cmds)
-            {
-                var m = cmd.Key.Match(message);
-                if (m.Success)
-                {
-                    string res = cmd.Value(m, userId, groupId);
-                    if (!string.IsNullOrWhiteSpace(res))
-                    {
-                        results.Add(res);
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-
-        }
-
-
-
-        private string handleJoke(Match matchResults, long userId, long groupId)
+        private string handleJoke(MessageContext context, string[] param)
         {
             string Jokeres = "";
             try
             {
                 // 笑话输入格式：“事件：A，好人：B，坏人：C，地点：D”
-                var items = matchResults.Groups[1].Value.Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var items = param[1].Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (items.Length >= 1)
                 {
                     Dictionary<string, string> pairs = new Dictionary<string, string>();
@@ -293,11 +271,11 @@ namespace MMDK.Mods
             return Jokeres;
         }
 
-        private string handleCutString(Match matchResults, long userId, long groupId)
+        private string handleCutString(MessageContext context, string[] param)
         {
-            string sTarget = matchResults.Groups[3].Value;
-            string sTime = matchResults.Groups[2].Value;
-            string sNum = matchResults.Groups[1].Value;
+            string sTarget = param[3];
+            string sTime = param[2];
+            string sNum = param[1];
 
             string res = sTarget.Trim();
             // K切多次
@@ -316,10 +294,11 @@ namespace MMDK.Mods
             return res;
         }
 
-        private string handleRandomString(Match matchResults, long userId, long groupId)
+        private string handleRandomString(MessageContext context, string[] param)
         {
-            int rows = int.Parse(matchResults.Groups[1].Value);
-            int columns = matchResults.Groups[2].Success ? int.Parse(matchResults.Groups[2].Value) : 1; // 如果没有列数，默认为1
+            int rows = int.Parse(param[1]);
+            int columns = 1;
+            int.TryParse(param[2], out columns);    // 如果没有列数，默认为1
             if (rows < 1 || columns < 1 || rows > 100 || columns > 100 || rows * columns > 2000)
             {
                 return $"输入太多，溢出来了！";
@@ -327,10 +306,10 @@ namespace MMDK.Mods
             return GenerateRandomStringHans(rows, columns);
         }
 
-        private string handleGongshou(Match matchResults, long userId, long groupId)
+        private string handleGongshou(MessageContext context, string[] param)
         {
-            string gong = matchResults.Groups[1].Value.Trim();
-            string shou = matchResults.Groups[2].Value.Trim();
+            string gong = param[1];
+            string shou = param[2];
             string result = "";
             try
             {
@@ -348,25 +327,25 @@ namespace MMDK.Mods
             return result;
         }
 
-        private string handleShuffle(Match matchResults, long userId, long groupId)
+        private string handleShuffle(MessageContext context, string[] param)
         {
-            return StaticUtil.ShuffleString(matchResults.Groups[1].Value);
+            return StaticUtil.ShuffleString(param[1]);
         }
 
-        private string handleReverse(Match matchResults, long userId, long groupId)
+        private string handleReverse(MessageContext context, string[] param)
         {
-            char[] charArray = matchResults.Groups[1].Value.ToCharArray();
+            char[] charArray = param[1].ToCharArray();
             Array.Reverse(charArray);
             return new string(charArray);
         }
 
-        private string handleSalad(Match matchResults, long userId, long groupId)
+        private string handleSalad(MessageContext context, string[] param)
         {
             string WordSaladres = "";
             try
             {
-                
-                string WordSaladresKey = matchResults.Groups[1].Value;
+
+                string WordSaladresKey = param[1];
                 if (string.IsNullOrWhiteSpace(WordSaladresKey)) return "";
 
 

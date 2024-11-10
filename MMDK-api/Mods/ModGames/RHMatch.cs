@@ -9,6 +9,10 @@ namespace MMDK.Mods
     {
         // getQQNickHandler getQQNick;
         //  public sendQQGroupMsgHandler showScene;
+
+
+        // 用于回传消息的上下文内容
+        public MessageContext context;
         
         // 单个用户可用下多个赛道的赌注
         Dictionary<RHUser, Dictionary<int, long>> bets = new Dictionary<RHUser, Dictionary<int, long>>();
@@ -409,7 +413,7 @@ namespace MMDK.Mods
                 {
                     message += $"{road.num}号：{road.horse.emoji} {road.horse.name}\r\n";
                 }
-                ModRaceHorse.Instance.showMessage(id, -1, message);
+                context.SendBackPlain(message);
             }
             else
             {
@@ -427,15 +431,15 @@ namespace MMDK.Mods
         {
             if (nowF == 0)
             {
-                ModRaceHorse.Instance.showMessage(id, -1, "赛🐎比赛正式开始！！");
-                ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
+                context.SendBackPlain("赛🐎比赛正式开始！！");
+                context.SendBackPlain(getMatchScene());
                 nowF = 1;
                 return;
             }
             else if (nowF >= turnWaitTime)
             {
                 nextLoop();
-                ModRaceHorse.Instance.showMessage(id, -1, getMatchScene());
+                context.SendBackPlain(getMatchScene());
 
                 if (winnerRoad > 0)
                 {
@@ -448,15 +452,14 @@ namespace MMDK.Mods
 
         private void HandleFinishing()
         {
-            ModRaceHorse.Instance.showMessage(id, -1, $"比赛结束！{winnerRoad}号马赢了！");
-            ModRaceHorse.Instance.showMessage(id, -1, calBetResult(winnerRoad));
-
+            context.SendBackPlain($"比赛结束！{winnerRoad}号马赢了！");
+            context.SendBackPlain(calBetResult(winnerRoad));
             // Reset for the next race
-            
+
             winnerRoad = -1;
             nowF = -1;
             currentState = RHStatus.Idling;
-            ModRaceHorse.Instance.save(); 
+            ModRaceHorse.Instance.Save(); 
         }
 
 

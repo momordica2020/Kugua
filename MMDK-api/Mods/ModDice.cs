@@ -16,15 +16,37 @@ namespace MMDK.Mods
     public class ModDice : Mod
     {
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
+            ModCommands[new Regex(@"^r(\d*)?d(\d*)?(.*)?$")] = handleDice;
 
             return true;
         }
 
-        public void Exit()
+        private string handleDice(MessageContext context, string[] param)
         {
-            
+            int dicenum = 1;
+            int facenum = 100;
+            string desc = "";
+            try
+            {
+                if (param.Length == 4)
+                {
+                    if (int.TryParse(param[1], out dicenum))
+                    {
+                        dicenum = Math.Min(dicenum, 100);
+                    }
+                    if (int.TryParse(param[2],out facenum))
+                    {
+
+                    }
+                    desc = param[3].Trim();
+                }
+            }
+            catch { }
+            string resdesc = "";
+            long res = getRoll(facenum, dicenum, out resdesc);
+            return ($"{desc} {dicenum}d{facenum} = {resdesc}");
         }
 
         public bool HandleText(long userId, long groupId, string message, List<string> results)
@@ -34,36 +56,7 @@ namespace MMDK.Mods
             var result = reg.Match(message);
             if (result.Success)
             {
-                int dicenum = 1;
-                int facenum = 100;
-                string desc = "";
-                try
-                {
-                    if (result.Groups.Count == 4)
-                    {
-                        try
-                        {
-                            dicenum = int.Parse(result.Groups[1].ToString());
-                            if (dicenum > 100) dicenum = 100;
-                        }
-                        catch { }
-                        try
-                        {
-                            facenum = int.Parse(result.Groups[2].ToString());
-                        }
-                        catch { }
-                        try
-                        {
-                            desc = result.Groups[3].ToString();
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-                string resdesc = "";
-                long res = getRoll(facenum, dicenum, out resdesc);
-                results.Add($"{desc} {dicenum}d{facenum} = {resdesc}");
-                return true;
+                
             }
             return false;
         }

@@ -3,14 +3,9 @@ using MeowMiraiLib.Msg;
 using MeowMiraiLib.Msg.Sender;
 using MeowMiraiLib.Msg.Type;
 using MMDK.Util;
-using MMDK_api.Mods;
-using System;
-using System.Collections.Generic;
-using System.Formats.Tar;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
 
 
 namespace MMDK.Mods
@@ -19,7 +14,7 @@ namespace MMDK.Mods
     /// <summary>
     /// 赛马模块
     /// </summary>
-    class ModRaceHorse : Mod, ModWithMirai
+    class ModRaceHorse : Mod
     {
         private static readonly Lazy<ModRaceHorse> instance = new Lazy<ModRaceHorse>(() => new ModRaceHorse());
         public static ModRaceHorse Instance => instance.Value;
@@ -36,7 +31,6 @@ namespace MMDK.Mods
         object matchMutex = new object();
 
 
-        public Dictionary<long, Client> clients = new Dictionary<long, Client>();
         public Dictionary<long, RHUser> users = new Dictionary<long, RHUser>();
         public Dictionary<string, RHHorse> horses = new Dictionary<string, RHHorse>();
         public Dictionary<long, RHMatch> matches = new Dictionary<long, RHMatch>();
@@ -49,7 +43,7 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
             lock (matchMutex)
             {
@@ -73,8 +67,13 @@ namespace MMDK.Mods
 
 
 
-
-
+                    ModCommands[new Regex(@"^赛马(介绍|玩法)$")] = getIntroduction;
+                    ModCommands[new Regex(@"^个人信息$")] = getRHInfo;
+                    ModCommands[new Regex(@"^赛马$")] = playGame;
+                    ModCommands[new Regex(@"^胜率榜$")] = showBigWinner;
+                    ModCommands[new Regex(@"^败率榜$")] = showBigLoser;
+                    ModCommands[new Regex(@"^赌狗榜$")] = showMostPlayTime;
+                    ModCommands[new Regex(@"^^(\d+)\s*号\s*(\d+)")] = AddBet;
                 }
                 catch (Exception ex)
                 {
@@ -84,7 +83,41 @@ namespace MMDK.Mods
             return true;
         }
 
-        public void Exit()
+        private string AddBet(MessageContext context, string[] param)
+        {
+            int roadnum = 0;
+            int money = 0;
+            if (int.TryParse(param[1], out roadnum)
+             && int.TryParse(param[2], out money))
+            {
+                if (matches.TryGetValue(context.groupId, out var matchInfo))
+                {
+                    if (!users.ContainsKey(context.userId)) users[context.userId] = new RHUser(context.userId);
+                    var u = users[context.userId];
+                    string result = matchInfo.bet(u, roadnum, money);
+                    if (string.IsNullOrWhiteSpace(result)) return "";
+                    context.SendBackPlain(result);
+                    return null;
+                }
+            }
+
+            return "";
+        }
+
+        private string playGame(MessageContext context, string[] param)
+        {
+            int num = 5;
+            int len = 100;
+            //clients[context.userId] = context.client;
+            if (!matches.ContainsKey(context.groupId)) matches[context.groupId] = new RHMatch(context.groupId);
+            matches[context.groupId].context = context;
+            matches[context.groupId].ReStart(num, len);
+
+            // 用null中止后续解析
+            return null;
+        }
+
+        public override void Exit()
         {
             try
             {
@@ -92,126 +125,15 @@ namespace MMDK.Mods
                 {
                     match.Value.StopRaceLoop();
                 }
-                save();
+                Save();
             }
             catch { }
 
         }
 
-        public bool HandleText(long userId, long groupId, string cmd, List<string> results)
-        {
-            try
-            {   
-                if (string.IsNullOrWhiteSpace(cmd)) return false;
-                var isGroup = groupId > 0;
-               
-                if (!users.ContainsKey(userId)) users[userId] = new RHUser(userId);
-                RHUser user = users[userId];
-
-                //BOT.log("赛马 "+cmd);
-                cmd = cmd.Trim();
-                var cmdFilter = Regex.Match(cmd, @"^赛马(介绍|玩法)", RegexOptions.Singleline);
-                if (cmdFilter.Success)
-                {
-                    results.Add(getIntroduction());
-                    return true;
-                }
-
-                cmdFilter = Regex.Match(cmd, @"^个人信息", RegexOptions.Singleline);
-                if (cmdFilter.Success)
-                {
-                    results.Add($"{ModBank.Instance.getUserInfo(userId)}\r\n{getRHInfo(userId)}");
-                    return true;
-                }
 
 
-                cmdFilter = Regex.Match(cmd, @"^赛马", RegexOptions.Singleline);
-                if (isGroup && cmdFilter.Success)
-                {
-                    int num = 5;
-                    int len = 100;
-                    clients[userId] = Target;
-                    if (!matches.ContainsKey(groupId)) matches[groupId] = new RHMatch(groupId);
-                    matches[groupId].ReStart(num, len);
-                    return true;
-                }
-
-                cmdFilter = Regex.Match(cmd, @"^胜率榜", RegexOptions.Singleline);
-                if (cmdFilter.Success)
-                {
-                    results.Add($"{showBigWinner()}");
-                    return true;
-                }
-
-                cmdFilter = Regex.Match(cmd, @"^败率榜", RegexOptions.Singleline);
-                if (cmdFilter.Success)
-                {
-                    results.Add($"{showBigLoser()}");
-                    return true;
-                }
-
-                cmdFilter = Regex.Match(cmd, @"^赌狗榜", RegexOptions.Singleline);
-                if (cmdFilter.Success)
-                {
-                    results.Add($"{showMostPlayTime()}");
-                    return true;
-                }
-
-                cmdFilter = Regex.Match(cmd, @"^(\d+)号(\d+)", RegexOptions.Singleline);
-                if (isGroup && cmdFilter.Success)
-                {
-                    try
-                    {
-                        int roadnum = 0;
-                        int money = 0;
-                        if (int.TryParse(cmdFilter.Groups[1].Value, out roadnum)
-                         && int.TryParse(cmdFilter.Groups[2].Value, out money))
-                        {
-                            if (matches.TryGetValue(groupId, out var matchInfo))
-                            {
-                                string result = matchInfo.bet(user, roadnum, money);
-                                if (string.IsNullOrWhiteSpace(result)) return false;
-                                results.Add(result);
-                                return true;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.Log(ex);
-                    }
-                }
-
-               
-
-
-
-
-                    
-                
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-
-            return false;
-        }
-
-
-
-        public async Task<bool> OnFriendMessageReceive(FriendMessageSender s, Message[] e, Client Target)
-        {
-            return false;
-        }
-
-        public async Task<bool> OnGroupMessageReceive(GroupMessageSender s, Message[] e, Client Target)
-        {
-            return false;
-        }
-
-        public void save()
+        public override void Save()
         {
             lock (matchMutex)
             {
@@ -254,7 +176,7 @@ namespace MMDK.Mods
 
 
 
-        public string showBigWinner()
+        public string showBigWinner(MessageContext context, string[] param)
         {
             try
             {
@@ -298,7 +220,7 @@ namespace MMDK.Mods
             //save();
         }
 
-        public string showBigLoser()
+        public string showBigLoser(MessageContext context, string[] param)
         {
             try
             {
@@ -352,7 +274,7 @@ namespace MMDK.Mods
         /// <summary>
         /// 赌狗榜
         /// </summary>
-        public string showMostPlayTime()
+        public string showMostPlayTime(MessageContext context, string[] param)
         {
             try
             {
@@ -388,15 +310,15 @@ namespace MMDK.Mods
         /// </summary>
         /// <param name="userqq"></param>
         /// <returns></returns>
-        public string getRHInfo(long userqq)
+        public string getRHInfo(MessageContext context, string[] param)
         {
-            if (!users.ContainsKey(userqq)) users[userqq] = new RHUser(userqq);
-            var u = users[userqq];
-            return $"您在赌马上消费过{u.hrmoney}枚{ModBank.unitName}，共下注{u.losetime + u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%";
+            if (!users.ContainsKey(context.userId)) users[context.userId] = new RHUser(context.userId);
+            var u = users[context.userId];
+            return $"{ModBank.Instance.getUserInfo(context.userId)}\n您在赌马上消费过{u.hrmoney}枚{ModBank.unitName}，共下注{u.losetime + u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%";
             //outputMessage(group, userqq, $"您在赌马上消费过{u.hrmoney}枚{BTCActor.unitName}，共下注{u.losetime+u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%");
         }
 
-        public string getIntroduction()
+        public string getIntroduction(MessageContext context, string[] param)
         {
             return $"赛🐎游戏介绍：\r\n" +
                 $"输入“赛马”开始一局比赛\r\n" +
@@ -417,16 +339,16 @@ namespace MMDK.Mods
             return horses.Values.ToList();
         }
 
-        
 
 
-        internal void showMessage(long groupId, int userId, string s)
-        {
-            new GroupMessage(groupId, [
-                new Plain(s)
-                ]).Send(client);
-        }
+
+        //internal void SendMessageToClient(long groupId, int userId, string s)
+        //{
+        //    new GroupMessage(groupId, [
+        //        new Plain(s)
+        //        ]).Send(client);
+        //}
+
     }
-
 
 }

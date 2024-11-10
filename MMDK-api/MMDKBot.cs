@@ -12,6 +12,7 @@ using MeowMiraiLib.Msg.Sender;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using MMDK.Mods;
+using System.Reflection;
 
 namespace MMDK
 {
@@ -37,6 +38,7 @@ namespace MMDK
         //{
         //    _sendLog = sendLogEvent;
         //}
+
 
 
         void sendLog(LogInfo logInfo)
@@ -81,6 +83,12 @@ namespace MMDK
         {
             try
             {
+                ClientLocal.handleMessage = new LocalClient.HandleMessage(messages =>
+                {
+                    Logger.Instance.Log("*LOCAL OUT*<<" + messages.MGetPlainString());
+                });
+
+
                 Logger.Instance.OnBroadcastLogEvent += sendLog;
                 Logger.Instance.Log("开始初始化配置文件。");
 
@@ -104,6 +112,7 @@ namespace MMDK
                     new ModAdmin(),
                     ModBank.Instance,
                     ModRaceHorse.Instance,
+                    ModSlotMachine.Instance,
                     new ModDice(),
                     new ModProof(),
                     new ModTextFunction(),
@@ -139,6 +148,8 @@ namespace MMDK
                 {
                     try
                     {
+                        mod.clientMirai = ClientX;
+                        mod.clientLocal = ClientLocal;
                         if (mod.Init(null))
                         {
                             Logger.Instance.Log($"模块{mod.GetType().Name}已初始化");
@@ -486,172 +497,121 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         async void OnFriendMessageReceive(FriendMessageSender s, Message[] e)
         {
-            HandleFriendMessageReceiveMultiIO(s, e, ClientX);
-        }
-
-
-        async void HandleFriendMessageReceiveMultiIO(FriendMessageSender s, Message[] e, Client Target)
-        {
-            if (!Config.Instance.AllowPlayer(s.id)) return; // 黑名单
-            if (e == null) return;
             Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
             var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.nickname;
             uinfo.Mark = s.remark;
-
-            var sourceItem = e.First() as Source;
-            HistoryManager.Instance.saveMsg(sourceItem.id, 0, s.id, e.MGetPlainString());
-            string cmd = e.MGetPlainString();
-            // if (string.IsNullOrWhiteSpace(cmd)) return;
-            cmd = cmd.Trim();
-            bool talked = false;
-
-            //if (cmd.Length > 0)
+            var context = new MessageContext
             {
-                List<string> res = new List<string>();
-                foreach (var mod in Mods)
+                userId = s.id,
+                groupId = 0,
+                client = ClientX,
+                recvMessages = e,
+                isAskme = true
+            };
+            HandleFriendMessageReceiveMultiIO(context);
+        }
+
+
+        async void HandleFriendMessageReceiveMultiIO(MessageContext context)
+        {
+            if (!Config.Instance.AllowPlayer(context.userId)) return; // 黑名单
+            if (context.recvMessages == null) return;
+            var uinfo = Config.Instance.UserInfo(context.userId);
+
+            var sourceItem = context.recvMessages.First() as Source;
+            HistoryManager.Instance.saveMsg(sourceItem.id, 0, context.userId, context.recvMessages.MGetPlainString());
+            
+            bool talked = false;
+            foreach(var mod in Mods)
+            {
+                var succeed = await mod.HandleFriendMessage(context);
+                if (succeed)
                 {
-                    var succeed = mod.HandleText(s.id, 0, cmd, res);
-                    if (succeed)
-                    {
-                        break;
-                    }
-
-                    if (mod is ModWithMirai modWithMirai)
-                    {
-                        succeed = await modWithMirai.OnFriendMessageReceive(s, e, Target);
-                        //modWithMirai.OnGroupMessageReceive;
-                    }
-                    if (succeed)
-                    {
-                        break;
-                    }
-                }
-
-
-                foreach (var msg in res)
-                {
-                    var msgFilted = IOFilter.Instance.Filting(msg, FilterType.Normal);
-                    if (string.IsNullOrWhiteSpace(msgFilted)) continue;
-
-                    var output = new MeowMiraiLib.Msg.Type.Message[]
-                    {
-                        new Plain(msgFilted)
-                    };
-                    new FriendMessage(s.id, output).Send(ClientX);
                     talked = true;
+                    break;
                 }
-
             }
-            // update player info
-            Player p = Config.Instance.UserInfo(s.id);
-            p.Name = s.nickname;
-            p.Mark = s.remark;
-
-
 
             // 计数统计
             if (talked)
             {
-                p.UseTimes += 1;
+                Config.Instance.UserInfo(context.userId).UseTimes += 1;
                 Config.Instance.App.Log.playTimePrivate += 1;
             }
         }
 
         async void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
-            HandleGroupMessageReceiveMultiIO(s, e, ClientX);
-        }
-
-        public async void HandleGroupMessageReceiveMultiIO(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e, Client Target)
-        {
-            if (!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
             if (e == null) return;
             var sourceItem = e.First() as Source;
             Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
-            HistoryManager.Instance.saveMsg(sourceItem.id, s.group.id, s.id, e.MGetPlainString());
+            if(!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
+
             var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.memberName;
 
-
-            // 检查群聊是否需要bot回复
-            bool isAtMe = false;
-            string cmd = e.MGetPlainString().Trim();
-            if (cmd.Length > 0)
+            var context = new MessageContext
             {
+                userId = s.id,
+                groupId = s.group.id,
+                client = ClientX,
+                recvMessages = e,
+            };
+            HistoryManager.Instance.saveMsg(sourceItem.id, context.groupId, context.userId, context.recvMessages.MGetPlainString());
+            HandleGroupMessageReceiveMultiIO(context);
+        }
 
-            }
-            foreach (var v in e)
+        public async void HandleGroupMessageReceiveMultiIO(MessageContext context)
+        {
+            // ask me?
+            context.isAskme = false;
+            if (context.recvMessages != null)
             {
-                if (v.type == "At" && ((MeowMiraiLib.Msg.Type.At)v).target == Config.Instance.App.Avatar.myQQ)
+                foreach (var item in context.recvMessages)
                 {
-                    isAtMe = true;
-                    break;
-                }
-            }
-            if (Config.Instance.isAskMe(cmd))
-            {
-                isAtMe = true;
-                cmd = cmd.Substring(Config.Instance.App.Avatar.askName.Length);
-            }
-            List<string> res = new List<string>();
-
-
-            // 调用各个mod来处理
-            bool succeed = false;
-            foreach (var mod in Mods)
-            {
-                // text模式则要看有at才传递被截断提示词后的cmd
-                if (isAtMe)
-                {
-                    succeed = mod.HandleText(s.id, s.group.id, cmd, res);
-                    if (succeed)
+                    if (item is AtAll)
                     {
+                        context.isAskme = true;
                         break;
                     }
+                    if (item is At itemat)
+                    {
+                        if (itemat.target == Config.Instance.BotQQ)
+                        {
+                            context.isAskme = true;
+                            break;
+                        }
+                    }
+                    if (item is Plain plain)
+                    {
+                        if (plain.text.TrimStart().StartsWith(Config.Instance.BotName))
+                        {
+                            plain.text = plain.text.TrimStart().Substring(Config.Instance.BotName.Length);
+                            context.isAskme = true;
+                            break;
+                        }
+                    }
                 }
+            }
 
-                // mirai-mod则不检查是否at我，直接原文传递即可
-                if (mod is ModWithMirai modWithMirai)
-                {
-                    succeed = await modWithMirai.OnGroupMessageReceive(s, e, Target);
-                    //modWithMirai.OnGroupMessageReceive;
-                }
+            //var uinfo = Config.Instance.UserInfo(s.id);
 
+            var sendNum = 0;
+            foreach (var mod in Mods)
+            {
+                var succeed = await mod.HandleGroupMessage(context);
                 if (succeed)
                 {
+                    sendNum++;
                     break;
                 }
             }
 
-            // thie part sendout res message array to Mirai server
-            var rres = res.ToArray();
-            int sendNum = 0;
-            foreach (var r in rres)
-            {
-                var textFilted = IOFilter.Instance.Filting(r, FilterType.Normal);
-                if (string.IsNullOrWhiteSpace(textFilted)) continue;
-                var output = new List<MeowMiraiLib.Msg.Type.Message>();
-                if (sendNum == 0)
-                {
-                    output.Add(new At(s.id, s.memberName));
-                }
-                output.Add(new Plain(textFilted));
-
-
-                new GroupMessage(s.group.id, output.ToArray()).Send(ClientX);
-
-
-                sendNum++;
-            }
-
-            // update player info
-            Playgroup p = Config.Instance.GroupInfo(s.group.id);
-            p.Name = s.group.name;
             if (sendNum > 0)
             {
                 //p.UseTimes += 1;
-                Config.Instance.UserInfo(s.id).UseTimes += 1;
+                Config.Instance.UserInfo(context.userId).UseTimes += 1;
                 Config.Instance.App.Log.playTimeGroup += 1;
             }
         }
@@ -739,21 +699,17 @@ _OnUnknownEvent	string	接收到后端传送未知指令
     {
         public string type;
 
-        public LocalClient(string _type):base("",  -1)
+        public LocalClient(string _type):base("ws://localhost", -1)
         {
+
             type = _type;
         }
 
+        public delegate void HandleMessage(Message[] messages);
+        public HandleMessage handleMessage;
 
     }
-    public class MessageContext
-    {
-        public long userId { get; set; }
-        public long groupId { get; set; }
-
-        public Client client { get; set; }
-
-    }
+   
 
 
 

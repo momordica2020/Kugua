@@ -26,7 +26,7 @@ namespace MMDK.Mods
         //替换掉翻译结果中的id
         private Regex rreplaceid = new Regex("\\[\\[\\[\\\"[0-9a-z]+\\\"\\,\\\"\\\"\\]");
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
             try
             {
@@ -45,10 +45,7 @@ namespace MMDK.Mods
             return true;
         }
 
-        public void Exit()
-        {
-            throw new NotImplementedException();
-        }
+
 
         public bool HandleText(long userId, long groupId, string message, List<string> results)
         {

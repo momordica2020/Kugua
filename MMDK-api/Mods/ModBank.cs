@@ -8,6 +8,8 @@ using ChatGPT.Net;
 using MeowMiraiLib;
 using MMDK.Util;
 using MMDK.Mods;
+using MeowMiraiLib.Msg.Type;
+using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
 
 namespace MMDK.Mods
 {
@@ -28,110 +30,70 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
+            ModCommands[new Regex(@"^签到$")] = DailyAttendance;
+
+            ModCommands[new Regex(@"^发币(\d+)")] = AddBotMoney;
+
+            ModCommands[new Regex(@"^(富人榜|富豪榜)")] = showRichest;
+
+            ModCommands[new Regex(@"^(穷人榜)")] = showPoorest;
+
+            ModCommands[new Regex(@"^给(.+)转\s*(\d+)")] = PostMoney;
+
+
+
 
             return true;
         }
 
-        public void Exit()
+        private string PostMoney(MessageContext context, string[] param)
         {
-            
+            try
+            {
+                string target = param[1];
+                long targetqq = -1;
+                if (!long.TryParse(target, out targetqq))
+                {
+                    // nick name -> qq
+                    //targetqq = bank.getID(target, msg.fromGroup);
+                    // targetqq = getQQNumFromGroup(group, target.Trim());
+                }
+                string res = "";
+                if (targetqq <= 0)
+                {
+                    res = $"系统里找不到昵称 {target} ，转账失败。可以输入qq号码直接转";
+                }
+                else
+                {
+                    long money = long.Parse(param[2]);
+                    long succeedMoney = TransMoney(context.userId, targetqq, money, out res);
+                }
+
+                if (!string.IsNullOrWhiteSpace(res))
+                {
+                    return res;
+                }
+            }
+            catch { }
+            return "";
         }
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        public string AddBotMoney(MessageContext context, string[] param)
         {
-            bool isGroup = groupId > 0;
-            if (string.IsNullOrWhiteSpace(message)) return false;
-            message = message.Trim();
-            // 货币系统
-            var match = new Regex(@"^签到", RegexOptions.Singleline).Match(message);
-            if (match.Success)
+            if (Config.Instance.UserHasAdminAuthority(context.userId))
             {
-                message = DailyAttendance(groupId, userId);
-                //racehorse.dailyAttendance(group, user);
-                results.Add(message);
-                return true;
-
-            }
-
-            match = new Regex(@"发币(\d+)", RegexOptions.Singleline).Match(message);
-            if (Config.Instance.UserHasAdminAuthority(userId) && match.Success)
-            {
-                if (long.TryParse(match.Groups[1].Value, out long money))
+                if (long.TryParse(param[1], out long money))
                 {
-                    message = AddMoney(groupId, Config.Instance.BotQQ, money);
+                    var message = AddMoney(context.groupId, Config.Instance.BotQQ, money);
                     //racehorse.dailyAttendance(group, user);
-                    results.Add(message);
-                    return true;
+                    return message;
                 }
-               
-
             }
 
-
-
-
-
-            match = new Regex("^(富人榜|富豪榜)").Match(message);
-            if (match.Success)
-            {
-                string res = $"{showRichest()}";
-                results.Add(res);
-                return true;
-            }
-
-            match = new Regex("^(穷人榜)").Match(message);
-            if (match.Success)
-            {
-                string res = $"{showPoorest()}";
-                results.Add(res);
-                return true;
-            }
-
-
-            match = new Regex(@"给(.+)转(\d+)").Match(message);
-            if (match.Success)
-            {
-                try
-                {
-                    string target = match.Groups[1].ToString().Trim();
-                    long targetqq = -1;
-                    if (!long.TryParse(target, out targetqq))
-                    {
-                        // nick name -> qq
-                        //targetqq = bank.getID(target, msg.fromGroup);
-                        // targetqq = getQQNumFromGroup(group, target.Trim());
-                    }
-                    string res = "";
-                    if (targetqq <= 0)
-                    {
-                        res = $"系统里找不到昵称 {target} ，转账失败。可以输入qq号码直接转";
-                    }
-                    else
-                    {
-                        long money = long.Parse(match.Groups[2].ToString());
-                        long succeedMoney = TransMoney(userId, targetqq, money, out res);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(res))
-                    {
-                        results.Add(res);
-                        return true;
-                    }
-                }
-                catch { }
-            }
-
-            return false;
+            return "";
         }
-
-
-
-
-
-
-
 
         /// <summary>
         /// 给特定玩家铸币！
@@ -166,9 +128,9 @@ namespace MMDK.Mods
         /// </summary>
         /// <param name="group"></param>
         /// <param name="userqq"></param>
-        public string DailyAttendance(long group, long userqq)
+        public string DailyAttendance(MessageContext context, string[] param)
         {
-            var u = Config.Instance.UserInfo(userqq);
+            var u = Config.Instance.UserInfo(context.userId);
             if (u.LastSignTime < DateTime.Today)
             {
                 int maxmoney = 114;
@@ -294,7 +256,7 @@ namespace MMDK.Mods
         /// 富人榜
         /// </summary>
         /// <returns></returns>
-        public string showRichest()
+        public string showRichest(MessageContext context, string[] param)
         {
             try
             {
@@ -326,7 +288,7 @@ namespace MMDK.Mods
         /// 穷人榜
         /// </summary>
         /// <returns></returns>
-        public string showPoorest()
+        public string showPoorest(MessageContext context, string[] param)
         {
             try
             {

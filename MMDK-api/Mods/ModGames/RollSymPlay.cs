@@ -41,7 +41,7 @@ namespace MMDK.Mods
                 choices = new List<int[]>();
                 readyStop = false;
                 syms.Clear();
-                var emojilist = ModRaceHorse.Instance.emojis.Keys.ToArray();
+                var emojilist = ModSlotMachine.Instance.emojis.Keys.ToArray();
                 StaticUtil.FisherYates(emojilist);
                 for (int i = 0; i < emojilist.Length; i++)
                 {
@@ -67,7 +67,7 @@ namespace MMDK.Mods
                     int yP = (int)(starty + height * (-1 + i - (nowP % 1)));
                     string p = syms[(syms.Count + realPIndex - 1 + i) % syms.Count];
 
-                    var pngImage1 = new MagickImage(new MemoryStream(ModRaceHorse.Instance.emojis[p]));
+                    var pngImage1 = new MagickImage(new MemoryStream(ModSlotMachine.Instance.emojis[p]));
                     pngImage1.Resize((uint)width, (uint)height);
                     bkg.Composite(pngImage1, xP, yP, CompositeOperator.Over);
 
@@ -140,7 +140,24 @@ namespace MMDK.Mods
         }
 
 
-        // 生成 GIF 动画并返回图片流
+        
+        /// <summary>
+        /// 生成emoji结果
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
+        public static string GenerateEmojiScreen(out List<int[]> results)
+        {
+            results = new List<int[]>();
+            return "";
+        }
+
+
+        /// <summary>
+        /// 生成 GIF 动画并返回图片流
+        /// </summary>
+        /// <param name="results"></param>
+        /// <returns></returns>
         public static string GenerateGif(out List<int[]> results)
         {
             
@@ -163,8 +180,8 @@ namespace MMDK.Mods
             }
 
             // 模拟抽奖过程并添加每一帧
-            int fullTimt = 5;   // gif总共几秒
-            var frameCount = 100;
+            int fullTimt = 4;   // gif总共几秒
+            var frameCount = 80;
             for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
             {
                 var frame = new MagickImage(

@@ -21,59 +21,28 @@ namespace MMDK.Mods
     public class ModAdmin : Mod
     {
 
-        Dictionary<Regex, HandleCommandEvent> cmds = new Dictionary<Regex, HandleCommandEvent>();
-        
-
-
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
-            cmds.Add(new Regex(@"^帮助$"), getWelcomeString);
-            cmds.Add(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned);
-            cmds.Add(new Regex(@"^解封(\d+)"), handleUnBanned);
-            cmds.Add(new Regex(@"^设置\+(\S+)"), handleAddTag);
-            cmds.Add(new Regex(@"^设置\-(\S+)"), handleRemoveTag);
-            cmds.Add(new Regex(@"^设置清空(\s*)"), handleClearTag);
-            cmds.Add(new Regex(@"^状态$"), handleShowState);
-            cmds.Add(new Regex(@"^(存档|保存)$"), handleSave);
+            ModCommands[new Regex(@"^帮助$")]= getWelcomeString;
+            ModCommands[new Regex(@"^(拉黑|屏蔽)(\d+)")] = handleBanned;
+            ModCommands[new Regex(@"^解封(\d+)")] = handleUnBanned;
+            ModCommands[new Regex(@"^设置\+(\S+)")] = handleAddTag;
+            ModCommands[new Regex(@"^设置\-(\S+)")] = handleRemoveTag;
+            ModCommands[new Regex(@"^设置清空(\s*)")] = handleClearTag;
+            ModCommands[new Regex(@"^状态$")] = handleShowState;
+            ModCommands[new Regex(@"^(存档|保存)$")] = handleSave;
             return true;
         }
 
 
-
-        public void Exit()
-        {
-            
-        }
-
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if(string.IsNullOrWhiteSpace(message))return false;
-            message = message.Trim();
-
-            foreach (var cmd in cmds)
-            {
-                var m = cmd.Key.Match(message);
-                if (m.Success)
-                {
-                    string res = cmd.Value(m, userId, groupId);
-                    if (!string.IsNullOrWhiteSpace(res))
-                    {
-                        results.Add(res);
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
+  
 
 
         /// <summary>
         /// bot的欢迎文本
         /// </summary>
         /// <returns></returns>
-        private string getWelcomeString(Match? matchResults = null, long userId = 0, long groupId = 0)
+        private string getWelcomeString(MessageContext context, string[] param)
         {
             return "" +
                 $"想在群里使用，就at我或者打字开头加“{Config.Instance.App.Avatar.askName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
@@ -91,26 +60,26 @@ namespace MMDK.Mods
                 "~周易占卜：“占卜 xxx”\r\n";
         }
 
-        private string handleSave(Match? matchResults = null, long userId = 0, long groupId = 0)
+        private string handleSave(MessageContext context, string[] param)
         {
-            if (Config.Instance.GroupHasAdminAuthority(groupId)
-                || Config.Instance.UserHasAdminAuthority(userId))
+            if (Config.Instance.GroupHasAdminAuthority(context.groupId)
+                || Config.Instance.UserHasAdminAuthority(context.userId))
             {
                 Config.Instance.Save();
                 GPT.Instance.AISaveMemory();
-                ModRaceHorse.Instance.save();
+                ModRaceHorse.Instance.Save();
                 return  $"配置文件以存档 {DateTime.Now.ToString("F")}";
             }
 
             return "";
         }
 
-        private string handleShowState(Match matchResults, long userId, long groupId)
+        private string handleShowState(MessageContext context, string[] param)
         {
             string rmsg = "";
-            var user = Config.Instance.UserInfo(userId);
-            var group = Config.Instance.GroupInfo(groupId);
-            if (Config.Instance.GroupHasAdminAuthority(groupId) || Config.Instance.UserHasAdminAuthority(userId) || userId == Config.Instance.App.Avatar.adminQQ) //临时：只有测试群可查详细信息
+            var user = Config.Instance.UserInfo(context.userId);
+            var group = Config.Instance.GroupInfo(context.groupId);
+            if (Config.Instance.GroupHasAdminAuthority(context.groupId) || Config.Instance.UserHasAdminAuthority(context.userId) || context.userId == Config.Instance.App.Avatar.adminQQ) //临时：只有测试群可查详细信息
             {
                 DateTime startTime = Config.Instance.App.Log.StartTime;
                 rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{Util.StaticUtil.GetBuildDate().ToString("F")}）\n";
@@ -123,7 +92,7 @@ namespace MMDK.Mods
                 rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\n";
                 rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\n";
             }
-            if (groupId > 0)
+            if (context.isGroup)
             {
                 rmsg += $"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}\n";
             }
@@ -136,10 +105,10 @@ namespace MMDK.Mods
         }
 
 
-        private string handleBanned(Match match, long userId, long groupId)
+        private string handleBanned(MessageContext context, string[] param)
         {
-            if (!Config.Instance.UserHasAdminAuthority(userId)) return "";
-            string message = match.Groups[1].Value;
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            string message = param[1];
             var targetUserId = 0;
             if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
             {
@@ -155,10 +124,10 @@ namespace MMDK.Mods
 
 
 
-        private string handleUnBanned(Match match, long userId, long groupId)
+        private string handleUnBanned(MessageContext context, string[] param)
         {
-            if (!Config.Instance.UserHasAdminAuthority(userId)) return "";
-            string message = match.Groups[1].Value;
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            string message = param[1];
             var targetUserId = 0;
             if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
             {
@@ -172,18 +141,18 @@ namespace MMDK.Mods
             }
         }
 
-        private string handleAddTag(Match match, long userId, long groupId)
+        private string handleAddTag(MessageContext context, string[] param)
         {
-            string message = match.Groups[1].Value;
-            if (!Config.Instance.UserHasAdminAuthority(userId)) return "";
+            string message = param[1];
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
 
-            var user = Config.Instance.UserInfo(userId);
-            var group = Config.Instance.GroupInfo(groupId);
+            var user = Config.Instance.UserInfo(context.userId);
+            var group = Config.Instance.GroupInfo(context.groupId);
             if (string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
             }
-            if (groupId > 0)
+            if (context.groupId > 0)
             {
                 group.Tags.Add(message);
                 return $"本群已添加tag：{message}";
@@ -195,18 +164,18 @@ namespace MMDK.Mods
             }
         }
 
-        private string handleRemoveTag(Match match, long userId, long groupId)
+        private string handleRemoveTag(MessageContext context, string[] param)
         {
-            string message = match.Groups[1].Value;
-            if (!Config.Instance.UserHasAdminAuthority(userId)) return "";
+            string message = param[1];
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
 
-            var user = Config.Instance.UserInfo(userId);
-            var group = Config.Instance.GroupInfo(groupId);
+            var user = Config.Instance.UserInfo(context.userId);
+            var group = Config.Instance.GroupInfo(context.groupId);
             if (string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
             }
-            if (groupId > 0)
+            if (context.isGroup)
             {
                 group.Tags.Add(message);
                 return $"本群已移除tag：{message}";
@@ -217,16 +186,16 @@ namespace MMDK.Mods
                 return $"私聊已移除tag：{message}";
             }
         }
-        private string handleClearTag(Match match, long userId, long groupId)
+        private string handleClearTag(MessageContext context, string[] param)
         {
-            string message = match.Groups[1].Value;
-            if (!Config.Instance.UserHasAdminAuthority(userId)) return "";
+            string message = param[1];
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
 
-            var user = Config.Instance.UserInfo(userId);
-            var group = Config.Instance.GroupInfo(groupId);
+            var user = Config.Instance.UserInfo(context.userId);
+            var group = Config.Instance.GroupInfo(context.groupId);
             if (string.IsNullOrWhiteSpace(message))
             {
-                if (groupId > 0)
+                if (context.isGroup)
                 {
                     group.Tags.Clear();
                     return $"本群已清空所有tag";
@@ -241,7 +210,7 @@ namespace MMDK.Mods
             }
             else
             {
-                if (groupId > 0)
+                if (context.isGroup)
                 {
                     group.Tags.RemoveWhere(tag => tag.Contains(message));
                     return  $"本群已删除所有带{message}tag";

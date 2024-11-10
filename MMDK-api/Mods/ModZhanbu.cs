@@ -22,10 +22,13 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
             try
             {
+                ModCommands[new Regex("^占卜(.*)", RegexOptions.Singleline)] = getZhouYi;
+
+
                 var lines = FileManager.ReadResourceLines("Zhouyi");
                 string nowGuaNum = "";
                 int nowline = 0;
@@ -68,42 +71,7 @@ namespace MMDK.Mods
             
         }
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return false;
-            message = message.Trim();
-            try
-            {
-                if (message.StartsWith("占卜"))
-                {
-                    string content = message.Substring(2);
-                    string res = getZhouYi();
-                    if (!string.IsNullOrWhiteSpace(res))
-                    {
-                        results.Add(res);
-                        return true;
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-
-            return false;
-        }
-
-
-
-
-
-
-
-
-
-
-
+       
 
 
 
@@ -144,7 +112,7 @@ namespace MMDK.Mods
         /// 取得卦象
         /// </summary>
         /// <returns></returns>
-        public string getZhouYi()
+        public string getZhouYi(MessageContext context, string[] param)
         {
             string yao = "";
             string gua1 = "";

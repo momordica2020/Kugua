@@ -12,6 +12,9 @@ using ChatGPT.Net.DTO.ChatGPT;
 using MMDK.Util;
 using MMDK.Mods;
 using SuperSocket.ClientEngine;
+using MeowMiraiLib;
+using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
+using MeowMiraiLib.GenericModel;
 
 namespace MMDK.Mods
 {
@@ -70,10 +73,14 @@ namespace MMDK.Mods
 
 
 
-        public bool Init(string[] args)
+        public override bool Init(string[] args)
         {
             try
             {
+                ModCommands[new Regex(@"^模式列表")] = printModeList;
+                ModCommands[new Regex(@"^(清空|清除)记忆")] = clearMemory;
+                ModCommands[new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase)] = selectMode;
+
 
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");
 
@@ -298,7 +305,75 @@ namespace MMDK.Mods
             return true;
         }
 
-        public void Exit()
+        private string selectMode(MessageContext context, string[] param)
+        {
+            try
+            {
+                string modeName = param[1];
+                if (string.IsNullOrWhiteSpace(modeName))
+                {
+                    // 输入不合法
+                    return printModeList(context,param);
+                }
+                //ModeInfo mode = null;
+                if (modedict.TryGetValue(modeName, out ModeInfo mode))
+                {
+                    // 模式存在
+                    if (mode.config.Contains("隐藏"))
+                    {
+                        // 隐藏模式，且没有相应权限就不启动
+                        if (
+                            (context.isGroup && !GroupHasAdminAuthority(context.groupId))
+
+                            //||(!isGroup && !UserHasAdminAuthority(groupId))
+                            )
+                        {
+                            return printModeList(context, param);
+                        }
+                        if ((!context.isGroup))
+                        {
+                            // allowed
+                        }
+                    }
+                    // 切换模式tag
+                    if (context.isGroup)
+                    {
+                        // group
+                        var group = Config.Instance.GroupInfo(context.groupId);
+                        group.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                        group.Tags.Add($"{mode.name}模式");
+                    }
+                    else
+                    {
+                        // private
+                        var user = Config.Instance.UserInfo(context.userId);
+                        user.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                        user.Tags.Add($"{mode.name}模式");
+                    }
+                    return $"~{Config.Instance.App.Avatar.askName}的{mode.name}模式启动~";
+
+                }
+                else
+                {
+                    // 没有这个模式
+                    return $"~我还没有{modeName}模式~\n{printModeList(context,param)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(ex);
+            }
+            return "";
+        }
+
+        private string clearMemory(MessageContext context, string[] param)
+        {
+            GPT.Instance.AIClearMemory(context.groupId, context.userId);
+            GPT.Instance.AISaveMemory();
+            return $"*以清空AI模式下与你的聊天历史记录";
+        }
+
+        public override void Exit()
         {
             try
             {
@@ -311,106 +386,21 @@ namespace MMDK.Mods
         }
 
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
+        public async override Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            message = message.Trim();
+            if (!context.isAskme) return false;
+            var message = context.recvMessages.MGetPlainString().Trim();
 
-            bool isGroup = groupId > 0;
-            var user = Config.Instance.UserInfo(userId);
-            var group = Config.Instance.GroupInfo(groupId);
-
-            var mc = new Regex(@"^模式列表", RegexOptions.Singleline).Match(message);
-            if (mc.Success)
-            {
-                string modeindexs = printModeList();
-                //modeindexs += "~输入“xx模式on”即可切换模式~";
-
-                results.Add(modeindexs);
-                return true;
-
-            }
-
-            mc = new Regex(@"^(清空记忆|清除记忆)").Match(message);
-            if (mc.Success)
-            {
-                GPT.Instance.AIClearMemory(groupId, userId);
-
-                results.Add($"*以清空AI模式下与你的聊天历史记录");
-                GPT.Instance.AISaveMemory();
-                return true;
-
-            }
+            var user = Config.Instance.UserInfo(context.userId);
+            var group = Config.Instance.GroupInfo(context.groupId);
 
 
-            mc = new Regex(@"(\S+)模式\s*(on)", RegexOptions.IgnoreCase).Match(message);
-            if (mc.Success)
-            {
-                try
-                {
-                    if (mc.Groups.Count < 2) { return false; } // 好像不可能小于2？
-                    string modeName = mc.Groups[1].Value.Trim();
-                    if (string.IsNullOrWhiteSpace(modeName))
-                    {
-                        // 输入不合法
-                        results.Add(printModeList());
-                        return true;
-                    }
-                    //ModeInfo mode = null;
-                    if (modedict.TryGetValue(modeName, out ModeInfo mode))
-                    {
-                        // 模式存在
-                        if (mode.config.Contains("隐藏"))
-                        {
-                            // 隐藏模式，且没有相应权限就不启动
-                            if (
-                                (isGroup && !GroupHasAdminAuthority(groupId))
-                                
-                                //||(!isGroup && !UserHasAdminAuthority(groupId))
-                                ) {
-                                results.Add(printModeList());
-                                return true;
-                            }
-                            if ((!isGroup))
-                            {
-                                // allowed
-                            }
-                        }
-                        // 切换模式tag
-                        if (isGroup)
-                        {
-                            // group
-                            group.Tags.RemoveWhere(t => t.EndsWith("模式"));
-                            group.Tags.Add($"{mode.name}模式");
-                        }
-                        else
-                        {
-                            // private
-                            user.Tags.RemoveWhere(t => t.EndsWith("模式"));
-                            user.Tags.Add($"{mode.name}模式");
-                        }
 
-                        results.Add($"~{Config.Instance.App.Avatar.askName}的{mode.name}模式启动~");
-                        return true;
-                        
-                    }
-                    else
-                    {
-                        // 没有这个模式
-                        results.Add($"~我还没有{modeName}模式~");
-                        results.Add(printModeList());
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Log(ex);
-                }
-            }
 
             // 以下部分无需输入任何内容即可触发！！！！！！！！！！！！！1111111
             
             ModeInfo modeTrigger = null;
-            if (isGroup)
+            if (context.isGroup)
             {
                 // 群内
                 modeTrigger = getGroupMode(group);
@@ -427,16 +417,22 @@ namespace MMDK.Mods
             }
             else
             {
-                if(handleChatResults(modeTrigger, userId, groupId, message, out IEnumerable<string> chatResult))
+                if(handleChatResults(modeTrigger, context.userId, context.groupId, message, out IEnumerable<string> chatResult))
                 {
-                    results.AddRange(chatResult);
+                    if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true);
+                    else
+                    {
+                        foreach (var s in chatResult)
+                        {
+                            context.SendBackPlain(s);
+                        }
+                    }
+                    
                     return true;
                 }
             }
 
 
-
-
             return false;
         }
 
@@ -446,23 +442,7 @@ namespace MMDK.Mods
 
 
 
-        private bool UserBanned(long userId)
-        {
-            var user = Config.Instance.UserInfo(userId);
-            if (user.Is("黑名单")) return true;
-            if (user.Type == PlayerType.Blacklist) return true;
-            return false;
-
-        }
-
-        private bool GroupBanned(long groupId)
-        {
-            var group = Config.Instance.GroupInfo(groupId);
-            if (group.Is("黑名单")) return true;
-            if (group.Type == PlaygroupType.Blacklist) return true;
-            return false;
-
-        }
+       
 
         /// <summary>
         /// 按模式处理输入并返回结果串
@@ -651,7 +631,7 @@ namespace MMDK.Mods
 
 
 
-        public string printModeList()
+        public string printModeList(MessageContext context, string[] param)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append($"模式列表：\r\n");
