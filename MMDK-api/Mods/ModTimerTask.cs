@@ -1,4 +1,5 @@
 ﻿
+using System.Runtime.InteropServices.Marshalling;
 using System.Text.RegularExpressions;
 using MeowMiraiLib;
 using MeowMiraiLib.Msg;
@@ -36,7 +37,9 @@ namespace MMDK.Mods
             ModCommands[new Regex(@"^刷新列表")] = refreshList;
             
             ModCommands[new Regex(@"^来点狐狸")] = getFox;
-            ModCommands[new Regex(@"^说(.+)")] = say;
+            ModCommands[new Regex(@"^来点小猫")] = getCat;
+            ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
+            ModCommands[new Regex(@"^说(.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
             
             ModCommands[new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)")] = setClock;
@@ -55,7 +58,25 @@ namespace MMDK.Mods
             return true;
         }
 
-
+        private string getMusic(MessageContext context, string[] param)
+        {
+            string mname = param[1].Trim();
+            var music = Directory.GetFiles(@"D:\Projects\musicapi\music", $"{mname}.mp3");
+            if (music.Length > 0)
+            {
+                var amrb64 = StaticUtil.Mp32AmrBase64(music.First());
+                if (!string.IsNullOrWhiteSpace(amrb64))
+                {
+                    context.SendBack(new Message[] {
+                        new Voice(null, null, null, amrb64)
+                    });
+                }
+                
+                return null;
+            }
+            return $"曲库没有{mname}";
+            //if(!string.IsNullOrWhiteSpace(mname))
+        }
 
         private string removeClock(MessageContext context, string[] param)
         {
@@ -204,7 +225,22 @@ namespace MMDK.Mods
 
             return "";
         }
+        private string getCat(MessageContext context, string[] param)
+        {
+            var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifscat", "*.gif");
+            if (files != null)
+            {
+                string fname = files[MyRandom.Next(files.Length)];
+                var msg = new Message[] {
+                     new Image(null,null,fname),
+                };
+                context.SendBack(msg);
 
+                return null;
+            }
+
+            return "";
+        }
         private string refreshList(MessageContext context, string[] param)
         {
             if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))

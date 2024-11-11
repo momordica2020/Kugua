@@ -54,19 +54,20 @@ namespace MMDK.Util
         {
             string filterdInput = StaticUtil.RemoveEmojis(input);
             if (string.IsNullOrWhiteSpace(filterdInput)) return null;
-            var sentences = filterdInput.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+            var sentences = filterdInput.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries);
             List<string> resList = new List<string>();
             string res = "";
             foreach(var s in sentences)
             {
                 var ss = s;
-                foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "'", "”" })
-                {
-                    ss=ss.Replace(signal,  " ");
-                    //ss = ss.Replace(signal, "[uv_break]");
-                }
+                //foreach(var signal in new string[] { "，", ",", "、", "(", "'", "\"", ")", ":", "：", "——", "“", "'", "”" })
+                //{
+                //    ss=ss.Replace(signal, " ");
+                //    //ss = ss.Replace(signal, "[uv_break]");
+                //}
                // ss= ss.Replace("\n", "[lbreak]");
                 res += ss + "[uv_break]";
+                //Logger.Instance.Log(res);
                 if (res.Length > 100)
                 {
                     // 太长了截断了
@@ -107,13 +108,13 @@ namespace MMDK.Util
                 json += $"&prompt={(input.Length < 10 ? "[oral_0][laugh_0][break_0]" : "[oral_3][laugh_5][break_5]")}";
                 json += $"&voice=seed_1694_restored_emb-covert.pt";
 
-                json += $"&speed={(input.Length < 10 ? 1 : 4)}";
-                json += $"&temperature=0.11";
-                json += $"&top_p=0.05";
+                json += $"&speed={(input.Length < 10 ? 1 : 1)}";
+                json += $"&temperature=0.01";
+                json += $"&top_p=0.07";
                 json += $"&top_k=15";
                 json += $"&refine_max_new_token=384";
                 json += $"&infer_max_new_token=2048";
-                json += $"&text_seed={MyRandom.Next(1, 50)}";
+                json += $"&text_seed={MyRandom.Next(40, 50)}";
                 //json += $"&text_seed=43";
                 json += $"&skip_refine=1";
                 json += $"&is_stream=0";
@@ -144,24 +145,31 @@ namespace MMDK.Util
                 string res = jsonResponse["audio_files"].First()["filename"].ToString();
 
 
-                string amrFile = Wav2Amr(res);
-                System.IO.File.Delete(res);
+                string amrf = StaticUtil.Wav2Amr(res, 9);
+                var amrb64 = StaticUtil.ConvertFileToBase64(amrf);
+                if (string.IsNullOrWhiteSpace(amrb64)) return;
+                
                 //Logger.Instance.Log($"=> {amrFile}");
 
                 if (groupId > 0)
                 {
                     new GroupMessage(groupId, [
-                        new Voice(null,null,amrFile)
+                        new Voice(null,null,null, amrb64)
                         ]).Send(client);
                 }
                 else
                 {
                     new FriendMessage(userId, [
-                        new Voice(null,null,amrFile)
+                        new Voice(null,null,amrb64)
                         ]).Send(client);
                 }
+                System.IO.File.Delete(amrf);
+                System.IO.File.Delete(res); 
+                
+                
                 //System.IO.File.Delete(amrFile);
-            }catch(Exception ex)
+            }
+            catch(Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
@@ -173,68 +181,12 @@ namespace MMDK.Util
                 {
                     foreach (var ipt in inputs)
                     {
-                        await AITalkSingle(groupId, userId, ipt);
-                    }
+                    await AITalkSingle(groupId, userId, ipt); 
+                }
                 }
         }
 
-        string Wav2Pcm(string inputFile)
-        {
-            // 命令行指令
-            inputFile = Path.GetFullPath(inputFile);
-            string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.pcm";
-            string cmd = "ffmpeg";
-            string param = $" -i {inputFile} -y {outputFile}";
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo()
-            {
-                FileName = cmd,
-                Arguments = param,
-                CreateNoWindow = true
-            };
-            process.StartInfo = startInfo;
-
-            process.Start();
-            process.WaitForExit();
-
-            int exitCode = process.ExitCode;
-            if (exitCode != 0)
-            {
-                Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
-                //throw new Exception($"FFmpeg exited with code {exitCode}");
-            }
-            return outputFile;
-
-        }
-
-        string Wav2Amr(string inputFile)
-        {
-            // 命令行指令
-            inputFile=Path.GetFullPath(inputFile);
-            string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.amr";
-            string cmd = "D:\\ffmpeg\\bin\\ffmpeg.exe";
-            string param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume=12dB\" -y {outputFile}";
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo()
-            {
-                FileName = cmd,
-                Arguments = param,
-                CreateNoWindow = true
-            };
-            process.StartInfo = startInfo;
-
-            process.Start();
-            process.WaitForExit();
-
-            int exitCode = process.ExitCode;
-            if (exitCode != 0)
-            {
-                Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
-                //throw new Exception($"FFmpeg exited with code {exitCode}");
-            }
-            return outputFile;
-
-        }
+      
 
         #endregion
 
@@ -275,6 +227,13 @@ namespace MMDK.Util
                 ;
         }
 
+
+        public void AISetPrompt(long groupId, long userId, string prompt)
+        {
+            string uniqKey = GetUniqKey(groupId, userId);
+
+            UserMessageList[uniqKey] = new List<dynamic> { new { role = "system", content = prompt } };
+        }
 
         public void AIClearMemory(long groupId, long userId)
         {

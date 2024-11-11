@@ -79,6 +79,7 @@ namespace MMDK.Mods
             {
                 ModCommands[new Regex(@"^模式列表")] = printModeList;
                 ModCommands[new Regex(@"^(清空|清除)记忆")] = clearMemory;
+                ModCommands[new Regex(@"^prompt=(.*)")] = setPrompt;
                 ModCommands[new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase)] = selectMode;
 
 
@@ -303,6 +304,13 @@ namespace MMDK.Mods
 
 
             return true;
+        }
+
+        private string setPrompt(MessageContext context, string[] param)
+        {
+            string prompt = param[1].Trim();
+            GPT.Instance.AISetPrompt(context.groupId, context.userId, prompt);
+            return $"*以更新AI模式的prompt，并重置了记忆！开始对话吧";
         }
 
         private string selectMode(MessageContext context, string[] param)

@@ -155,7 +155,7 @@ namespace MMDK.Mods
 
                 if (context.isAskme)
                 {
-                    Logger.Instance.Log("!" + message);
+                    //Logger.Instance.Log("!" + message);
                     foreach (var cmd in ModCommands)
                     {
                         var m = cmd.Key.Match(message);
