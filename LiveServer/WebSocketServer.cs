@@ -124,7 +124,7 @@ namespace LiveServer
             try
             {
                 cancellationTokenSource?.Cancel();
-                if (listener.IsListening)
+                if (listener!=null && listener.IsListening)
                 {
                     listener.Stop();
                     listener.Close();

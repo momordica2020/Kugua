@@ -95,7 +95,7 @@ namespace Kugua
 
 
                 Logger.Instance.Log($"启用过滤器...");
-                IOFilter.Instance.Init();
+                Filter.Instance.Init();
 
 
 

@@ -23,6 +23,9 @@ namespace Kugua
     /// </summary>
     public class StaticUtil
     {
+        /// <summary>
+        /// 标点符号
+        /// </summary>
         private static readonly HashSet<char> symbols = new HashSet<char>
         {
             '，', '。', '、', '；', '：', '【', '】', '？', '“', '”', '‘', '’', '《', '》',
@@ -31,12 +34,21 @@ namespace Kugua
             '\'', '\"', '\t', '\r', '\n'
         };
 
-        // 检查字符是否为符号
+        /// <summary>
+        /// 检查字符是否为符号
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
         public static bool IsSymbol(char ch)
         {
             return symbols.Contains(ch);
         }
 
+        /// <summary>
+        /// 移除字符串中的emoji
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static string RemoveEmojis(string input)
         {
             // 正则表达式匹配 Emoji 字符
@@ -398,7 +410,11 @@ namespace Kugua
         }
 
 
-        // 从文件读取 .wav 文件并转换为 Base64 字符串
+        /// <summary>
+        /// 从文件读取 .wav 文件并转换为 Base64 字符串
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static string ConvertFileToBase64(string filePath)
         {
             // 检查文件是否存在

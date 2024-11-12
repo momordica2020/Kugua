@@ -316,7 +316,10 @@ namespace Kugua
 
 
 
-
+        /// <summary>
+        /// 获取GPU当前状态描述
+        /// </summary>
+        /// <returns></returns>
         public static string GetNvidiaGpuAndMemoryUsage()
         {
             // 获取物理 GPU 的第一个实例

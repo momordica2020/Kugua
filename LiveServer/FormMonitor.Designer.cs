@@ -42,6 +42,7 @@
             ToolStripMenuItem0 = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             测试gptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            启动b站监听ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             tabPage4 = new System.Windows.Forms.TabPage();
             tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
@@ -54,7 +55,7 @@
             textLocalTestGroup = new System.Windows.Forms.TextBox();
             textInputTest = new System.Windows.Forms.TextBox();
             tabControl2 = new System.Windows.Forms.TabControl();
-            启动b站监听ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            splitContainer1 = new System.Windows.Forms.SplitContainer();
             contextMenuStrip1.SuspendLayout();
             contextMenuStrip2.SuspendLayout();
             contextMenuStrip3.SuspendLayout();
@@ -66,6 +67,10 @@
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
             tabControl2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
             SuspendLayout();
             // 
             // tbLog
@@ -73,16 +78,17 @@
             tbLog.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             tbLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
             tbLog.ContextMenuStrip = contextMenuStrip1;
+            tbLog.Dock = System.Windows.Forms.DockStyle.Fill;
             tbLog.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             tbLog.ForeColor = System.Drawing.SystemColors.Window;
-            tbLog.Location = new System.Drawing.Point(15, 44);
+            tbLog.Location = new System.Drawing.Point(0, 0);
             tbLog.Margin = new System.Windows.Forms.Padding(6);
             tbLog.MaxLength = 32767000;
             tbLog.Multiline = true;
             tbLog.Name = "tbLog";
             tbLog.ReadOnly = true;
             tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            tbLog.Size = new System.Drawing.Size(982, 1148);
+            tbLog.Size = new System.Drawing.Size(1000, 1161);
             tbLog.TabIndex = 0;
             // 
             // contextMenuStrip1
@@ -136,14 +142,14 @@
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Padding = new System.Windows.Forms.Padding(9, 3, 0, 3);
-            menuStrip1.Size = new System.Drawing.Size(1813, 34);
+            menuStrip1.Size = new System.Drawing.Size(1813, 31);
             menuStrip1.TabIndex = 5;
             menuStrip1.Text = "menuStrip1";
             // 
             // 存档当前配置ToolStripMenuItem
             // 
             存档当前配置ToolStripMenuItem.Name = "存档当前配置ToolStripMenuItem";
-            存档当前配置ToolStripMenuItem.Size = new System.Drawing.Size(136, 28);
+            存档当前配置ToolStripMenuItem.Size = new System.Drawing.Size(136, 25);
             存档当前配置ToolStripMenuItem.Text = "启动WS监听";
             存档当前配置ToolStripMenuItem.Click += 存档当前配置ToolStripMenuItem_Click;
             // 
@@ -151,7 +157,7 @@
             // 
             文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { ToolStripMenuItem0, toolStripMenuItem1 });
             文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
-            文件ToolStripMenuItem.Size = new System.Drawing.Size(70, 28);
+            文件ToolStripMenuItem.Size = new System.Drawing.Size(70, 25);
             文件ToolStripMenuItem.Text = "文件";
             // 
             // ToolStripMenuItem0
@@ -170,9 +176,16 @@
             // 测试gptToolStripMenuItem
             // 
             测试gptToolStripMenuItem.Name = "测试gptToolStripMenuItem";
-            测试gptToolStripMenuItem.Size = new System.Drawing.Size(103, 28);
+            测试gptToolStripMenuItem.Size = new System.Drawing.Size(103, 25);
             测试gptToolStripMenuItem.Text = "测试gpt";
             测试gptToolStripMenuItem.Click += 测试gptToolStripMenuItem_Click;
+            // 
+            // 启动b站监听ToolStripMenuItem
+            // 
+            启动b站监听ToolStripMenuItem.Name = "启动b站监听ToolStripMenuItem";
+            启动b站监听ToolStripMenuItem.Size = new System.Drawing.Size(147, 25);
+            启动b站监听ToolStripMenuItem.Text = "启动b站监听";
+            启动b站监听ToolStripMenuItem.Click += 启动b站监听ToolStripMenuItem_Click;
             // 
             // tabPage4
             // 
@@ -180,7 +193,7 @@
             tabPage4.Location = new System.Drawing.Point(4, 40);
             tabPage4.Name = "tabPage4";
             tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            tabPage4.Size = new System.Drawing.Size(782, 1104);
+            tabPage4.Size = new System.Drawing.Size(801, 1117);
             tabPage4.TabIndex = 1;
             tabPage4.Text = "本地模拟测试";
             tabPage4.UseVisualStyleBackColor = true;
@@ -200,7 +213,7 @@
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 61.50061F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.7503128F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 7.74907732F));
-            tableLayoutPanel2.Size = new System.Drawing.Size(776, 1098);
+            tableLayoutPanel2.Size = new System.Drawing.Size(795, 1111);
             tableLayoutPanel2.TabIndex = 9;
             // 
             // tableLayoutPanel3
@@ -211,13 +224,13 @@
             tableLayoutPanel3.Controls.Add(button2, 0, 0);
             tableLayoutPanel3.Controls.Add(checkBox1, 1, 0);
             tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel3.Location = new System.Drawing.Point(4, 1017);
+            tableLayoutPanel3.Location = new System.Drawing.Point(4, 1029);
             tableLayoutPanel3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new System.Drawing.Size(768, 76);
+            tableLayoutPanel3.Size = new System.Drawing.Size(787, 77);
             tableLayoutPanel3.TabIndex = 10;
             // 
             // button2
@@ -229,7 +242,7 @@
             button2.Location = new System.Drawing.Point(6, 6);
             button2.Margin = new System.Windows.Forms.Padding(6);
             button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(372, 64);
+            button2.Size = new System.Drawing.Size(381, 65);
             button2.TabIndex = 6;
             button2.Text = "发送（私聊）";
             button2.UseVisualStyleBackColor = false;
@@ -240,7 +253,7 @@
             checkBox1.AutoSize = true;
             checkBox1.Checked = true;
             checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            checkBox1.Location = new System.Drawing.Point(387, 3);
+            checkBox1.Location = new System.Drawing.Point(396, 3);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new System.Drawing.Size(256, 35);
             checkBox1.TabIndex = 7;
@@ -252,11 +265,12 @@
             // 
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
+            tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             tabControl1.Location = new System.Drawing.Point(4, 5);
             tabControl1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new System.Drawing.Size(768, 665);
+            tabControl1.Size = new System.Drawing.Size(787, 673);
             tabControl1.TabIndex = 8;
             tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
             // 
@@ -268,7 +282,7 @@
             tabPage1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            tabPage1.Size = new System.Drawing.Size(760, 621);
+            tabPage1.Size = new System.Drawing.Size(779, 629);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "私聊窗口";
             // 
@@ -286,7 +300,7 @@
             textLocalTest.Name = "textLocalTest";
             textLocalTest.ReadOnly = true;
             textLocalTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textLocalTest.Size = new System.Drawing.Size(752, 611);
+            textLocalTest.Size = new System.Drawing.Size(771, 619);
             textLocalTest.TabIndex = 3;
             // 
             // tabPage2
@@ -296,7 +310,7 @@
             tabPage2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            tabPage2.Size = new System.Drawing.Size(760, 628);
+            tabPage2.Size = new System.Drawing.Size(1175, 636);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "群聊窗口";
             tabPage2.UseVisualStyleBackColor = true;
@@ -315,7 +329,7 @@
             textLocalTestGroup.Name = "textLocalTestGroup";
             textLocalTestGroup.ReadOnly = true;
             textLocalTestGroup.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textLocalTestGroup.Size = new System.Drawing.Size(752, 618);
+            textLocalTestGroup.Size = new System.Drawing.Size(1167, 626);
             textLocalTestGroup.TabIndex = 4;
             // 
             // textInputTest
@@ -324,40 +338,50 @@
             textInputTest.ContextMenuStrip = contextMenuStrip1;
             textInputTest.Dock = System.Windows.Forms.DockStyle.Fill;
             textInputTest.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            textInputTest.Location = new System.Drawing.Point(6, 681);
+            textInputTest.Location = new System.Drawing.Point(6, 689);
             textInputTest.Margin = new System.Windows.Forms.Padding(6);
             textInputTest.MaxLength = 32767000;
             textInputTest.Multiline = true;
             textInputTest.Name = "textInputTest";
             textInputTest.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            textInputTest.Size = new System.Drawing.Size(764, 325);
+            textInputTest.Size = new System.Drawing.Size(783, 329);
             textInputTest.TabIndex = 4;
             textInputTest.TextChanged += textInputTest_TextChanged;
             // 
             // tabControl2
             // 
             tabControl2.Controls.Add(tabPage4);
+            tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
             tabControl2.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
-            tabControl2.Location = new System.Drawing.Point(1011, 41);
+            tabControl2.Location = new System.Drawing.Point(0, 0);
             tabControl2.Name = "tabControl2";
             tabControl2.SelectedIndex = 0;
-            tabControl2.Size = new System.Drawing.Size(790, 1148);
+            tabControl2.Size = new System.Drawing.Size(809, 1161);
             tabControl2.TabIndex = 10;
             // 
-            // 启动b站监听ToolStripMenuItem
+            // splitContainer1
             // 
-            启动b站监听ToolStripMenuItem.Name = "启动b站监听ToolStripMenuItem";
-            启动b站监听ToolStripMenuItem.Size = new System.Drawing.Size(147, 28);
-            启动b站监听ToolStripMenuItem.Text = "启动b站监听";
-            启动b站监听ToolStripMenuItem.Click += 启动b站监听ToolStripMenuItem_Click;
+            splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            splitContainer1.Location = new System.Drawing.Point(0, 31);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(tbLog);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(tabControl2);
+            splitContainer1.Size = new System.Drawing.Size(1813, 1161);
+            splitContainer1.SplitterDistance = 1000;
+            splitContainer1.TabIndex = 11;
             // 
             // FormMonitor
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(13F, 28F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1813, 1192);
-            Controls.Add(tbLog);
-            Controls.Add(tabControl2);
+            Controls.Add(splitContainer1);
             Controls.Add(menuStrip1);
             Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 134);
             MainMenuStrip = menuStrip1;
@@ -383,6 +407,11 @@
             tabPage2.ResumeLayout(false);
             tabPage2.PerformLayout();
             tabControl2.ResumeLayout(false);
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel1.PerformLayout();
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -416,6 +445,7 @@
         private System.Windows.Forms.TextBox textInputTest;
         private System.Windows.Forms.TabControl tabControl2;
         private System.Windows.Forms.ToolStripMenuItem 启动b站监听ToolStripMenuItem;
+        private System.Windows.Forms.SplitContainer splitContainer1;
     }
 }
 

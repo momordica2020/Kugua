@@ -181,7 +181,9 @@ namespace Kugua
 
 
 
-
+    /// <summary>
+    /// bot的配置文件管理模块
+    /// </summary>
     public class Config
     {
         private static readonly Lazy<Config> instance = new Lazy<Config>(() => new Config());
@@ -191,9 +193,6 @@ namespace Kugua
 
 
         public SystemInfo systemInfo = new SystemInfo();
-
-        // 当前程序的程序集
-        public Assembly assembly = Assembly.GetExecutingAssembly();
 
         public AppConfigs App;
         public Dictionary<long, Player> players;
@@ -414,21 +413,6 @@ namespace Kugua
             
         }
 
-        /// <summary>
-        /// 看看这句话是不是在at我，也就是句首有无我的昵称。
-        /// 如果有，就返回true
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public bool isAskMe(string msg)
-        {
-            if (msg != null && msg.Length > 0 && msg.StartsWith(BotName))
-            {
-                //msg = msg.Substring(appConfig.Avatar.askName.Length);
-                return true;
-            }
-            return false;
-        }
 
 
         #region 用户Player相关

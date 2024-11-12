@@ -12,7 +12,7 @@ namespace Kugua
     /// <summary>
     /// bot发言的总过滤器
     /// </summary>
-    public class IOFilter
+    public class Filter
     {
 
         // Trie节点定义
@@ -27,15 +27,15 @@ namespace Kugua
 
 
 
-        private static readonly Lazy<IOFilter> instance = new Lazy<IOFilter>(() => new IOFilter());
+        private static readonly Lazy<Filter> instance = new Lazy<Filter>(() => new Filter());
         //private static readonly object lockObject = new object(); // 用于线程安全
         private bool isLoaded;
 
         private readonly TrieNode rootNormal;
         private readonly TrieNode rootStrict;
 
-        public static IOFilter Instance => instance.Value;
-        private IOFilter()
+        public static Filter Instance => instance.Value;
+        private Filter()
         {
             rootNormal = new TrieNode();
             rootStrict = new TrieNode();

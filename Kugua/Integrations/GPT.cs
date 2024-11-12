@@ -552,7 +552,7 @@ namespace Kugua
                     var res = await SendChatImageRequest(input, imgUrls);
                     //UserMessageList[chatid].Add(new { role = "assistant", content = res });
 
-                    res = IOFilter.Instance.FiltingBySentense(res, FilterType.Normal);
+                    res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
 
                     if (string.IsNullOrWhiteSpace(res)) return;
 
@@ -603,7 +603,7 @@ namespace Kugua
 
 
                 res = res.Replace("\r\n\r\n", "\n").Replace("\n\n", "\n");
-                res = IOFilter.Instance.FiltingBySentense(res, FilterType.Normal);
+                res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
                 // filter
                 //if (string.IsNullOrWhiteSpace(res))
                 //{

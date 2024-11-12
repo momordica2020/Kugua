@@ -774,7 +774,7 @@ namespace Kugua
                                 targetuser = items[1];
                                 string msg = items[2].Trim();
 
-                                if (!IOFilter.Instance.IsPass(msg, FilterType.Strict)) continue;
+                                if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
 
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
                                 if (string.IsNullOrWhiteSpace(msg.Trim())) continue;

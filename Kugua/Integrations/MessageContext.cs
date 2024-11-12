@@ -56,7 +56,7 @@ namespace Kugua
                     if (item is Plain)
                     {
                         var msg = item as Plain;
-                        msg.text = IOFilter.Instance.Filting(msg.text, FilterType.Normal);
+                        msg.text = Filter.Instance.Filting(msg.text, FilterType.Normal);
                     }
                 }
 
