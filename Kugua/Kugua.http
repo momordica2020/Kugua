@@ -1,0 +1,6 @@
+@Kugua_HostAddress = http://localhost:5019
+
+GET {{Kugua_HostAddress}}/chat/
+Accept: application/json
+
+###
