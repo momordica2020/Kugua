@@ -15,7 +15,7 @@
 
 ## 依赖
 
-- 本程序主要使用`C Sharp`开发，你的操作系统需要是`Windows 10+`并安装`.Net 8.0`运行环境。
+- 本程序使用`.Net`开发，你的操作系统需要是`Windows 10+`并安装`.Net 8.0`运行环境。
 - 本bot的运行依赖[Mirai机器人框架](https://github.com/mamoe/mirai)，启动我之前请先启动该框架（我用的是[mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)），并按其要求配置端口等字段。目前采用mirai-api-http的websocket模式连接。
 - 代码中与Mirai通讯的框架依赖于C#的库[MeowMiraiLib](https://github.com/DavidSciMeow/MeowMiraiLib)
 - bot功能实现基于[OpenMomordica](https://github.com/hontsev/OpenMomordica) 并做了大幅改动。
