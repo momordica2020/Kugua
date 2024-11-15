@@ -13,7 +13,7 @@ namespace Kugua
     public class ModSlotMachine : Mod
     {
         public Dictionary<string, byte[]> emojis = new Dictionary<string, byte[]>();
-        public Dictionary<long, DateTime> playerLock = new Dictionary<long, DateTime>();
+        public Dictionary<long, object> playerLock = new Dictionary<long, object>();
 
 
         private static readonly Lazy<ModSlotMachine> instance = new Lazy<ModSlotMachine>(() => new ModSlotMachine());
@@ -36,7 +36,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^老虎机\s*(\d+)?")] = StartGame;
+                ModCommands[new Regex(@"^老虎机(\d+)?")] = StartGame;
 
             }
             catch (Exception ex)
@@ -60,8 +60,8 @@ namespace Kugua
             }
 
 
-            if (!playerLock.ContainsKey(context.userId)) playerLock[context.userId] = DateTime.Now;
-            if (Monitor.TryEnter(playerLock[context.userId]))
+            if (!playerLock.ContainsKey(context.userId)) playerLock[context.userId] = new object();
+            lock (playerLock[context.userId])
             {
                 try
                 {
@@ -70,7 +70,16 @@ namespace Kugua
                         return ($"{msg}");
                     }
                     long userNowMoney = tuser.Money;    // 防止多线程时候，后面钱数显示bug
-                    var gifBase64 = RollSymPlay.GenerateGif(out var rollres);
+
+
+
+                    // 节省资源，不做gif生成了。但是及算方式依然是一样的
+                    var emojis = RollSymPlay.GenerateEmoji(out var rollres);
+                    //var gifBase64 = RollSymPlay.GenerateGif(out var rollres);
+
+
+
+
                     int score = 0;
                     //Logger.Instance.Log($"!{rollres.Count}");
                     if (rollres.Count == 9)
@@ -133,26 +142,19 @@ namespace Kugua
                     var sendOutMsg = new Message[]
                     {
                         new At(context.userId,null),
-                        new Image(null,null,null, gifBase64),
+                        new Plain(emojis),
+                        //new Image(null,null,null, gifBase64),
                         new Plain(resultString),
                     };
                     context.SendBack(sendOutMsg);
                     // save();
                 }
-                finally
+                catch (Exception e)
                 {
-                    // 无论如何，都释放锁
-
-                    Monitor.Exit(playerLock[context.userId]);
-                    Console.WriteLine("Thread exited critical section");
                 }
-                return null;
             }
-            else
-            {
-                // 如果未能获取锁，输出并退出
-                return null;
-            }
+
+            return null;
         }
 
         public override void Exit()

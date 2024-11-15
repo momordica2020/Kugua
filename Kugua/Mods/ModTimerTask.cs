@@ -39,7 +39,7 @@ namespace Kugua
             ModCommands[new Regex(@"^来点狐狸")] = getFox;
             ModCommands[new Regex(@"^来点小猫")] = getCat;
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
-            ModCommands[new Regex(@"^说(.+)", RegexOptions.Singleline)] = say;
+            ModCommands[new Regex(@"^说[:|：](.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
             
             ModCommands[new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)")] = setClock;
@@ -165,7 +165,7 @@ namespace Kugua
             string data = "";
             data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
 
-            GPT.Instance.AITalk(context.groupId, context.userId, $"你是谁啊？");
+            GPT.Instance.AITalk(context, $"你是谁啊？");
 
 
             //foreach (var msg in e)
@@ -203,7 +203,7 @@ namespace Kugua
             string speakSentence = param[1];
             if (string.IsNullOrWhiteSpace(speakSentence)) return "";
 
-            GPT.Instance.AITalk(context.groupId, context.userId, $"{speakSentence}");
+            GPT.Instance.AITalk(context, $"{speakSentence}");
 
 
             return null;
@@ -211,7 +211,7 @@ namespace Kugua
 
         private string getFox(MessageContext context, string[] param)
         {
-            var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifs", "*.gif");
+            var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifsfox", "*.gif");
             if (files != null)
             {
                 string fname = files[MyRandom.Next(files.Length)];
@@ -247,9 +247,9 @@ namespace Kugua
             {
                 Logger.Instance.Log($"更新好友列表和群列表...");
                 RefreshFriendList();
-                Logger.Instance.Log($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+                Logger.Instance.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
 
-                return $"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...";
+                return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
             }
             return "";
         }
@@ -315,7 +315,7 @@ namespace Kugua
                 if (clientMirai != null)
                 {
                     var fp = new FriendList().Send(clientMirai);
-                    Config.Instance.friends.Clear();
+                    Config.Instance.qqfriends.Clear();
                     if (fp == null)
                     {
                         Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
@@ -330,7 +330,7 @@ namespace Kugua
                             //friend.Mark = f.remark;
                             friend.Tags.Add("好友");
                             //friend.Type = PlayerType.Normal;
-                            Config.Instance.friends.Add(f.id, f);
+                            Config.Instance.qqfriends.Add(f.id, f);
                         }
                     }
 
@@ -338,8 +338,8 @@ namespace Kugua
 
 
                     var gp = new GroupList().Send(clientMirai);
-                    Config.Instance.groups.Clear();
-                    Config.Instance.groupMembers.Clear();
+                    Config.Instance.qqgroups.Clear();
+                    Config.Instance.qqgroupMembers.Clear();
                     if (gp == null)
                     {
                         Logger.Instance.Log($"不会吧不会吧不会没有群吧");
@@ -357,8 +357,8 @@ namespace Kugua
                                 Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
                                 continue;
                             }
-                            Config.Instance.groups.Add(g.id, g);
-                            Config.Instance.groupMembers.Add(g.id, groupMembers);
+                            Config.Instance.qqgroups.Add(g.id, g);
+                            Config.Instance.qqgroupMembers.Add(g.id, groupMembers);
                             foreach (var gf in groupMembers)
                             {
                                 var member = Config.Instance.UserInfo(gf.id);
@@ -463,7 +463,7 @@ namespace Kugua
                         //Logger.Instance.Log($"{imgPaths.Count}");
                         if (imgPaths.Count > 0)
                         {
-                            GPT.Instance.AIReplyWithImage(context.groupId, context.userId, cmd, imgPaths.ToArray());
+                            GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
                             return true;
                         }
 

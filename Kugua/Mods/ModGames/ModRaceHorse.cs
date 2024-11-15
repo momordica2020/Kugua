@@ -95,7 +95,7 @@ namespace Kugua
                     var u = users[context.userId];
                     string result = matchInfo.bet(u, roadnum, money);
                     if (string.IsNullOrWhiteSpace(result)) return "";
-                    context.SendBackPlain(result);
+                    context.SendBackPlain(result, true);
                     return null;
                 }
             }

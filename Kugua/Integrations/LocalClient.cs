@@ -29,21 +29,22 @@ namespace Kugua
 
                 localSocket.Error += delegate (object? sender, SuperSocket.ClientEngine.ErrorEventArgs e)
                 {
-                    Logger.Instance.Log("[LocalSocket] - Socket Error , Running to Close or Reconnect -");
-                    Logger.Instance.Log($"{e.Exception}");
+                    //Logger.Instance.Log("[LocalSocket] - Socket Error , Running to Close or Reconnect -");
+                    //Logger.Instance.Log($"{e.Exception}");
                 };
                 localSocket.MessageReceived += WebSocket4Net_MessageReceived;
                 localSocket.Open();
-                Logger.Instance.Log(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ":ws开始连接");
+                //Logger.Instance.Log(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ":ws开始连接");
 
 
                 localSocket.Closed += delegate (object? s, EventArgs e)
                 {
                     Logger.Instance.Log("[LocalSocket] - Socket Closed -");
 
-                    Task.Delay(5 * 1000).Wait();
 
-                    Link(linkUri);
+                    //Task.Delay(10 * 1000).Wait();
+
+                    //Link(linkUri);
                     //TryReconnect(5);
                 };
             }
@@ -54,20 +55,7 @@ namespace Kugua
           
         }
 
-        private async Task TryReconnect(int s)
-        {
-            try
-            {
-                localSocket?.Close();
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Log(ex);
-            }
-            Task.Delay(s * 1000).Wait();
-            Link(linkUri);
 
-        }
 
         private static readonly long BiliBiliGroupId = 2;
         private void WebSocket4Net_MessageReceived(object? sender, WebSocket4Net.MessageReceivedEventArgs e)

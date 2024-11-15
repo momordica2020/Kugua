@@ -30,11 +30,20 @@ namespace Kugua
             ModCommands[new Regex(@"^设置清空(\s*)")] = handleClearTag;
             ModCommands[new Regex(@"^状态$")] = handleShowState;
             ModCommands[new Regex(@"^(存档|保存)$")] = handleSave;
+
+            ModCommands[new Regex(@"^连接本地$")] = handleLinkLocal;
+
             return true;
         }
 
+        private string handleLinkLocal(MessageContext context, string[] param)
+        {
+            BotHost.Instance.LinkLocal();
+            return null;
+        }
 
-  
+
+
 
 
         /// <summary>
@@ -44,8 +53,8 @@ namespace Kugua
         private string getWelcomeString(MessageContext context, string[] param)
         {
             return "" +
-                $"想在群里使用，就at我或者打字开头加“{Config.Instance.App.Avatar.askName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
-                "以下是群常用功能。私聊可以闲聊。\r\n" +
+                $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
+                "以下是群常用功能。\r\n" +
                 "~状态查看：“状态”\r\n" +
                 "~模式更换：“模式列表”、“xx模式on”\r\n" +
                 "~掷骰子：“rd 成功率”“r3d10 攻击力”\r\n" +
@@ -61,8 +70,7 @@ namespace Kugua
 
         private string handleSave(MessageContext context, string[] param)
         {
-            if (Config.Instance.GroupHasAdminAuthority(context.groupId)
-                || Config.Instance.UserHasAdminAuthority(context.userId))
+            if (Config.Instance.UserHasAdminAuthority(context.userId))
             {
                 Config.Instance.Save();
                 GPT.Instance.AISaveMemory();
@@ -78,17 +86,16 @@ namespace Kugua
             string rmsg = "";
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(context.groupId);
-            if (Config.Instance.GroupHasAdminAuthority(context.groupId) || Config.Instance.UserHasAdminAuthority(context.userId) || context.userId == Config.Instance.App.Avatar.adminQQ) //临时：只有测试群可查详细信息
+            if (Config.Instance.GroupHasAdminAuthority(context.groupId) || Config.Instance.UserHasAdminAuthority(context.userId)) //临时：只有测试群可查详细信息
             {
-                DateTime startTime = Config.Instance.App.Log.StartTime;
-                rmsg += $"内核版本 - 苦音未来v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）\n";
+                DateTime startTime = Config.Instance.StartTime;
+                rmsg += $"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）\n";
                 rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\n";
                 rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\n";
                 rmsg += $"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}\n";
-                rmsg += $"一共重启{Config.Instance.App.Log.beginTimes}次\n";
                 rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\n";
-                rmsg += $"在群里被乐{Config.Instance.App.Log.playTimeGroup}次\n";
-                rmsg += $"在私聊被乐{Config.Instance.App.Log.playTimePrivate}次\n";
+                rmsg += $"在群里被乐{Config.Instance.UseTimeGroup}次\n";
+                rmsg += $"在私聊被乐{Config.Instance.UseTimePrivate}次\n";
                 rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\n";
             }
             if (context.isGroup)

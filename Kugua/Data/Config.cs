@@ -14,172 +14,6 @@ using System.Threading.Tasks;
 namespace Kugua
 {
 
-    #region 配置文件相关结构体
-
-    public class AppConfigs
-    {
-        public string Version { get; set; }
-        public DateTime LateUpdated { get; set; }
-        public string ResourcePath { get; set; }
-
-        public AvatarConfigs Avatar { get; set; }
-        public IOConfigs IO { get; set; }
-        public LogConfigs Log { get; set; }
-
-        public Dictionary<string, Resource> Resources { get; set; }
-    }
-
-    public enum ResourceType
-    {
-        File,
-        Path,
-    }
-
-    public class Resource
-    {
-        //public string Name { get; set; }
-        public ResourceType Type { get; set; }
-        public string Path { get; set; }
-    }
-
-    public class IOConfigs
-    {
-        public bool MiraiRun { get; set; }
-        public string MiraiWS { get; set; }
-        public int MiraiPort { get; set; }
-
-        public bool BilibiliRun { get; set; }
-
-        public string BKeySecret { get; set; }
-        public string BKeyId { get; set; }
-        /// <summary>
-        /// 应用ID
-        /// </summary>
-        public string BAppId { get; set; }
-        /// <summary>
-        /// 身份码
-        /// </summary>
-        public string BUId { get; set; }
-
-
-
-    }
-
-    
-    /// <summary>
-    /// 个性项
-    /// </summary>
-    public class AvatarConfigs
-    {
-        public long myQQ { get; set; }
-        public string myName { get; set; }
-        public string askName { get; set; }
-        /// <summary>
-        /// bot应答方式
-        /// 0  全领域静默
-        /// 1  仅供测试
-        /// 2  仅供私聊和测试
-        /// 3  全部开放
-        /// </summary>
-        public int answerState { get; set; }
-        /// <summary>
-        /// 测试人员qq
-        /// </summary>
-        public long adminQQ { get; set; }
-        /// <summary>
-        /// 测试群
-        /// </summary>
-        public long adminGroup { get; set; }
-    }
-
-    /// <summary>
-    /// 运行状态记录
-    /// </summary>
-    public class LogConfigs
-    {
-        public DateTime StartTime { get; set; }
-        public long playTimePrivate { get; set; }
-
-        public long playTimeGroup { get; set; }
-
-        public long beginTimes { get; set; }
-
-        public long errTimes { get; set; }
-
-
-
-    }
-
-
-    #endregion
-
-
-
-    #region 用户和群组结构
-
-
-
-
-    public enum PlayerType
-    {
-        Normal,
-        Blacklist,
-        Admin,
-    }
-    public class Player
-    {
-        //public long Id { get; set; }
-        public string Name { get; set; }
-        public string Mark { get; set; }
-        public PlayerType Type { get; set; }
-        public long UseTimes { get; set; }
-
-
-
-        public HashSet<string> Tags {  get; set; }
-
-
-
-        public long Money { get; set; }
-        public DateTime LastSignTime { get; set; }
-        public long SignTimes {  get; set; }
-
-        public bool Is(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag)) return false;
-            return Tags?.Contains(tag.Trim()) ?? false;
-        }
-    }
-
-    public enum PlaygroupType
-    {
-        Normal,
-        Blacklist,
-        Test,
-    }
-
-    public class Playgroup
-    {
-        //public long id { get; set; }
-        public string Name { get; set; }
-        public PlaygroupType Type {  get; set; }
-
-        public long UseTimes { get; set; }
-
-
-
-        public HashSet<string> Tags { get; set; }
-
-        public bool Is(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag)) return false;
-            return Tags?.Contains(tag.Trim()) ?? false;
-        }
-    }
-
-    #endregion
-
-
 
     /// <summary>
     /// bot的配置文件管理模块
@@ -190,21 +24,49 @@ namespace Kugua
 
         bool isLoaded;
         string configFile;
+        
+        public long ErrorTime = 0;
+        public long UseTimeGroup
+        {
+            get
+            {
+                long sum = 0;
+                foreach(var p in playgroups.Values)
+                {
+                    sum += p.UseTimes;
+                }
+                return sum;
+            }
+        }
 
-
+        public long UseTimePrivate
+        {
+            get
+            {
+                long sum = 0;
+                foreach (var p in players.Values)
+                {
+                    sum += p.UseTimes;
+                }
+                return sum;
+            }
+        }
+        public DateTime StartTime { get; set; }
+        
         public SystemInfo systemInfo = new SystemInfo();
 
         public AppConfigs App;
         public Dictionary<long, Player> players;
         public Dictionary<long, Playgroup> playgroups;
-        // 以下两个数据动态从Mirai收集
-        public Dictionary<long, QQFriend> friends = new Dictionary<long, QQFriend>();
-        public Dictionary<long, QQGroup> groups = new Dictionary<long, QQGroup>();
-        public Dictionary<long, QQGroupMember[]> groupMembers = new Dictionary<long, QQGroupMember[]>();
+
+        // 以下数据动态从Mirai收集
+        public Dictionary<long, QQFriend> qqfriends = new Dictionary<long, QQFriend>();
+        public Dictionary<long, QQGroup> qqgroups = new Dictionary<long, QQGroup>();
+        public Dictionary<long, QQGroupMember[]> qqgroupMembers = new Dictionary<long, QQGroupMember[]>();
 
         private Config()
         {
-            configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}config.json";
+            
             isLoaded = false;
         }
 
@@ -215,12 +77,15 @@ namespace Kugua
             if (isLoaded) return true;
             try
             {
+                string configFileName = "config.json";
+                configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}{configFileName}";
+                Logger.Instance.Log($"配置文件路径是{configFile}");
                 if (!File.Exists(configFile))
                 {
 
-                    Logger.Instance.Log($"配置文件不存在，路径是{configFile}");
+                    Logger.Instance.Log($"配置文件不存在:{configFile}");
                     return false;
-                    CreateDefaultConfig();
+                    //CreateDefaultConfig();
                 }
                 string jsonString = File.ReadAllText(configFile);
                 App = JsonConvert.DeserializeObject<AppConfigs>(jsonString);
@@ -284,7 +149,9 @@ namespace Kugua
             return true;
         }
 
-        
+        /// <summary>
+        /// 以分隔符/结尾的资源文件夹绝对路径
+        /// </summary>
         public string ResourceRootPath
         {
             get
@@ -323,7 +190,9 @@ namespace Kugua
                     }
                     else
                     {
-                        Logger.Instance.Log($"未找到资源 '{Name}' 。请在{configFile} 中配置！");
+                        string tmpFullpath = $"{ResourceRootPath}{Name}";
+                        return tmpFullpath;
+                        //Logger.Instance.Log($"未找到资源 '{Name}' 。请在{configFile} 中配置！已返回{tmpFullpath}");
                     }
                 }
             }
@@ -339,11 +208,11 @@ namespace Kugua
         {
             try
             {
-                string jsonString = JsonConvert.SerializeObject(App, Formatting.Indented);
-                File.WriteAllText(configFile, jsonString);
+                //string jsonString = JsonConvert.SerializeObject(App, Formatting.Indented);
+                //File.WriteAllText(configFile, jsonString);
 
                 string path = ResourceFullPath("Player");
-                jsonString = JsonConvert.SerializeObject(players, Formatting.Indented);
+                var jsonString = JsonConvert.SerializeObject(players, Formatting.Indented);
                 File.WriteAllText(path, jsonString);
 
 
@@ -479,15 +348,6 @@ namespace Kugua
 
         #endregion
 
-        public bool GroupHasAdminAuthority(long groupId)
-        {
-            if (groupId <= 0) return false;
-            if (groupId ==App.Avatar.adminGroup) return true;
-            var group = GroupInfo(groupId);
-            if (group.Is("测试")) return true;
-            if (group.Type == PlaygroupType.Test) return true;
-            return false;
-        }
 
 
 
@@ -538,6 +398,19 @@ namespace Kugua
             
             return false;
         }
+
+        public bool GroupHasAdminAuthority(long groupId)
+        {
+            if (groupId <= 0) return false;
+            if (groupId == App.Avatar.adminGroup) return true;
+            var group = GroupInfo(groupId);
+            if (group.Is("测试")) return true;
+            if (group.Type == PlaygroupType.Test) return true;
+            return false;
+        }
+
+
+
         #endregion
 
 

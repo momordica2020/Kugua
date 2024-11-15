@@ -129,8 +129,8 @@ namespace Kugua
                 }
                 bhs.Add(index);
             }
-            string desc1 = $"{str} 的字母序号是 {string.Join(",", bhs)}\r\n";
-            desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}\r\n";
+            string desc1 = $"{str} 的字母序号 {string.Join("+", bhs)} = {bhs.Sum()} = ";
+            //desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}\r\n";
 
             bool proofsuccess = getProof(bhs.Sum());
             if (proofsuccess)
@@ -160,8 +160,8 @@ namespace Kugua
                 }
                 bhs.Add(bh);
             }
-            string desc1 = $"{str} 的笔划是 {string.Join(",", bhs)}\r\n";
-            desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}\r\n";
+            string desc1 = $"{str} 的笔划数 {string.Join("+", bhs)} = {bhs.Sum()} = ";
+            //desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}";
 
             bool proofsuccess = getProof(bhs.Sum());
             if (proofsuccess)
@@ -203,13 +203,13 @@ namespace Kugua
         public bool getProof(long desired1)
         {
             desired = desired1;
-           // string result = "";
+            // string result = "";
 
-            if (strongProof() > 0)
+            var res = StrongProof(desired, [1, 1, 4, 5, 1, 4, ]);
+            if (res.Count > 0)
             {
                 // have strong.
-                string p1 = proofres[MyRandom.Next(proofres.Count)];
-                finalproof = $"{desired} = {p1}\r\nQ.E.D";
+                finalproof = $"{desired} = {res.First()}\r\nQ.E.D";
                 return true;
             }
             else
@@ -226,7 +226,8 @@ namespace Kugua
                         desired = getNumSum((long)desired, out desc);
                         if (finalproof.Length > 0) finalproof += " = ";
                         finalproof += desc;
-                        if (strongProof() > 0)
+                        res = StrongProof(desired, [1, 1, 4, 5, 1, 4, ]);
+                        if (res.Count > 0)
                         {
                             string p1 = proofres[MyRandom.Next(proofres.Count)];
                             finalproof += $" = {p1}\r\nQ.E.D";
@@ -244,242 +245,285 @@ namespace Kugua
 
         }
 
-        int strongProof()
+        public List<string> StrongProof(double inputDesired, List<int> inputTbase)
         {
-            proofres = new List<string>();
+            desired = inputDesired;
+            proofres.Clear();
             calculation = 0;
             counter = 0;
-            tbase.Clear();
-            tbase.Add(1.0);
-            tbase.Add(1.0);
-            tbase.Add(4.0);
-            tbase.Add(5.0);
-            tbase.Add(1.0);
-            tbase.Add(4.0);
-            List<int> array = new List<int>();
-            array.Add(0);
-            array.Add(0);
-
-            put(array, 11);
-
-            array.Clear();
-            array.Add(-1);
-            array.Add(0);
-            put(array, 11);
-
-            return counter;
-        }
-
-
-        void put(List<int> v, int max_length)
-        {
-            put(v, 2, 2, 0, max_length);
-        }
-
-        //recursively put in numbers and symbols in Reverse Polish Notation (RPN).
-        //-1: -1, 0: number, 1: +, 2: -, 3: *, 4: /, 5: ^.
-        void put(List<int> v, int pos, int numCounter, int symCounter, int length_)
-        {
-            //cout << "put called" << endl;
-            if (pos == length_)
+            var alltbase = getMixed(inputTbase);
+            alltbase.Sort((left, right) =>
             {
-                if (checker(v))
+                return left.Count.CompareTo(right.Count);
+            });
+            foreach (var t in alltbase)
+            {
+                if (t.Count <= 1)
+                {
+                    continue;
+                }
+                tbase = t.ConvertAll(x => (double)x);
+
+
+                Process([0, 0], t.Count - 1 + t.Count);
+
+                Process([-1, 0], t.Count - 1 + t.Count);
+            }
+
+
+            return proofres;
+        }
+
+        List<List<int>> getMixed(List<int> inputTbase)
+        {
+            var res = new List<List<int>>();
+
+            if (inputTbase.Count <= 1)
+            {
+                res.Add(inputTbase);
+            }
+            //else if (inputTbase.Count == 2)
+            //{
+            //    res.Add(inputTbase);
+            //    res.Add(new List<int> { convert(inputTbase[0], inputTbase[1]) });
+            //}
+            else
+            {
+                var r0 = inputTbase[0];
+                var r1 = getMixed(inputTbase.GetRange(1, inputTbase.Count - 1));
+                foreach (var r in r1)
+                {
+                    var rr1 = new List<int>();
+                    rr1.Add(r0);
+                    rr1.AddRange(r.ToArray());
+                    res.Add(rr1);
+                    var rr2 = new List<int>();
+                    var cr = convert(r0, r[0]);
+                    if (cr > 0)
+                    {
+                        rr2.Add(convert(r0, r[0]));
+                        rr2.AddRange(r.GetRange(1, r.Count - 1));
+                        res.Add(rr2);
+                    }
+
+
+
+                }
+            }
+
+            return res;
+        }
+
+        int convert(int a, int b)
+        {
+            string aa = Math.Abs(a).ToString();
+            string bb = Math.Abs(b).ToString();
+            try
+            {
+                return int.Parse(aa + bb);
+            }
+            catch
+            {
+                return -1;
+            }
+
+        }
+
+        void Process(List<int> v, int maxLength)
+        {
+            Put(v, 2, 2, 0, maxLength);
+        }
+
+        /// <summary>
+        /// Recursively generate Reverse Polish Notation (RPN逆波兰表达式).
+        /// -1: -1, 0: number, 1: +, 2: -, 3: *, 4: /, 5: ^
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="pos"></param>
+        /// <param name="numCount"></param>
+        /// <param name="symCount"></param>
+        /// <param name="length"></param>
+
+        void Put(List<int> v, int pos, int numCount, int symCount, int length)
+        {
+            if (proofres.Count > 0) return;
+            if (pos == length)
+            {
+                if (CheckExpression(v))
                 {
                     counter++;
-                    print(v);
+                    PrintRPN(v);
                 }
                 calculation++;
                 return;
             }
-            int lower = 0;
-            int upper = 6;
-            if (numCounter == (length_ + 1) / 2)
-            {
-                lower = 1;
-            }
-            if (symCounter == (length_ + 1) / 2 - 1 || symCounter == numCounter - 1)
-            {
-                upper = 1;
-            }
-            while (lower < upper)
-            {
-                if (pos == (int)v.Count)
-                    v.Add(lower);
-                else if (pos > (int)v.Count)
-                    return;
-                //cout << "something went wrong" << endl;
-                else
-                    v[pos] = lower;
-                if (lower == 0)
-                    put(v, pos + 1, numCounter + 1, symCounter, length_);
-                else
-                    put(v, pos + 1, numCounter, symCounter + 1, length_);
-                lower++;
 
-            }
+            int lowerBound = (numCount == (length + 1) / 2) ? 1 : 0;
+            int upperBound = (symCount == (length + 1) / 2 - 1 || symCount == numCount - 1) ? 1 : (length + 1) / 2;
 
+            for (int value = lowerBound; value < upperBound; value++)
+            {
+                if (pos >= v.Count)
+                {
+                    v.Add(value);
+                }
+                else
+                {
+                    v[pos] = value;
+                }
+
+                if (value == 0)
+                {
+                    Put(v, pos + 1, numCount + 1, symCount, length);
+                }
+                else
+                {
+                    Put(v, pos + 1, numCount, symCount + 1, length);
+                }
+            }
         }
 
-        //check if the RPN stored in the array gives the desired result.
-        bool checker(List<int> seed)
+        bool CheckExpression(List<int> seed)
         {
+            Stack<double> stack = new Stack<double>();
+            int numIndex = 0;
 
-            // double a = 1.0, b = 1.0, c = 4.0, d = 5.0, e = 1.0, f = 4.0;
-            //cout << "checker called" << endl;
-            Stack<double> myStack = new Stack<double>();
-            int sign;
-            double firstNum, secondNum;
-            int numCount = 0;
-            foreach (int i in seed)
+            foreach (int token in seed)
             {
-                if (i == 0)
+                if (token == 0 || token == -1)
                 {
-                    myStack.Push(tbase[numCount]);
-                    numCount++;
-                }
-                else if (i == -1)
-                {
-                    myStack.Push(-1 * tbase[0]);
-                    numCount++;
+                    double value = (token == -1 && tbase.Count > 0) ? -tbase[0] : (numIndex < tbase.Count ? tbase[numIndex++] : 0);
+                    stack.Push(value);
                 }
                 else
                 {
-                    sign = i;
-                    secondNum = myStack.Peek();
-                    myStack.Pop();
-                    firstNum = myStack.Peek();
-                    myStack.Pop();
-                    //cout << "myStack size: " << myStack.size() << ", i = " << i << endl;
-                    switch (sign)
+                    if (stack.Count < 2) return false;
+
+                    double second = stack.Pop();
+                    double first = stack.Pop();
+
+                    switch (token)
                     {
-                        case 1:
-                            myStack.Push(firstNum + secondNum);
-                            break;
-                        case 2:
-                            myStack.Push(firstNum - secondNum);
-                            break;
-                        case 3:
-                            myStack.Push(firstNum * secondNum);
-                            break;
-                        case 4:
-                            myStack.Push(firstNum / secondNum);
-                            break;
-                        case 5:
-                            myStack.Push(Math.Pow(firstNum, secondNum));
-                            break;
+                        case 1: stack.Push(first + second); break;
+                        case 2: stack.Push(first - second); break;
+                        case 3: stack.Push(first * second); break;
+                        case 4: stack.Push(first / second); break;
+                        case 5: stack.Push(Math.Pow(first, second)); break;
                     }
                 }
             }
-            // cout << "checker done" << endl;
-            if (myStack.Peek() == desired)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
 
+            return stack.Count == 1 && stack.Peek() == desired;
         }
 
-        
-
-        //print RPN.
-        string print(List<int> seed)
+        void PrintRPN(List<int> seed)
         {
-            // cout << "print called" << endl;
+            StringBuilder output = new StringBuilder();
+            int numIndex = 0;
 
-            int numCount = 0;
-            // int i;
-            string output = "";
-            foreach (int i in seed)
+            foreach (int token in seed)
             {
-                switch (i)
+                switch (token)
                 {
                     case -1:
-                        output += ((int)tbase[0]).ToString();
-                        output += "- ";
-                        numCount++;
+                        output.AppendFormat("-{0} ", numIndex < tbase.Count ? (int)tbase[numIndex++] : 0);
+                        numIndex++;
                         break;
                     case 0:
-                        output += ((int)tbase[numCount]).ToString();
-                        output += " ";
-                        numCount++;
+                        output.AppendFormat("{0} ", numIndex < tbase.Count ? (int)tbase[numIndex++] : 0);
                         break;
-                    case 1:
-                        output += "+ ";
-                        break;
-                    case 2:
-                        output += "- ";
-                        break;
-                    case 3:
-                        output += "* ";
-                        break;
-                    case 4:
-                        output += "/ ";
-                        break;
-                    case 5:
-                        output += "^ ";
-                        break;
+                    case 1: output.Append("+ "); break;
+                    case 2: output.Append("- "); break;
+                    case 3: output.Append("* "); break;
+                    case 4: output.Append("/ "); break;
+                    case 5: output.Append("^ "); break;
                 }
             }
-            //cout << output << endl;
-            // cout << std::to_string(desired) + "=" + output << endl;
-            string resstr = $"{translate(output)}";
-            proofres.Add(resstr);
-            return $"{desired} = {translate(output)} \r\n";
+            var rs = Translate(output.ToString());
+            if (!string.IsNullOrWhiteSpace(rs))
+            {
+                string result = $"{rs}\r\n";
+                proofres.Add(result);
+                //return result;
+            }
+
         }
-        string translate(string input)
+
+        string Translate(string input)
         {
-            // cout << "translate called" << endl;
-
-            string symbol = "+-*/^";
-
-            Stack<string> output = new Stack<string>();
-            string str1;
-            string str2;
-            string outstr = "";
+            Stack<(string, char)> stack = new Stack<(string, char)>();
+            StringBuilder operand = new StringBuilder();
+            string symbols = "+-*/^";
+            //char lastSymLeft = ' ';
+            //char lastSymRight = ' ';
             for (int i = 0; i < input.Length; i++)
             {
                 if (input[i] == ' ')
                 {
                     continue;
                 }
-                if ((int)symbol.IndexOf(input[i]) == -1)
+                if (symbols.IndexOf(input[i]) == -1)// || (input[i] =='-' && input[i+1] != ' ' && symbols.IndexOf(input[i+1]) == -1))
                 {
-                    string total = "";
-                    while (input[i] != ' ')
+                    operand.Clear();
+                    //if(lastSymRight!=' ')lastSymLeft = lastSymRight;
+                    //lastSymRight = ' ';
+                    while (i < input.Length && input[i] != ' ')
                     {
-                        if (i == 1)
-                        {
-                            if (input[i] == '-')
-                            {
-                                total = "-1";
-                                break;
-                            }
-                        }
-                        total += input[i].ToString();
-                        i++;
+                        operand.Append(input[i++]);
                     }
-                    output.Push(total);
+                    stack.Push((operand.ToString(), ' '));
                 }
                 else
                 {
-                    str2 = output.Peek();
-                    output.Pop();
-                    str1 = output.Peek();
-                    output.Pop();
-                    if (i == input.Length - 2)
+                    if (stack.Count < 2) return "";
+
+                    var right = stack.Pop();
+                    var left = stack.Pop();
+                    char sym = input[i];
+                    string subExpr = "";
+                    if (levelLow(left.Item2, sym))
                     {
-                        output.Push(str1 + input[i].ToString() + str2);
+                        subExpr += $"({left.Item1})";
                     }
                     else
                     {
-                        output.Push("(" + str1 + input[i].ToString() + str2 + ")");
+                        subExpr += left.Item1;
                     }
+                    subExpr += sym;
+                    if (levelLow(right.Item2, sym))
+                    {
+                        subExpr += $"({right.Item1})";
+                    }
+                    else
+                    {
+                        subExpr += right.Item1;
+                    }
+                    //string subExpr = i == input.Length - 2 ? left + input[i] + right : ();
+                    stack.Push((subExpr, sym));
                 }
             }
-            return output.Peek();
+            return stack.Peek().Item1;
+        }
+
+        /// <summary>
+        /// 里侧比外侧算术优先级低，true则需要加括号
+        /// </summary>
+        /// <param name="sym1"></param>
+        /// <param name="sym2"></param>
+        /// <returns></returns>
+        bool levelLow(char sym1, char sym2)
+        {
+            if (sym1 == ' ' || sym2 == ' ') return false;
+            //if (sym1 == sym2) return false;
+            //if ((sym1 == '+' ) && (sym2 == '-' )) return true;
+            if ((sym1 == '+') && (sym2 == '-')) return true;
+            if ((sym1 == '-') && (sym2 == '-')) return true;
+            if ((sym1 == '+' || sym1 == '-') && (sym2 != '+' && sym2 != '-')) return true;
+            if ((sym1 == '*') && (sym2 == '/')) return true;
+            if ((sym1 == '/') && (sym2 == '*' || sym2 == '/')) return true;
+            if ((sym1 == '*' || sym1 == '/') && (sym2 == '^')) return true;
+            if ((sym1 == '^') && (sym2 == '^')) return true;
+            return false;
         }
     }
 

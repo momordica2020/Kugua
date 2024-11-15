@@ -47,7 +47,9 @@ namespace Kugua
         private static readonly Lazy<Logger> instance = new Lazy<Logger>(() => new Logger());
         private readonly StreamWriter writer;
         private static readonly object lockObject = new object(); // 用于线程安全
-        static LogLevel logLevel = LogLevel.Debug;
+
+        // 当前日志等级
+        static LogLevel logLevel = LogLevel.System;
 
         public readonly string logFilePath;
 
@@ -85,28 +87,23 @@ namespace Kugua
                     {
                         return;
                     }
-                    else if (logLevel == LogLevel.System)
-                    {
-                        if (logType != LogType.System
-                            && logType != LogType.Net
-                         && logType != LogType.Mirai)
-                        {
-                            return;
-                        }
-                    }
-                    else if (logLevel == LogLevel.Debug)
-                    {
-                        // accept all logs.
-                    }
                     LogInfo info = new LogInfo
                     {
                         Message = message,
                         Type = logType,
                         HappendTime = DateTime.Now,
                     };
+                    writer.WriteLine(info.ToDescription());
+
+
+
+                    if (logType==LogType.Debug && logLevel == LogLevel.System)
+                    {
+                        // system模式下不在界面显示debug日志
+                        return ;
+                    }
                     OnBroadcastLogEvent?.Invoke(info);
 
-                    writer.WriteLine(info.ToDescription());
                 }
                 catch (Exception ex)
                 {
@@ -117,6 +114,7 @@ namespace Kugua
         public void Log(Exception ex, LogType logType = LogType.System)
         {
             Log($"{ex.Message}\r\n{ex.StackTrace}", logType);
+            Config.Instance.ErrorTime++;
         }
 
         // 关闭日志文件

@@ -55,7 +55,7 @@ namespace Kugua
             ModCommands[new Regex(@"^乱序(\S+)", RegexOptions.Singleline)] = handleShuffle;
             ModCommands[new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline)] = handleGongshou;
             ModCommands[new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline)] = handleRandomString;
-            ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)(.+)", RegexOptions.Singleline)] = handleCutString;
+            ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline)] = handleCutString;
             ModCommands[new Regex(@"^讽刺(.+)", RegexOptions.Singleline)] = handleJoke;
 
 
@@ -272,29 +272,33 @@ namespace Kugua
             string sTime = param[2];
             string sNum = param[1];
 
-            string res = sTarget.Trim();
+            string target = sTarget.Trim();
             // K切多次
             int runTime = 0;
             int cutNum = 0;
-            if (!int.TryParse(sNum, out cutNum)) return "";
+            int.TryParse(sNum, out cutNum) ;
             if (cutNum < 1) return "";
-            if (!int.TryParse(sTime, out runTime)) return "";
+            int.TryParse(sTime, out runTime);
             if (runTime < 1) runTime = 1;
 
             runTime = Math.Min(runTime, 5);
             for (int i = 0; i < runTime; i++)
             {
-                res =  StaticUtil.ShuffleString(res, cutNum);
+                target =  StaticUtil.ShuffleString(target, cutNum) + "\r\n";
             }
-            return res;
+            return target;
         }
 
         private string handleRandomString(MessageContext context, string[] param)
         {
-            int rows = int.Parse(param[1]);
+            int rows = 1;
             int columns = 1;
-            int.TryParse(param[2], out columns);    // 如果没有列数，默认为1
-            if (rows < 1 || columns < 1 || rows > 100 || columns > 100 || rows * columns > 2000)
+            int.TryParse(param[1], out columns);    // 如果没有列数，默认为1
+            int.TryParse(param[2], out rows);
+            if (columns < 1) columns = 1;
+            if(rows < 1) rows = 1;
+            
+            if (rows > 100 || columns > 100 || rows * columns > 2500)
             {
                 return $"输入太多，溢出来了！";
             }

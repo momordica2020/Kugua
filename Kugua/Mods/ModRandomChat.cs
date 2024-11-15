@@ -418,7 +418,7 @@ namespace Kugua
             }
             else
             {
-                if(handleChatResults(modeTrigger, context.userId, context.groupId, message, out IEnumerable<string> chatResult))
+                if(handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
                 {
                     if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true);
                     else
@@ -443,20 +443,18 @@ namespace Kugua
 
 
 
-       
+
 
         /// <summary>
         /// 按模式处理输入并返回结果串
         /// 里面每个模式的返回值都不应为null
         /// </summary>
         /// <param name="mode">模式对象</param>
-        /// <param name="userId"></param>
-        /// <param name="groupId"></param>
-        /// <param name="inputText"></param>
+        /// <param name="context">上下文</param>
         /// <param name="results">输出结果</param>
         /// <returns>若结果不空，返回true，空则返回false</returns>
 
-        bool handleChatResults(ModeInfo mode, long userId, long groupId, string inputText, out IEnumerable<string> results)
+        bool handleChatResults(ModeInfo mode, MessageContext context, out IEnumerable<string> results)
         {
             List<string> answer = new List<string>();
             try
@@ -466,12 +464,12 @@ namespace Kugua
                 {
                     case "正常":
                     case "AI":
-                        string uName = Config.Instance.UserInfo(userId).Name;
+                        string uName = Config.Instance.UserInfo(context.userId).Name;
                         if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        GPT.Instance.AIReply(groupId, userId, inputText);
+                        GPT.Instance.AIReply(context);
                         break;
                     case "混沌":
-                        answer.Add(getAnswerChaos(userId, inputText));
+                        answer.Add(getAnswerChaos(context.recvMessages.MGetPlainString()));
                         break;
                     case "小万邦":
                         answer.Add(getGong());
@@ -480,10 +478,10 @@ namespace Kugua
 
 
                     case "喷人":
-                        answer.AddRange(getPen(groupId, userId));
+                        answer.AddRange(getPen());
                         break;
                     case "测试":
-                        answer.AddRange(getHistoryReact(groupId, userId));
+                        answer.AddRange(getHistoryReact());
                         break;
 
 
@@ -491,22 +489,22 @@ namespace Kugua
                         
                     case "语音":
                         // string gong = getGong();
-                        var r = getHistoryReact(groupId, userId);
+                        var r = getHistoryReact();
                         string sendString = "";
                         foreach(var rs in r)
                         {
                             sendString += rs + "。";
                             if(sendString.Length>50)
                             {
-                                GPT.Instance.AITalk(groupId, userId, sendString);
+                                GPT.Instance.AITalk(context, sendString);
                                 sendString = "";
                             }
                             
                         }
-                        if (sendString.Length > 0) GPT.Instance.AITalk(groupId, userId, sendString);
+                        if (sendString.Length > 0) GPT.Instance.AITalk(context, sendString);
                         break;
                     default:
-                        answer.Add(mode.getRandomSentence(inputText));
+                        answer.Add(mode.getRandomSentence());
                         break;
                 }
 
@@ -722,7 +720,7 @@ namespace Kugua
 
 
 
-        public IEnumerable<string> getPen(long group, long user)
+        public IEnumerable<string> getPen()
         {
             try
             {
@@ -741,7 +739,7 @@ namespace Kugua
             }
         }
 
-        public IEnumerable<string> getHistoryReact(long group, long userqq)
+        public IEnumerable<string> getHistoryReact()
         {
             List<string> result = new List<string>();
 
@@ -828,7 +826,7 @@ namespace Kugua
         /// <param name="user"></param>
         /// <param name="question"></param>
         /// <returns></returns>
-        public string getAnswerChaos(long user, string question)
+        public string getAnswerChaos(string question)
         {
             string answer = "";
             string msg = "";

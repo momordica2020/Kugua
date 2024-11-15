@@ -210,7 +210,7 @@ namespace LiveServer
 
                 WebSocketServer.OnMessageReceived += (message) =>
                 {
-                    SendMsgEvent("Delegate received message: " + message);
+                    //SendMsgEvent("Delegate received message: " + message);
                     
                 };
 
@@ -346,7 +346,7 @@ namespace LiveServer
             
 
             //TODO: 处理bot返回的消息，语音说出或者控制live2d
-            SendMsgEvent($"[BOT]@{msg.userId},{msg.messages.MGetPlainString()}");
+            //SendMsgEvent($"[BOT]@{msg.userId},{msg.messages.MGetPlainString()}");
             virtualOutput(msg.messages.MGetPlainString());
         }
 

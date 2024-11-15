@@ -60,12 +60,11 @@ namespace Kugua
                     return false;
                 }
                 // qq info
-                if (string.IsNullOrWhiteSpace(Config.Instance.App.Avatar.myQQ.ToString())) Config.Instance.App.Avatar.myQQ = 00000;
+                if (string.IsNullOrWhiteSpace(Config.Instance.App.Avatar.myQQ.ToString())) Config.Instance.App.Avatar.myQQ = 0;
 
 
-                Config.Instance.App.Log.StartTime = DateTime.Now;
+                Config.Instance.StartTime = DateTime.Now;
 
-                Config.Instance.App.Log.beginTimes += 1;
 
             }
             catch (Exception ex)
@@ -155,15 +154,15 @@ namespace Kugua
                 }
 
                 //State = BotRunningState.ok;
-                Logger.Instance.Log($"bot启动完成");
+                
 
 
                 //mirai = new MiraiLink();
-                if (Config.Instance.App.IO.MiraiRun)
+                if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.MiraiWS))
                 {
 
                     //string verifyKey = "123456";
-                    string connectUri = $"{Config.Instance.App.IO.MiraiWS}:{Config.Instance.App.IO.MiraiPort}/all?qq={Config.Instance.App.Avatar.myQQ}";
+                    string connectUri = $"{Config.Instance.App.Net.MiraiWS}/all?qq={Config.Instance.App.Avatar.myQQ}";
                     Logger.Instance.Log($"正在连接Mirai...{connectUri}");
                     ClientX = new(connectUri);
                     ClientX._OnServeiceConnected += ServiceConnected;
@@ -172,17 +171,8 @@ namespace Kugua
 
 
                     ClientX.Connect();
-
-                    //foreach (var mod in Mods)
-                    //{
-                    //    if (mod is ModWithMirai modWithMirai)
-                    //    {
-                    //        modWithMirai.InitMiraiClient(ClientX);
-                    //    }
-                    //}
-
-                    Logger.Instance.Log($"启用GPT接口...");
-                    GPT.Instance.Init(ClientX);
+                    
+                    
 
                     ClientX.OnFriendMessageReceive += OnFriendMessageReceive;
                     ClientX.OnGroupMessageReceive += OnGroupMessageReceive;
@@ -190,25 +180,60 @@ namespace Kugua
                     ClientX.OnEventNewFriendRequestEvent += OnEventNewFriendRequestEvent;
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
 
-                    string wslink = "ws://localhost:8848/";
-                    Logger.Instance.Log($"连接至本地WS {wslink}");
-                    ClientLocal.Link(wslink);
 
+                   
                 }
                 else
                 {
-                    Logger.Instance.Log($"不启动Mirai，启动本地应答");
-
+                    Logger.Instance.Log($"Mirai未启动");
+                }
+                Logger.Instance.Log($"启用GPT相关接口...");
+                GPT.Instance.Init();
+                if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri))
+                {
+                    Logger.Instance.Log($"TTS连接至：{Config.Instance.App.Net.TTSUri}");
+                    
+                }
+                else
+                {
+                    Logger.Instance.Log($"TTS未启动");
+                }
+                if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.OllamaUri))
+                {
+                    Logger.Instance.Log($"Ollama连接至：{Config.Instance.App.Net.OllamaUri}");
+                    
+                }
+                else
+                {
+                    Logger.Instance.Log($"Ollama未启动");
                 }
 
 
+                LinkLocal();
 
 
+
+
+                Logger.Instance.Log($"======= bot启动完成 =======");
             }
             catch (Exception ex)
             {
                 Logger.Instance.Log(ex);
             }
+        }
+
+        public void LinkLocal()
+        {
+            if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.LocalWS))
+            {
+                Logger.Instance.Log($"本地WS未启动");
+            }
+            else
+            {
+                Logger.Instance.Log($"本地WS连接至：{Config.Instance.App.Net.LocalWS}");
+                ClientLocal.Link(Config.Instance.App.Net.LocalWS);
+            }
+            
         }
         public void Stop()
         {
@@ -428,7 +453,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 if (ClientX != null)
                 {
                     var fp = new FriendList().Send(ClientX);
-                    Config.Instance.friends.Clear();
+                    Config.Instance.qqfriends.Clear();
                     if (fp == null)
                     {
                         Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
@@ -443,7 +468,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                             //friend.Mark = f.remark;
                             friend.Tags.Add("好友");
                             //friend.Type = PlayerType.Normal;
-                            Config.Instance.friends.Add(f.id, f);
+                            Config.Instance.qqfriends.Add(f.id, f);
                         }
                     }
 
@@ -451,8 +476,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
 
                     var gp = new GroupList().Send(ClientX);
-                    Config.Instance.groups.Clear();
-                    Config.Instance.groupMembers.Clear();
+                    Config.Instance.qqgroups.Clear();
+                    Config.Instance.qqgroupMembers.Clear();
                     if (gp == null)
                     {
                         Logger.Instance.Log($"不会吧不会吧不会没有群吧");
@@ -470,8 +495,8 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                                 Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
                                 continue;
                             }
-                            Config.Instance.groups.Add(g.id, g);
-                            Config.Instance.groupMembers.Add(g.id, groupMembers);
+                            Config.Instance.qqgroups.Add(g.id, g);
+                            Config.Instance.qqgroupMembers.Add(g.id, groupMembers);
                             foreach (var gf in groupMembers)
                             {
                                 var member = Config.Instance.UserInfo(gf.id);
@@ -493,7 +518,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         async void OnFriendMessageReceive(FriendMessageSender s, Message[] e)
         {
-            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
+            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Debug);
             var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.nickname;
             uinfo.Mark = s.remark;
@@ -533,7 +558,6 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             if (talked)
             {
                 Config.Instance.UserInfo(context.userId).UseTimes += 1;
-                Config.Instance.App.Log.playTimePrivate += 1;
             }
         }
 
@@ -541,7 +565,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             if (e == null) return;
             var sourceItem = e.First() as Source;
-            Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Mirai);
+            Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Debug);
             if(!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
 
             var uinfo = Config.Instance.UserInfo(s.id);
@@ -608,7 +632,6 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             {
                 //p.UseTimes += 1;
                 Config.Instance.UserInfo(context.userId).UseTimes += 1;
-                Config.Instance.App.Log.playTimeGroup += 1;
             }
         }
 
@@ -652,7 +675,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 e.Deny(ClientX, "非好友不接受邀请谢谢");
                 return;
             }
-            if (Config.Instance.friends.ContainsKey(e.fromId) || u.Is("管理员") || u.Is("好友") || e.fromId == Config.Instance.App.Avatar.adminQQ)
+            if (Config.Instance.qqfriends.ContainsKey(e.fromId) || u.Is("管理员") || u.Is("好友") || e.fromId == Config.Instance.App.Avatar.adminQQ)
             {
                 e.Grant(ClientX);
                 return;

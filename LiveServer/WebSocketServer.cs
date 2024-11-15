@@ -47,12 +47,14 @@ namespace LiveServer
                 listener = new HttpListener();
                 listener.Prefixes.Add(uri);
                 listener.Start();
+
                 FormMonitor.SendMsgEvent("WebSocket Server started at " + uri);
                 cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = cancellationTokenSource.Token;
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
+
                     var context = await listener.GetContextAsync();
                     if (context.Request.IsWebSocketRequest)
                     {
@@ -74,30 +76,38 @@ namespace LiveServer
                 FormMonitor.SendMsgEvent("An error occurred: " + ex.Message);
             }
         }
-        
+
         private static async Task ProcessData(HttpListenerContext context, CancellationToken cancellationToken)
         {
             var wsContext = await context.AcceptWebSocketAsync(null);
             clientSocket = wsContext.WebSocket;
+            FormMonitor.SendMsgEvent("*本地bot已接入*");
 
-            FormMonitor.SendMsgEvent("Client connected");
-
-            byte[] buffer = new byte[1024];
-            while (clientSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            byte[] buffer = new byte[1024 * 1024 * 5];
+            try
             {
-                var result = await clientSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                while (clientSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                {
+                    var result = await clientSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    await clientSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-                    FormMonitor.SendMsgEvent("Client disconnected");
-                }
-                else
-                {
-                    string jsonReceived = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    OnMessageReceived?.Invoke(jsonReceived);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await clientSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                        FormMonitor.SendMsgEvent("*本地bot已断开*");
+                    }
+                    else
+                    {
+                        string jsonReceived = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        OnMessageReceived?.Invoke(jsonReceived);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                FormMonitor.SendMsgEvent($"* {ex.Message}\r\n{ex.StackTrace}");
+                FormMonitor.SendMsgEvent("*本地bot已断开*");
+            }
+
         }
 
 

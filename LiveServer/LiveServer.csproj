@@ -18,12 +18,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="dlls\**" />
+    <Compile Remove="Properties\**" />
     <Compile Remove="Struct\**" />
     <EmbeddedResource Remove="dlls\**" />
+    <EmbeddedResource Remove="Properties\**" />
     <EmbeddedResource Remove="Struct\**" />
     <None Remove="dlls\**" />
+    <None Remove="Properties\**" />
     <None Remove="Struct\**" />
     <Page Remove="dlls\**" />
+    <Page Remove="Properties\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
@@ -39,18 +43,5 @@
     <Reference Include="OpenBLive">
       <HintPath>..\..\..\OpenLive_CSharpDemo-main\OpenBLive\bin\Debug\net6.0\OpenBLive.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 </Project>

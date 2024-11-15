@@ -33,12 +33,16 @@ namespace Kugua
                 {
                     if (int.TryParse(param[1], out dicenum))
                     {
-                        dicenum = Math.Min(dicenum, 100);
+                        
+                        
                     }
                     if (int.TryParse(param[2],out facenum))
                     {
-
+                        
                     }
+                    dicenum = Math.Min(dicenum, 100);
+                    if (dicenum <= 0) dicenum = 1;
+                    if (facenum <= 0) facenum = 100;
                     desc = param[3].Trim();
                 }
             }

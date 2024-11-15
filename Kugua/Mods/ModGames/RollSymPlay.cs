@@ -4,13 +4,18 @@ using ImageMagick.Drawing;
 
 namespace Kugua
 {
+    /// <summary>
+    /// 老虎机运行逻辑
+    /// </summary>
     public class RollSymPlay
     {
 
 
         //static string[] emojis;// = "D:\\Projects\\momordica2020\\MIraiKUgua\\output\\Debug\\net8.0\\RunningData\\game\\emojis";
 
-
+        /// <summary>
+        /// 单个滚筒
+        /// </summary>
         public class SymbolRoller
         {
             int startx;
@@ -22,7 +27,7 @@ namespace Kugua
             bool readyStop = false;
 
             public double nowP = 1;
-            public List<int[]> choices=new List<int[]>();
+            public List<int[]> choices = new List<int[]>();
 
             double speed = 0;
             double speedA = 0;
@@ -57,47 +62,26 @@ namespace Kugua
                 nowP = (nowP + speed) % syms.Count;
                 int realPIndex = (int)(nowP);
 
-                Drawables drawing = new Drawables();
 
-                int xP = startx;
 
-                for(int i = 0; i < 5; i++)
-                {
-                    int yP = (int)(starty + height * (-1 + i - (nowP % 1)));
-                    string p = syms[(syms.Count + realPIndex - 1 + i) % syms.Count];
+                // 绘制图像
+             if (bkg != null)
+            {
+                    Drawables drawing = new Drawables();
 
-                    var pngImage1 = new MagickImage(new MemoryStream(ModSlotMachine.Instance.emojis[p]));
-                    pngImage1.Resize((uint)width, (uint)height);
-                    bkg.Composite(pngImage1, xP, yP, CompositeOperator.Over);
+                    int xP = startx;
 
+                    for (int i = 0; i < 5; i++)
+                    {
+                        int yP = (int)(starty + height * (-1 + i - (nowP % 1)));
+                        string p = syms[(syms.Count + realPIndex - 1 + i) % syms.Count];
+
+                        var pngImage1 = new MagickImage(new MemoryStream(ModSlotMachine.Instance.emojis[p]));
+                        pngImage1.Resize((uint)width, (uint)height);
+                        bkg.Composite(pngImage1, xP, yP, CompositeOperator.Over);
+
+                    }
                 }
-
-                //int yP1 = (int)(starty + height * (-1 - (nowP % 1)));
-                //int yP2 = (int)(starty + height * (0 - (nowP % 1)));
-                //int yP3 = (int)(starty + height * (1 - (nowP % 1)));
-                //int yP4 = (int)(starty + height * (2 - (nowP % 1)));
-                //int yP5 = (int)(starty + height * (3 - (nowP % 1)));
-                //string p1 = syms[(syms.Count + realPIndex - 1) % syms.Count];
-                //string p2 = syms[realPIndex % syms.Count];
-                //string p3 = syms[(realPIndex + 1) % syms.Count];
-                //string p4 = syms[(realPIndex + 2) % syms.Count];
-                //string p5 = syms[(realPIndex + 3) % syms.Count];
-
-                //var pngImage = new MagickImage(p1);
-                //pngImage.Resize((uint)width, (uint)height);
-                //bkg.Composite(pngImage, xP, yP1, CompositeOperator.Over);
-                //pngImage = new MagickImage(p2);
-                //pngImage.Resize((uint)width, (uint)height);
-                //bkg.Composite(pngImage, xP, yP2, CompositeOperator.Over);
-                //pngImage = new MagickImage(p3);
-                //pngImage.Resize((uint)width, (uint)height);
-                //bkg.Composite(pngImage, xP, yP3, CompositeOperator.Over);
-                //pngImage = new MagickImage(p4);
-                //pngImage.Resize((uint)width, (uint)height);
-                //bkg.Composite(pngImage, xP, yP4, CompositeOperator.Over);
-                //pngImage = new MagickImage(p5);
-                //pngImage.Resize((uint)width, (uint)height);
-                //bkg.Composite(pngImage, xP, yP5, CompositeOperator.Over);
 
 
                 if (!readyStop)
@@ -138,17 +122,51 @@ namespace Kugua
 
         }
 
-
-        
         /// <summary>
-        /// 生成emoji结果
+        /// 只生成emoji不生成gif
+        /// 
         /// </summary>
         /// <param name="results"></param>
         /// <returns></returns>
-        public static string GenerateEmojiScreen(out List<int[]> results)
+        public static string GenerateEmoji(out List<int[]> results)
         {
-            results = new List<int[]>();
-            return "";
+            List<SymbolRoller> symbols = new List<SymbolRoller>();
+            string[] emojis = ["⭐️","🏆️","💎","🍖","😅","☘️","🍎","🍌"];
+            int number = 3;
+            for (int i = 0; i < number; i++)
+            {
+                SymbolRoller sb = new SymbolRoller(0, 0, 0, 0);
+                symbols.Add(sb);
+                sb.Start(11 + i * 2);
+            }
+
+            // 模拟抽奖过程并添加每一帧
+            int fullTimt = 4;   // 总共几秒
+            var frameCount = 80;
+            for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
+            {
+                foreach(var symbol in symbols)
+                {
+                    symbol.handleFrame(null);
+                }
+            }
+            var resultEmojis = "";
+            List<int[]> res = new List<int[]>();
+            for (int i = 0; i < number; i++)
+            {
+                foreach (var cc in symbols[i].choices)
+                {
+                    res.Add(cc);
+                }
+                
+            }
+            results = res;
+
+            resultEmojis += emojis[res[1][0] - 1];
+            resultEmojis += emojis[res[4][0] - 1];
+            resultEmojis += emojis[res[7][0] - 1];
+            resultEmojis += "\n"; 
+            return resultEmojis;
         }
 
 
@@ -184,7 +202,7 @@ namespace Kugua
             for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
             {
                 var frame = new MagickImage(
-                    MagickColor.FromRgb(255, (byte)(frameIndex * (255.0 / frameCount)), (byte)(frameIndex * (255.0 / frameCount))), 
+                    MagickColor.FromRgb(255, 255, 255), 
                     (uint)bkw, 
                     (uint)bkh
                 ); // 设置图像尺寸
