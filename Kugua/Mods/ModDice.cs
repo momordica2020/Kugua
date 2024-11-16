@@ -17,7 +17,7 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands[new Regex(@"^r(\d*)?d(\d*)?(.*)?$")] = handleDice;
+            ModCommands[new Regex(@"^r(\d*)?d(\d*)?(.*)?$",RegexOptions.Singleline)] = handleDice;
 
             return true;
         }

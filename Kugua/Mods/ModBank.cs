@@ -266,7 +266,7 @@ namespace Kugua
                     return -1 * left.Money.CompareTo(right.Money);
                 });
 
-                sb.Append("富 豪 榜 \r\n");
+                sb.Append($"富 豪 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())}) \r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
                     sb.Append($"{i + 1}:{users[i].Name},{users[i].Money}枚\r\n");
@@ -298,7 +298,7 @@ namespace Kugua
                     return left.Money.CompareTo(right.Money);
                 });
 
-                sb.Append("穷 人 榜 \r\n");
+                sb.Append($"穷 人 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())})\r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
                     sb.Append($"{i + 1}:{users[i].Name},{users[i].Money}枚\r\n");

@@ -308,37 +308,76 @@ namespace Kugua
                 // 检查模型是否决定使用提供的函数
                 var toolCalls = msgRecently.tool_calls;
                 var content = msgRecently.content;
-                if (toolCalls == null) return;
                 var availableFunctions = new Dictionary<string, Func<string[], Task<string>>>{
-                    {"get date and time",GetCurrentTimeInTimeZone },
                     { "在线搜索", GetWebContent },
                     {"获取日期和时间",GetCurrentTimeInTimeZone },
                     {"执行python语句",GetRunPython },
                     { "发送语音", GetSpeak},
                     {"发送图片", GetImage },
                 };
+
+
+                
                 string functionResponse = "";
-                foreach (var tool in toolCalls)
+                if(content != null)
                 {
-                    var functionName = tool.function.name.ToString();
-                    var ps = new List<string>();
-                    foreach (var p in tool.function.arguments)
+                    Match callStringMatch = new Regex(@"<tool_call>(.*)</tool_call>", RegexOptions.Singleline).Match(content.ToString());
+                    if (callStringMatch.Success)
                     {
-                        ps.Add(p.First.ToString());
-                    }
-                    if (availableFunctions.TryGetValue(functionName, out Func<string[], Task<string>> functionToCall))
-                    {
-                        ps.Add(chatId); // 即在最后一个元素加入chatId用于函数内寻找上下文
-                        functionResponse = await functionToCall(ps.ToArray());
-                        if (!string.IsNullOrWhiteSpace(functionResponse))
+                        try
                         {
-                            break;
+                            string jcc = content.ToString().Replace(callStringMatch.Groups[0].Value, "");
+                            content = jcc;
+                            var ss = callStringMatch.Groups[1].Value.Trim() + "}";
+                            var function = JsonConvert.DeserializeObject<dynamic>(ss);
+                            var ps = new List<string>();
+                            var functionName = function.name.ToString();
+                            foreach (var p in function.arguments)
+                            {
+                                ps.Add(p.First.ToString());
+                            }
+                            if (availableFunctions.TryGetValue(functionName, out Func<string[], Task<string>> functionToCall))
+                            {
+                                ps.Add(chatId); // 即在最后一个元素加入chatId用于函数内寻找上下文
+                                functionResponse = await functionToCall(ps.ToArray());
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Log(ex);
                         }
                     }
                 }
-                //if (string.IsNullOrWhiteSpace(functionResponse)) functionResponse = "";
-                messages.Add(new { role = "tool", content = functionResponse });
-                await HandleMessageList(chatId, messages);
+                
+
+                if (toolCalls != null)
+                {
+                    foreach (var tool in toolCalls)
+                    {
+                        var functionName = tool.function.name.ToString();
+                        var ps = new List<string>();
+                        foreach (var p in tool.function.arguments)
+                        {
+                            ps.Add(p.First.ToString());
+                        }
+                        if (availableFunctions.TryGetValue(functionName, out Func<string[], Task<string>> functionToCall))
+                        {
+                            ps.Add(chatId); // 即在最后一个元素加入chatId用于函数内寻找上下文
+                            functionResponse = await functionToCall(ps.ToArray());
+                            if (!string.IsNullOrWhiteSpace(functionResponse))
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(functionResponse))
+                {
+                    messages.Add(new { role = "tool", content = functionResponse });
+                    await HandleMessageList(chatId, messages);
+                }
                 return;
             }
         }
@@ -466,18 +505,32 @@ namespace Kugua
 
         private static async Task<dynamic> SendChatRequest(List<object> _messages)
         {
-            var requestBody = new
+            string jsonRequestBody = "";
+            if (ModelName.Contains("qwen"))
             {
-                model = ModelName,
-                messages = _messages,
-                stream = false,
-                tools = AITools,
-            };
-            var jsonRequestBody = JsonConvert.SerializeObject(requestBody);
+                var requestBody = new
+                {
+                    model = ModelName,
+                    messages = _messages,
+                    stream = false,
+                    tools = AITools,
+                };
+                jsonRequestBody = JsonConvert.SerializeObject(requestBody);
+            }
+            else
+            {
+                var requestBody = new
+                {
+                    model = ModelName,
+                    messages = _messages,
+                    stream = false,
+                };
+                jsonRequestBody = JsonConvert.SerializeObject(requestBody);
+            }
             var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
-            Logger.Instance.Log("=>" + (jsonRequestBody.Length < 1200 ? jsonRequestBody : jsonRequestBody.Substring(jsonRequestBody.Length - 1200)),LogType.Debug);
+            Logger.Instance.Log("=>" + (jsonRequestBody.Length < 12000 ? jsonRequestBody : jsonRequestBody.Substring(jsonRequestBody.Length - 12000)),LogType.Debug);
             var jsonResponse = await Network.PostAsync(Config.Instance.App.Net.OllamaUri, content);
-            Logger.Instance.Log("=>" + (jsonResponse.Length < 1200 ? jsonResponse : jsonResponse.Substring(jsonResponse.Length - 1200)), LogType.Debug);
+            Logger.Instance.Log("<=" + (jsonResponse.Length < 12000 ? jsonResponse : jsonResponse.Substring(jsonResponse.Length - 12000)), LogType.Debug);
 
             return JsonConvert.DeserializeObject<dynamic>(jsonResponse);
         }
@@ -498,7 +551,7 @@ namespace Kugua
             var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
             Logger.Instance.Log("=>" + (jsonRequestBody.Length < 200 ? jsonRequestBody : jsonRequestBody.Substring(-200)), LogType.Debug);
             var jsonResponse = await Network.PostAsync(Config.Instance.App.Net.OllamaUriG, content);
-            Logger.Instance.Log("<=" + (jsonRequestBody.Length < 200 ? jsonRequestBody : jsonRequestBody.Substring(-200)), LogType.Debug);
+            Logger.Instance.Log("<=" + (jsonResponse.Length < 200 ? jsonResponse : jsonResponse.Substring(-200)), LogType.Debug);
             var responseJson = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
 
             if (responseJson == null) return null;

@@ -126,8 +126,37 @@ namespace Kugua
 
         #endregion
 
+        /// <summary>
+        /// 计算基尼系数
+        /// </summary>
+        /// <param name="incomes"></param>
+        /// <returns></returns>
+        public static double CalculateGiniCoefficient(List<long> incomes)
+        {
+            // Sort incomes in ascending order
+            var sortedIncomes = incomes.OrderBy(income => income).ToList();
 
+            int count = sortedIncomes.Count;
+            if (count == 0) return 0.0;
 
+            double totalIncome = sortedIncomes.Sum();
+            if (totalIncome == 0) return 0.0;
+
+            // Calculate cumulative proportions
+            double cumulativeIncome = 0;
+            double cumulativeProportionSum = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                cumulativeIncome += sortedIncomes[i];
+                double currentCumulativeProportion = cumulativeIncome / totalIncome;
+                cumulativeProportionSum += currentCumulativeProportion;
+            }
+
+            // Gini coefficient formula
+            double giniCoefficient = 1 - 2 * cumulativeProportionSum / count;
+            return Math.Round(giniCoefficient, 2);
+        }
 
         /// <summary>
         /// 获取本程序集的编译日期

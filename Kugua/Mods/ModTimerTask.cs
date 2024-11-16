@@ -38,6 +38,7 @@ namespace Kugua
             
             ModCommands[new Regex(@"^来点狐狸")] = getFox;
             ModCommands[new Regex(@"^来点小猫")] = getCat;
+            ModCommands[new Regex(@"做旧")] = getOldJpg;
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
             ModCommands[new Regex(@"^说[:|：](.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
@@ -56,6 +57,29 @@ namespace Kugua
             
             
             return true;
+        }
+
+        private string getOldJpg(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            foreach(var item in context.recvMessages)
+            {
+                if(item is Image itemImg)
+                {
+                    var oriImg = Network.DownloadImage(itemImg.url);
+                    //Logger.Instance.Log("?1");
+                    var newImgbase64 = JPEGreenSimulator.ProcessImage(oriImg, 15, 5);
+                    //Logger.Instance.Log("?2,img=" + newImgbase64.Substring(0,100));
+                    context.SendBack([
+                        //new At(context.userId, null),
+                        new Image(null,null,null, newImgbase64),
+                        ]);
+                    findImg = true;
+                }
+            }
+            if (findImg) return null;
+            else return "";
+            
         }
 
         private string getMusic(MessageContext context, string[] param)

@@ -70,6 +70,39 @@ namespace Kugua
 
             }
         }
+        public static Bitmap DownloadImage(string imageUrl)
+        {//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                UseProxy = false,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // 忽略所有证书错误
+            };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                try
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", defaultHeaderAgentString);
+
+                    // 获取图片的响应
+                    using (HttpResponseMessage response = client.GetAsync(imageUrl).Result)
+                    {
+                        response.EnsureSuccessStatusCode(); // 确保请求成功
+
+                        byte[] imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                        using (MemoryStream ms = new MemoryStream(imageBytes))
+                        {
+                            return new Bitmap(ms);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Log(ex);
+                }
+
+            }
+            return null;
+        }
 
         // 从网络图片 URL 转换为 Base64 编码字符串
         public static async Task<string> ConvertImageUrlToBase64(string imageUrl)
@@ -188,7 +221,7 @@ namespace Kugua
                 }
                 catch (HttpRequestException e)
                 {
-                    // Logger.Instance.Log(e);
+                     Logger.Instance.Log(e, LogType.Debug);
                 }
             }
 

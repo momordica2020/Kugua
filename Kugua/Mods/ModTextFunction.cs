@@ -51,8 +51,8 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands[new Regex(@"^反转(\S+)", RegexOptions.Singleline)] = handleReverse;
-            ModCommands[new Regex(@"^乱序(\S+)", RegexOptions.Singleline)] = handleShuffle;
+            ModCommands[new Regex(@"^反转(.+)", RegexOptions.Singleline)] = handleReverse;
+            ModCommands[new Regex(@"^乱序(.+)", RegexOptions.Singleline)] = handleShuffle;
             ModCommands[new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline)] = handleGongshou;
             ModCommands[new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline)] = handleRandomString;
             ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline)] = handleCutString;
