@@ -190,6 +190,20 @@ namespace Kugua
                 input[j] = temp;
             }
         }
+
+        public static void FisherYates(List<bool> input)
+        {
+            // Fisher-Yates 洗牌算法，完全打乱
+            for (int i = input.Count - 1; i > 0; i--)
+            {
+                int j = MyRandom.Next(0, i + 1); // 生成随机索引
+                                                 // 交换
+                var temp = input[i];
+                input[i] = input[j];
+                input[j] = temp;
+            }
+        }
+
         public static void FisherYates(string[] input)
         {
             // Fisher-Yates 洗牌算法，完全打乱
@@ -323,7 +337,7 @@ namespace Kugua
         //    int exitCode = process.ExitCode;
         //    if (exitCode != 0)
         //    {
-        //        Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
+        //        Logger.Log($"语音合成失败。指令：{cmd} {param}");
         //        //throw new Exception($"FFmpeg exited with code {exitCode}");
         //    }
         //    return outputFile;
@@ -376,7 +390,7 @@ namespace Kugua
             int exitCode = process.ExitCode;
             if (exitCode != 0)
             {
-                Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
+                Logger.Log($"语音合成失败。指令：{cmd} {param}");
                 //throw new Exception($"FFmpeg exited with code {exitCode}");
             }
             else
@@ -425,7 +439,7 @@ namespace Kugua
             int exitCode = process.ExitCode;
             if (exitCode != 0)
             {
-                Logger.Instance.Log($"语音合成失败。指令：{cmd} {param}");
+                Logger.Log($"语音合成失败。指令：{cmd} {param}");
                 //throw new Exception($"FFmpeg exited with code {exitCode}");
             }
             else

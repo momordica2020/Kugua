@@ -87,7 +87,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
     }

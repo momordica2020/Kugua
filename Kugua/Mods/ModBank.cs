@@ -113,7 +113,7 @@ namespace Kugua
             }
             catch(Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return answer;
         }
@@ -216,14 +216,14 @@ namespace Kugua
             catch (OverflowException)
             {
                 message += $"转账失败：{user1}或{user2}的{unitName}溢出，所转数额{money}，发起者余额{user1.Money}，接收者余额{user2.Money}。";
-                Logger.Instance.Log(message);
+                Logger.Log(message);
                 user1.Money = user1OldMoney; // 恢复余额
                 user2.Money = user2OldMoney; // 恢复余额
                 return 0;
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 message += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
                 return 0;
             }
@@ -275,7 +275,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 return "";
             }
         }
@@ -307,7 +307,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 return "";
             }
         }
@@ -376,7 +376,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
 

@@ -255,7 +255,7 @@ namespace Kugua
                         }
                         catch (Exception ex)
                         {
-                            Logger.Instance.Log(ex.Message + "\r\n" + ex.StackTrace);
+                            Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
                         }
 
                     }
@@ -320,7 +320,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
             }
 
             return result;
@@ -368,7 +368,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
             }
             
             return WordSaladres;
@@ -637,7 +637,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
             }
 
 

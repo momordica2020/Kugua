@@ -64,7 +64,7 @@ namespace Kugua
                 //}
                 // ss= ss.Replace("\n", "[lbreak]");
                 res += ss + "[uv_break]";
-                //Logger.Instance.Log(res);
+                //Logger.Log(res);
                 if (res.Length > 100)
                 {
                     // 太长了截断了
@@ -99,7 +99,7 @@ namespace Kugua
         {
             try
             {
-                Logger.Instance.Log($"+))){input}");
+                Logger.Log($"+))){input}");
                 string json = "";
                 json += $"text={input}";
                 json += $"&prompt={(input.Length < 10 ? "[oral_0][laugh_0][break_0]" : "[oral_3][laugh_5][break_5]")}";
@@ -138,7 +138,7 @@ namespace Kugua
                 //  }]}
                 var responseBody = await Network.PostAsync(url, json);
                 JObject jsonResponse = JObject.Parse(responseBody);
-                //Logger.Instance.Log(responseBody,LogType.Mirai);
+                //Logger.Log(responseBody,LogType.Mirai);
                 string res = jsonResponse["audio_files"].First()["filename"].ToString();
 
 
@@ -146,7 +146,7 @@ namespace Kugua
                 var amrb64 = StaticUtil.ConvertFileToBase64(amrf);
                 if (string.IsNullOrWhiteSpace(amrb64)) return;
 
-                //Logger.Instance.Log($"=> {amrFile}");
+                //Logger.Log($"=> {amrFile}");
 
                 Message[] msg = [
                         new Voice(null,null,null, amrb64)
@@ -161,7 +161,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
        
@@ -255,7 +255,7 @@ namespace Kugua
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log(ex);
+                        Logger.Log(ex);
                     }
                 }
             }
@@ -279,7 +279,7 @@ namespace Kugua
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log(ex);
+                        Logger.Log(ex);
                     }
 
 
@@ -345,7 +345,7 @@ namespace Kugua
                         }
                         catch (Exception ex)
                         {
-                            Logger.Instance.Log(ex);
+                            Logger.Log(ex);
                         }
                     }
                 }
@@ -528,9 +528,9 @@ namespace Kugua
                 jsonRequestBody = JsonConvert.SerializeObject(requestBody);
             }
             var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
-            Logger.Instance.Log("=>" + (jsonRequestBody.Length < 12000 ? jsonRequestBody : jsonRequestBody.Substring(jsonRequestBody.Length - 12000)),LogType.Debug);
+            Logger.Log("=>" + (jsonRequestBody.Length < 12000 ? jsonRequestBody : jsonRequestBody.Substring(jsonRequestBody.Length - 12000)),LogType.Debug);
             var jsonResponse = await Network.PostAsync(Config.Instance.App.Net.OllamaUri, content);
-            Logger.Instance.Log("<=" + (jsonResponse.Length < 12000 ? jsonResponse : jsonResponse.Substring(jsonResponse.Length - 12000)), LogType.Debug);
+            Logger.Log("<=" + (jsonResponse.Length < 12000 ? jsonResponse : jsonResponse.Substring(jsonResponse.Length - 12000)), LogType.Debug);
 
             return JsonConvert.DeserializeObject<dynamic>(jsonResponse);
         }
@@ -549,9 +549,9 @@ namespace Kugua
             };
             var jsonRequestBody = JsonConvert.SerializeObject(requestBody);
             var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
-            Logger.Instance.Log("=>" + (jsonRequestBody.Length < 200 ? jsonRequestBody : jsonRequestBody.Substring(-200)), LogType.Debug);
+            Logger.Log("=>" + (jsonRequestBody.Length < 200 ? jsonRequestBody : jsonRequestBody.Substring(-200)), LogType.Debug);
             var jsonResponse = await Network.PostAsync(Config.Instance.App.Net.OllamaUriG, content);
-            Logger.Instance.Log("<=" + (jsonResponse.Length < 200 ? jsonResponse : jsonResponse.Substring(-200)), LogType.Debug);
+            Logger.Log("<=" + (jsonResponse.Length < 200 ? jsonResponse : jsonResponse.Substring(-200)), LogType.Debug);
             var responseJson = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
 
             if (responseJson == null) return null;
@@ -621,7 +621,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
 
 
@@ -667,7 +667,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
 
@@ -757,7 +757,7 @@ namespace Kugua
 
 
 
-            Logger.Instance.Log($"***>>>{completeUrl}", LogType.Debug);
+            Logger.Log($"***>>>{completeUrl}", LogType.Debug);
 
             string htmlContent = await Network.GetHtmlFromUrlAsync($"{completeUrl}");
             string plainText = Network.ConvertHtmlToPlainText(htmlContent);
@@ -766,7 +766,7 @@ namespace Kugua
             if (string.IsNullOrWhiteSpace(plainText))
             {
                 // url link may be error.  try raw url
-                Logger.Instance.Log($"***>>>{url}", LogType.Debug);
+                Logger.Log($"***>>>{url}", LogType.Debug);
                 htmlContent = await Network.GetHtmlFromUrlAsync($"{url}");
                 plainText = Network.ConvertHtmlToPlainText(htmlContent);
             }
@@ -790,11 +790,11 @@ namespace Kugua
             }
             catch (TimeZoneNotFoundException ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             catch (InvalidTimeZoneException ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
             return $"北京时间：{DateTime.Now.ToString("F")}";
@@ -828,15 +828,15 @@ namespace Kugua
                         writer.WriteLine(pythonCode);
                     }
                 }
-                Logger.Instance.Log("_____run python____");
+                Logger.Log("_____run python____");
                 var beginTime = DateTime.Now;
-                Logger.Instance.Log(pythonCode, LogType.Debug);
+                Logger.Log(pythonCode, LogType.Debug);
                 // 读取输出
                 string output = process.StandardOutput.ReadToEnd();
 
                 // 等待进程结束
                 process.WaitForExit();
-                Logger.Instance.Log($"_____over run python____{(DateTime.Now - beginTime).TotalMilliseconds}ms");
+                Logger.Log($"_____over run python____{(DateTime.Now - beginTime).TotalMilliseconds}ms");
                 // 输出结果
                 return output;
             }
@@ -860,7 +860,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
 
@@ -879,7 +879,7 @@ namespace Kugua
                 {
                     if (IsValidUrl(imageUrl))
                     {
-                        Logger.Instance.Log(imageUrl);
+                        Logger.Log(imageUrl);
                         var base64data = await Network.ConvertImageUrlToBase64(imageUrl);
                         if (base64data.Length > 0)
                         {
@@ -895,7 +895,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
 

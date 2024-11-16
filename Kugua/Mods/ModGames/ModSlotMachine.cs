@@ -41,7 +41,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return true;
         }
@@ -81,12 +81,12 @@ namespace Kugua
 
 
                     int score = 0;
-                    //Logger.Instance.Log($"!{rollres.Count}");
+                    //Logger.Log($"!{rollres.Count}");
                     if (rollres.Count == 9)
                     {
                         for (int i = 1; i < 2; i++)
                         {
-                            //Logger.Instance.Log($"!{rollres[i][0]} {rollres[i+3][0]} {rollres[i+6][0]}");
+                            //Logger.Log($"!{rollres[i][0]} {rollres[i+3][0]} {rollres[i+6][0]}");
                             if (rollres[i][0] == rollres[i + 3][0] && rollres[i][0] == rollres[i + 6][0])
                             {
                                 // 3

@@ -24,22 +24,22 @@ namespace Kugua
                 localSocket = new WebSocket4Net.WebSocket(wsurl);
                 localSocket.Opened += delegate (object? s, EventArgs e)
                 {
-                    Logger.Instance.Log("[LocalSocket] - Socket Opened -");
+                    Logger.Log("[LocalSocket] - Socket Opened -");
                 };
 
                 localSocket.Error += delegate (object? sender, SuperSocket.ClientEngine.ErrorEventArgs e)
                 {
-                    //Logger.Instance.Log("[LocalSocket] - Socket Error , Running to Close or Reconnect -");
-                    //Logger.Instance.Log($"{e.Exception}");
+                    //Logger.Log("[LocalSocket] - Socket Error , Running to Close or Reconnect -");
+                    //Logger.Log($"{e.Exception}");
                 };
                 localSocket.MessageReceived += WebSocket4Net_MessageReceived;
                 localSocket.Open();
-                //Logger.Instance.Log(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ":ws开始连接");
+                //Logger.Log(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + ":ws开始连接");
 
 
                 localSocket.Closed += delegate (object? s, EventArgs e)
                 {
-                    Logger.Instance.Log("[LocalSocket] - Socket Closed -");
+                    Logger.Log("[LocalSocket] - Socket Closed -");
 
 
                     //Task.Delay(10 * 1000).Wait();
@@ -50,7 +50,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
           
         }
@@ -62,7 +62,7 @@ namespace Kugua
         {
             try
             {
-                //Logger.Instance.Log($"[WS]{e.Message}", LogType.Net);
+                //Logger.Log($"[WS]{e.Message}", LogType.Net);
                 LocalBotInMsg msg = JsonConvert.DeserializeObject<LocalBotInMsg>(e.Message);
                 JObject jo = JObject.Parse(e.Message);
                 // json:{userId=123123, userName=haha, type=gift, message=latiao*1}
@@ -82,7 +82,7 @@ namespace Kugua
                 msgWithAt.AddRange(messages);
                 msg.messages = msgWithAt.ToArray();
 
-                Logger.Instance.Log($"[WS][{msg.type}] [id:{msg.userId},昵称:{msg.userName}] \n内容:{msg.messages.MGetPlainString()}", LogType.Net);
+                Logger.Log($"[WS][{msg.type}] [id:{msg.userId},昵称:{msg.userName}] \n内容:{msg.messages.MGetPlainString()}", LogType.Net);
                 if (!Config.Instance.AllowPlayer(msg.userId)) return; // 黑名单
 
                 var uinfo = Config.Instance.UserInfo(msg.userId);
@@ -103,7 +103,7 @@ namespace Kugua
             }
             catch(Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
         private static Message[] RectifyMessage(string messagestr)

@@ -79,11 +79,11 @@ namespace Kugua
             {
                 string configFileName = "config.json";
                 configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}{configFileName}";
-                Logger.Instance.Log($"配置文件路径是{configFile}");
+                Logger.Log($"配置文件路径是{configFile}");
                 if (!File.Exists(configFile))
                 {
 
-                    Logger.Instance.Log($"配置文件不存在:{configFile}");
+                    Logger.Log($"配置文件不存在:{configFile}");
                     return false;
                     //CreateDefaultConfig();
                 }
@@ -95,7 +95,7 @@ namespace Kugua
                 //var rootPath = ResourceFullPath(App.ResourcePath);
                 if (!string.IsNullOrEmpty(ResourceRootPath) && !Directory.Exists(ResourceRootPath))
                 {
-                    Logger.Instance.Log($"新建路径{ResourceRootPath}");
+                    Logger.Log($"新建路径{ResourceRootPath}");
                     Directory.CreateDirectory(ResourceRootPath);
                     
                 }
@@ -103,14 +103,14 @@ namespace Kugua
                 string path = ResourceFullPath("Player");
                 if (!File.Exists(path))
                 {
-                    Logger.Instance.Log($"新建空白用户资料列表，路径是{path}");
+                    Logger.Log($"新建空白用户资料列表，路径是{path}");
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
                 players = JsonConvert.DeserializeObject<Dictionary<long, Player>>(jsonString);
                 if (players != null)
                 {
-                    Logger.Instance.Log($"从{path}读取了{players.Count}名用户资料");
+                    Logger.Log($"从{path}读取了{players.Count}名用户资料");
                     foreach(var p in players)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
@@ -120,14 +120,14 @@ namespace Kugua
                 path = ResourceFullPath("Playgroup");
                 if (!File.Exists(path))
                 {
-                    Logger.Instance.Log($"新建空白群组资料列表，路径是{path}");
+                    Logger.Log($"新建空白群组资料列表，路径是{path}");
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
                 playgroups = JsonConvert.DeserializeObject<Dictionary<long, Playgroup>>(jsonString);
                 if (playgroups != null)
                 {
-                    Logger.Instance.Log($"从{path}读取了{playgroups.Count}个群组资料");
+                    Logger.Log($"从{path}读取了{playgroups.Count}个群组资料");
                     foreach (var p in playgroups)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
@@ -139,7 +139,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 return false;
             }
 
@@ -179,12 +179,12 @@ namespace Kugua
                         //string fullFilePath = System.IO.Path.GetFullPath(fullPath);
                         if (res.Type == ResourceType.Path && !Directory.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"新建资源文件夹，路径是{fullPath}");
+                            Logger.Log($"新建资源文件夹，路径是{fullPath}");
                             Directory.CreateDirectory(fullPath);
                         }
                         if (res.Type==ResourceType.File && !File.Exists(fullPath))
                         {
-                            Logger.Instance.Log($"资源文件不存在，路径是{fullPath}");
+                            Logger.Log($"资源文件不存在，路径是{fullPath}");
                         }
                         return fullPath;
                     }
@@ -192,13 +192,13 @@ namespace Kugua
                     {
                         string tmpFullpath = $"{ResourceRootPath}{Name}";
                         return tmpFullpath;
-                        //Logger.Instance.Log($"未找到资源 '{Name}' 。请在{configFile} 中配置！已返回{tmpFullpath}");
+                        //Logger.Log($"未找到资源 '{Name}' 。请在{configFile} 中配置！已返回{tmpFullpath}");
                     }
                 }
             }
             catch(Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
             return ResourceRootPath;
@@ -245,7 +245,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             
         }
@@ -329,7 +329,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             
             return false;
@@ -393,7 +393,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             
             return false;

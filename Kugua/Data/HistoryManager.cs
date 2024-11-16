@@ -40,7 +40,7 @@ namespace Kugua
                 string path = Config.Instance.ResourceFullPath("HistoryPath");
                 if (!Directory.Exists(path))
                 {
-                    Logger.Instance.Log($"新建历史记录文件夹，路径是{path}", LogType.Debug);
+                    Logger.Log($"新建历史记录文件夹，路径是{path}", LogType.Debug);
                     Directory.CreateDirectory(path);
                 }
                 if (!Directory.Exists($"{path}/{pathGroup}")) Directory.CreateDirectory($"{path}/{pathGroup}");
@@ -49,7 +49,7 @@ namespace Kugua
             catch (Exception e)
             {
 
-                Logger.Instance.Log(e, LogType.System);
+                Logger.Log(e, LogType.System);
             }
 
 
@@ -85,7 +85,7 @@ namespace Kugua
 
 
 
-                //Logger.Instance.Log($"把日期前的聊天记录归档中：{MessageHistoryGroup.maxWriteDate.ToString("F")}", LogType.Debug);
+                //Logger.Log($"把日期前的聊天记录归档中：{MessageHistoryGroup.maxWriteDate.ToString("F")}", LogType.Debug);
                 var items = history.Values.AsParallel().ToArray();
                 //var items = history.Values.ToArray();
                 for (int i = 0; i < items.Length; i++)
@@ -97,7 +97,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex, LogType.Debug);
+                Logger.Log(ex, LogType.Debug);
             }
 
         }
@@ -118,7 +118,7 @@ namespace Kugua
                 bool isGroup = group > 0;
                 long uid = isGroup ? group : user;
                 string key = isGroup ? $"G{group}" : $"P{user}";
-                //Logger.Instance.Log($"==={key},{sourceId},{user},{msg}");
+                //Logger.Log($"==={key},{sourceId},{user},{msg}");
                 if (!history.ContainsKey(key)) history[key] = new MessageHistoryGroup(path, uid, isGroup);
                 history[key].addMessage(sourceId, user, msg);
 
@@ -126,7 +126,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex, LogType.Debug);
+                Logger.Log(ex, LogType.Debug);
             }
         }
 
@@ -136,7 +136,7 @@ namespace Kugua
 
             try
             {
-                //Logger.Instance.Log($"=?={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
+                //Logger.Log($"=?={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
                 if (history.TryGetValue($"G{groupId}", out MessageHistoryGroup g))
                 {
                     var lines = g.history.ToArray();
@@ -153,7 +153,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex, LogType.Debug);
+                Logger.Log(ex, LogType.Debug);
             }
 
             return results.ToArray();

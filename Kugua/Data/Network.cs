@@ -65,7 +65,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
 
             }
@@ -97,7 +97,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
 
             }
@@ -169,15 +169,15 @@ namespace Kugua
                     }
 
                     string htmlContent = encoding.GetString(bytes);
-                    Logger.Instance.Log("** HTML REQUEST **" + htmlContent.Length);
-                    Logger.Instance.Log(htmlContent.Length > 100 ? htmlContent.Substring(0, 100) + "..............." + htmlContent.Length : htmlContent);
+                    Logger.Log("** HTML REQUEST **" + htmlContent.Length);
+                    Logger.Log(htmlContent.Length > 100 ? htmlContent.Substring(0, 100) + "..............." + htmlContent.Length : htmlContent);
                     return htmlContent;
 
                 }
                 catch (HttpRequestException e)
                 {
-                    Logger.Instance.Log("url=" + url);
-                    Logger.Instance.Log(e);
+                    Logger.Log("url=" + url);
+                    Logger.Log(e);
                 }
             }
 
@@ -221,7 +221,7 @@ namespace Kugua
                 }
                 catch (HttpRequestException e)
                 {
-                     Logger.Instance.Log(e, LogType.Debug);
+                     Logger.Log(e, LogType.Debug);
                 }
             }
 

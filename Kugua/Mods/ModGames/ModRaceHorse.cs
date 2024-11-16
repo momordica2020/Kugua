@@ -76,7 +76,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
             }
             return true;
@@ -147,7 +147,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
             }
         }
@@ -213,7 +213,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return "";
             //save();
@@ -263,7 +263,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return "";
 
@@ -299,7 +299,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return "";
         }

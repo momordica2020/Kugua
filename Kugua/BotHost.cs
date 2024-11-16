@@ -69,7 +69,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 return false;
             }
 
@@ -82,29 +82,30 @@ namespace Kugua
 
 
                 Logger.Instance.OnBroadcastLogEvent += sendLog;
-                Logger.Instance.Log("开始初始化配置文件。");
+                Logger.Log("开始初始化配置文件。");
 
                 Config.Instance.Load();
                 bool isValid = checkAndSetConfigValid();
                 if (!isValid)
                 {
-                    Logger.Instance.Log("配置文件读取失败，中止运行");
+                    Logger.Log("配置文件读取失败，中止运行");
                     return;
                 }
 
 
-                Logger.Instance.Log($"启用过滤器...");
+                Logger.Log($"启用过滤器...");
                 Filter.Instance.Init();
 
 
 
-                Logger.Instance.Log($"开始启动bot...");
+                Logger.Log($"开始启动bot...");
                 Mods = new List<Mod>
                 {
                     new ModAdmin(),
                     ModBank.Instance,
                     ModRaceHorse.Instance,
                     ModSlotMachine.Instance,
+                    ModRoulette.Instance,
                     new ModDice(),
                     new ModProof(),
                     new ModTextFunction(),
@@ -128,12 +129,12 @@ namespace Kugua
                     // 打开历史记录，不会是真的吧
                     string HistoryPath = Config.Instance.ResourceFullPath("HistoryPath");
                     if (!Directory.Exists(HistoryPath)) Directory.CreateDirectory(HistoryPath);
-                    Logger.Instance.Log($"历史记录保存在 {HistoryPath} 里");
+                    Logger.Log($"历史记录保存在 {HistoryPath} 里");
                     HistoryManager.Instance.Init(HistoryPath);
                 }
                 else
                 {
-                    Logger.Instance.Log($"历史记录不会有记录");
+                    Logger.Log($"历史记录不会有记录");
                 }
 
                 foreach (var mod in Mods)
@@ -144,12 +145,12 @@ namespace Kugua
                         mod.clientLocal = ClientLocal;
                         if (mod.Init(null))
                         {
-                            Logger.Instance.Log($"模块{mod.GetType().Name}已初始化");
+                            Logger.Log($"模块{mod.GetType().Name}已初始化");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log(ex);
+                        Logger.Log(ex);
                     }
                 }
 
@@ -163,7 +164,7 @@ namespace Kugua
 
                     //string verifyKey = "123456";
                     string connectUri = $"{Config.Instance.App.Net.MiraiWS}/all?qq={Config.Instance.App.Avatar.myQQ}";
-                    Logger.Instance.Log($"正在连接Mirai...{connectUri}");
+                    Logger.Log($"正在连接Mirai...{connectUri}");
                     ClientX = new(connectUri);
                     ClientX._OnServeiceConnected += ServiceConnected;
                     ClientX._OnServeiceError += OnServeiceError;
@@ -185,27 +186,27 @@ namespace Kugua
                 }
                 else
                 {
-                    Logger.Instance.Log($"Mirai未启动");
+                    Logger.Log($"Mirai未启动");
                 }
-                Logger.Instance.Log($"启用GPT相关接口...");
+                Logger.Log($"启用GPT相关接口...");
                 GPT.Instance.Init();
                 if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri))
                 {
-                    Logger.Instance.Log($"TTS连接至：{Config.Instance.App.Net.TTSUri}");
+                    Logger.Log($"TTS连接至：{Config.Instance.App.Net.TTSUri}");
                     
                 }
                 else
                 {
-                    Logger.Instance.Log($"TTS未启动");
+                    Logger.Log($"TTS未启动");
                 }
                 if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.OllamaUri))
                 {
-                    Logger.Instance.Log($"Ollama连接至：{Config.Instance.App.Net.OllamaUri}");
+                    Logger.Log($"Ollama连接至：{Config.Instance.App.Net.OllamaUri}");
                     
                 }
                 else
                 {
-                    Logger.Instance.Log($"Ollama未启动");
+                    Logger.Log($"Ollama未启动");
                 }
 
 
@@ -214,11 +215,11 @@ namespace Kugua
 
 
 
-                Logger.Instance.Log($"======= bot启动完成 =======");
+                Logger.Log($"======= bot启动完成 =======");
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
 
@@ -226,11 +227,11 @@ namespace Kugua
         {
             if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.LocalWS))
             {
-                Logger.Instance.Log($"本地WS未启动");
+                Logger.Log($"本地WS未启动");
             }
             else
             {
-                Logger.Instance.Log($"本地WS连接至：{Config.Instance.App.Net.LocalWS}");
+                Logger.Log($"本地WS连接至：{Config.Instance.App.Net.LocalWS}");
                 ClientLocal.Link(Config.Instance.App.Net.LocalWS);
             }
             
@@ -247,7 +248,7 @@ namespace Kugua
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log(ex);
+                        Logger.Log(ex);
                     }
 
                 }
@@ -267,7 +268,7 @@ namespace Kugua
 
         public void HandleLocalAPI(string message)
         {
-            Logger.Instance.Log($"*WEB*>>{message}");
+            Logger.Log($"*WEB*>>{message}");
 
             GroupMessageSender gms = new()
             {
@@ -456,7 +457,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     Config.Instance.qqfriends.Clear();
                     if (fp == null)
                     {
-                        Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
+                        Logger.Log($"不会吧不会吧不会没有好友吧");
 
                     }
                     else
@@ -480,7 +481,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                     Config.Instance.qqgroupMembers.Clear();
                     if (gp == null)
                     {
-                        Logger.Instance.Log($"不会吧不会吧不会没有群吧");
+                        Logger.Log($"不会吧不会吧不会没有群吧");
 
                     }
                     else
@@ -492,7 +493,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                             var groupMembers = g.GetMemberList(ClientX);
                             if (groupMembers == null)
                             {
-                                Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+                                Logger.Log($"不会吧不会吧不会{g.id}是鬼群吧");
                                 continue;
                             }
                             Config.Instance.qqgroups.Add(g.id, g);
@@ -509,7 +510,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
         }
@@ -518,7 +519,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         async void OnFriendMessageReceive(FriendMessageSender s, Message[] e)
         {
-            Logger.Instance.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Debug);
+            Logger.Log($"好友信息 [qq:{s.id},昵称:{s.nickname},备注:{s.remark}] \n内容:{e.MGetPlainString()}", LogType.Debug);
             var uinfo = Config.Instance.UserInfo(s.id);
             uinfo.Name = s.nickname;
             uinfo.Mark = s.remark;
@@ -565,7 +566,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         {
             if (e == null) return;
             var sourceItem = e.First() as Source;
-            Logger.Instance.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Debug);
+            Logger.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Debug);
             if(!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
 
             var uinfo = Config.Instance.UserInfo(s.id);
@@ -616,7 +617,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             }
 
             //var uinfo = Config.Instance.UserInfo(s.id);
-            //Logger.Instance.Log($"<IN>{(context.isAskme?"!":" ")}{context.recvMessages.MGetPlainString()}");
+            //Logger.Log($"<IN>{(context.isAskme?"!":" ")}{context.recvMessages.MGetPlainString()}");
             var sendNum = 0;
             foreach (var mod in Mods)
             {
@@ -637,15 +638,15 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void ServiceConnected(string e)
         {
-            Logger.Instance.Log($"***连接成功：{e}", LogType.Mirai);
+            Logger.Log($"***连接成功：{e}", LogType.Mirai);
 
 
 
 
 
-            //Logger.Instance.Log($"更新好友列表和群列表...");
+            //Logger.Log($"更新好友列表和群列表...");
             //RefreshFriendList();
-            //Logger.Instance.Log($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
+            //Logger.Log($"更新完毕，找到{Config.Instance.friends.Count}个好友，{Config.Instance.groups.Count}个群...");
 
 
 
@@ -653,21 +654,21 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnServeiceError(Exception e)
         {
-            Logger.Instance.Log($"***连接出错：{e.Message}\r\n{e.StackTrace}", LogType.Mirai);
+            Logger.Log($"***连接出错：{e.Message}\r\n{e.StackTrace}", LogType.Mirai);
         }
 
         void OnServiceDropped(string e)
         {
-            Logger.Instance.Log($"***连接中断：{e}", LogType.Mirai);
+            Logger.Log($"***连接中断：{e}", LogType.Mirai);
         }
 
         void OnClientOnlineEvent(OtherClientOnlineEvent e)
         {
-            Logger.Instance.Log($"***其他平台登录（标识：{e.id}，平台：{e.platform}", LogType.Mirai);
+            Logger.Log($"***其他平台登录（标识：{e.id}，平台：{e.platform}", LogType.Mirai);
         }
         void OnEventBotInvitedJoinGroupRequestEvent(BotInvitedJoinGroupRequestEvent e)
         {
-            Logger.Instance.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}", LogType.Mirai);
+            Logger.Log($"受邀进群（用户：{e.fromId}，群：{e.groupName}({e.groupId})消息：{e.message}", LogType.Mirai);
             var g = Config.Instance.GroupInfo(e.groupId);
             var u = Config.Instance.UserInfo(e.fromId);
             if (g.Is("黑名单") || u.Is("黑名单"))
@@ -684,7 +685,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventNewFriendRequestEvent(NewFriendRequestEvent e)
         {
-            Logger.Instance.Log($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}", LogType.Mirai);
+            Logger.Log($"好友申请：{e.nick}({e.fromId})(来自{e.groupId})消息：{e.message}", LogType.Mirai);
             if (!string.IsNullOrWhiteSpace(e.message) && e.message.StartsWith(Config.Instance.App.Avatar.askName))
             {
                 e.Grant(ClientX, "来了来了");
@@ -702,7 +703,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
         void OnEventFriendNickChangedEvent(FriendNickChangedEvent e)
         {
-            Logger.Instance.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}", LogType.Mirai);
+            Logger.Log($"好友改昵称（{e.friend.id}，{e.from}->{e.to}", LogType.Mirai);
             var user = Config.Instance.UserInfo(e.friend.id);
             user.Name = e.to;
 

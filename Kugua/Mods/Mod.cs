@@ -78,7 +78,7 @@ namespace Kugua
 
                 if (context.isAskme)
                 {
-                    //Logger.Instance.Log("!" + message);
+                    //Logger.Log("!" + message);
                     foreach (var cmd in ModCommands)
                     {
                         var m = cmd.Key.Match(message);
@@ -118,7 +118,7 @@ namespace Kugua
             }
             catch(Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 
             }
             return false;

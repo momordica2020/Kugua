@@ -221,7 +221,7 @@ namespace Kugua
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log($"模式行[ {line} ]加载失败，{ex.Message}\r\n{ex.StackTrace}");
+                        Logger.Log($"模式行[ {line} ]加载失败，{ex.Message}\r\n{ex.StackTrace}");
                     }
                 }
                 modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
@@ -292,7 +292,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e);
+                Logger.Log(e);
             }
 
 
@@ -362,7 +362,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
             return "";
         }
@@ -382,7 +382,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
 
@@ -510,7 +510,7 @@ namespace Kugua
 
             }catch(Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
 
@@ -734,7 +734,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e);
+                Logger.Log(e);
                 return new List<string>();
             }
         }
@@ -782,7 +782,7 @@ namespace Kugua
                         }
                         catch (Exception e)
                         {
-                            Logger.Instance.Log(e);
+                            Logger.Log(e);
                         }
                         maxnum -= 1;
                         if (maxnum <= 0) break;
@@ -794,7 +794,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e);
+                Logger.Log(e);
             }
 
 
@@ -863,7 +863,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e);
+                Logger.Log(e);
                 return "";
             }
         }

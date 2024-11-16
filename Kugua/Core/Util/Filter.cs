@@ -72,7 +72,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
             return isLoaded;
@@ -140,7 +140,7 @@ namespace Kugua
                     if (res != input)
                     {
                         // filted!
-                        Logger.Instance.Log($"以拦截！{input} => {res}");
+                        Logger.Log($"以拦截！{input} => {res}");
                     }
                     result = input == res;
                     break;
@@ -269,7 +269,7 @@ namespace Kugua
             string res = new string(output.ToArray());
             //if(res != input)
             //{
-            //    Logger.Instance.Log($"以过滤！{input} => {res}", LogType.Debug);
+            //    Logger.Log($"以过滤！{input} => {res}", LogType.Debug);
             //}
             return res;
         }

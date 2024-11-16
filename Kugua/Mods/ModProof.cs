@@ -51,7 +51,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e);
+                Logger.Log(e);
             }
             return true;
         }

@@ -38,7 +38,7 @@ namespace Kugua
             
             ModCommands[new Regex(@"^来点狐狸")] = getFox;
             ModCommands[new Regex(@"^来点小猫")] = getCat;
-            ModCommands[new Regex(@"做旧")] = getOldJpg;
+            ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
             ModCommands[new Regex(@"^说[:|：](.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
@@ -64,12 +64,13 @@ namespace Kugua
             bool findImg = false;
             foreach(var item in context.recvMessages)
             {
+                //Logger.Log(item.type);
                 if(item is Image itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    //Logger.Instance.Log("?1");
-                    var newImgbase64 = JPEGreenSimulator.ProcessImage(oriImg, 15, 5);
-                    //Logger.Instance.Log("?2,img=" + newImgbase64.Substring(0,100));
+                    //Logger.Log("?1");
+                    var newImgbase64 = JPEGreenSimulator.ProcessImage(oriImg, 10, 10, true);
+                    //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),
                         new Image(null,null,null, newImgbase64),
@@ -130,7 +131,7 @@ namespace Kugua
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Log(ex);
+                    Logger.Log(ex);
                 }
             }
             string result = "";
@@ -269,9 +270,9 @@ namespace Kugua
         {
             if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
             {
-                Logger.Instance.Log($"更新好友列表和群列表...");
+                Logger.Log($"更新好友列表和群列表...");
                 RefreshFriendList();
-                Logger.Instance.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
+                Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
 
                 return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
             }
@@ -290,7 +291,7 @@ namespace Kugua
                 var historys = HistoryManager.Instance.findMessage(context.userId, context.groupId);
                 for (int i = 0; i < Math.Min(historys.Length, quantity); i++)
                 {
-                    Logger.Instance.Log($"?{historys[i].messageId}");
+                    Logger.Log($"?{historys[i].messageId}");
 
                     if (clientMirai != null)
                     {
@@ -342,7 +343,7 @@ namespace Kugua
                     Config.Instance.qqfriends.Clear();
                     if (fp == null)
                     {
-                        Logger.Instance.Log($"不会吧不会吧不会没有好友吧");
+                        Logger.Log($"不会吧不会吧不会没有好友吧");
 
                     }
                     else
@@ -366,7 +367,7 @@ namespace Kugua
                     Config.Instance.qqgroupMembers.Clear();
                     if (gp == null)
                     {
-                        Logger.Instance.Log($"不会吧不会吧不会没有群吧");
+                        Logger.Log($"不会吧不会吧不会没有群吧");
 
                     }
                     else
@@ -378,7 +379,7 @@ namespace Kugua
                             var groupMembers = g.GetMemberList(clientMirai);
                             if (groupMembers == null)
                             {
-                                Logger.Instance.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+                                Logger.Log($"不会吧不会吧不会{g.id}是鬼群吧");
                                 continue;
                             }
                             Config.Instance.qqgroups.Add(g.id, g);
@@ -395,7 +396,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
         }
@@ -475,7 +476,7 @@ namespace Kugua
                         {
                             if (item is Image image)
                             {
-                                //Logger.Instance.Log("img!");
+                                //Logger.Log("img!");
                                 //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
                                 //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
                                 //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
@@ -484,7 +485,7 @@ namespace Kugua
                                 imgPaths.Add(base64data);
                             }
                         }
-                        //Logger.Instance.Log($"{imgPaths.Count}");
+                        //Logger.Log($"{imgPaths.Count}");
                         if (imgPaths.Count > 0)
                         {
                             GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
@@ -528,7 +529,7 @@ namespace Kugua
                 //{
                 //    logstr += $",{msg.GetType()}";
                 //}
-                //Logger.Instance.Log(logstr);
+                //Logger.Log(logstr);
 
                 foreach (var msg in context.recvMessages)
                 {

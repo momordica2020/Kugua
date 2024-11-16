@@ -10,7 +10,14 @@ namespace Kugua
     class MyRandom
     {
         private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create(); // 静态实例
-        // 生成范围在 min 和 max 之间的（高随机度的）随机整数
+        //
+        /// <summary>
+        ///  生成范围在 min 和 max 之间的（高随机度的）随机整数
+        ///  注意！maxValue值到达不了，实际范围在[min,max-1]
+        /// </summary>
+        /// <param name="minValue"></param>
+        /// <param name="maxValue">注意！maxValue值到达不了，实际范围在[min,max-1]</param>
+        /// <returns></returns>
         public static int Next(int minValue, int maxValue)
         {
             try

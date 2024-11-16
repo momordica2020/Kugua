@@ -76,8 +76,16 @@ namespace Kugua
         // 公共静态属性获取实例
         public static Logger Instance => instance.Value;
 
+        public static void Log(string message, LogType logType = LogType.System)
+        {
+            Instance.tLog(message, logType);
+        }
+        public static void Log(Exception ex, LogType logType = LogType.System)
+        {
+            Instance.tLog(ex, logType);
+        }
         // 记录日志
-        public void Log(string message, LogType logType = LogType.System)
+        void tLog(string message, LogType logType = LogType.System)
         {
             lock (lockObject) // 确保线程安全
             {
@@ -111,7 +119,7 @@ namespace Kugua
                 }
             }
         }
-        public void Log(Exception ex, LogType logType = LogType.System)
+        void tLog(Exception ex, LogType logType = LogType.System)
         {
             Log($"{ex.Message}\r\n{ex.StackTrace}", logType);
             Config.Instance.ErrorTime++;

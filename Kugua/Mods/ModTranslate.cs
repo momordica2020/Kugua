@@ -38,7 +38,7 @@ namespace Kugua
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(e.Message + "\r\n" + e.StackTrace);
+                Logger.Log(e.Message + "\r\n" + e.StackTrace);
             }
             return true;
         }

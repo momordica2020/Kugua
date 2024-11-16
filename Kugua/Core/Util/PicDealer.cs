@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,6 +44,10 @@ namespace Kugua
             return resizedImage;
         }
 
+
+
+
+
         /// <summary>
         /// 处理图片做旧，返回base64编码的图像数据
         /// </summary>
@@ -50,7 +55,7 @@ namespace Kugua
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ProcessImage(Bitmap image, int iterations = 16, int quality = 75)
+        public static string ProcessImage(Bitmap image, int iterations = 16, int quality = 75, bool dealGreen = true)
         {
             if (image == null) return null;
             // Load the initial image
@@ -58,30 +63,41 @@ namespace Kugua
             // Check if the image dimensions exceed 1000x1000 and resize if necessary
             //if (image.Width > 200 || image.Height > 200)
             {
-                
-                image = ResizeImage(image, image.Width / 3);
-                image = ResizeImage(image, image.Width * 3); // Resize back to original width
+                int oriW = image.Width;
+                int smallW = (int)(image.Width * 0.69);
+                image = ResizeImage(image, smallW);
+                image = ResizeImage(image, oriW); // Resize back to original width
             }
-
+            
             for (int iter = 0; iter < iterations; iter++)
             {
                 Bitmap resultImage = new Bitmap(image.Width, image.Height);
-
-                for (int y = 0; y < image.Height; y++)
+                if (dealGreen)
                 {
-                    for (int x = 0; x < image.Width; x++)
+                    for (int y = 0; y < image.Height; y++)
                     {
-                        Color pixelColor = image.GetPixel(x, y);
-                        int[] yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
+                        for (int x = 0; x < image.Width; x++)
+                        {
+                            Color pixelColor = image.GetPixel(x, y);
+                            int[] yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
 
-                        // Apply green shift (UV shift)
-                        yuv[1] = yuv[1] - 1; // Slight shift to simulate the green effect
+                            // Apply green shift (UV shift)
+                            yuv[1] = yuv[1] - 1; // Slight shift to simulate the green effect
 
-                        // Convert back to RGB and set the pixel
-                        int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
-                        resultImage.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                            // Convert back to RGB and set the pixel
+                            int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
+                            resultImage.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                        }
                     }
                 }
+                else
+                {
+                    using (Graphics graphics = Graphics.FromImage(resultImage))
+                    {
+                        graphics.DrawImage(image, 0, 0, image.Width, image.Height);
+                    }
+                }
+               // resultImage = LowLevelJpg(resultImage, quality, iterations);
 
                 // After each iteration, update the image to the result of this iteration
                 image = new Bitmap(resultImage);  // Ensure the current image is updated for the next iteration
@@ -89,30 +105,85 @@ namespace Kugua
                 // Optionally, we can apply compression or quality adjustments
                 if (iter == iterations - 1)
                 {
-                    return GetBase64Image(resultImage, quality);  // Save the final result
+                    return GetBase64Image(resultImage,quality);  // Save the final result
                 }
             }
 
             return null; 
         }
-        // Convert processed image to Base64 string
+
+
         private static string GetBase64Image(Bitmap image, int quality)
         {
-            using (MemoryStream ms = new MemoryStream())
+            byte[] imageBytes = Array.Empty<byte>();
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                // Set the encoder parameters for JPEG quality
-                ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
-                EncoderParameters encoderParams = new EncoderParameters(1);
-                encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)quality);
+                try
+                {
+                    ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
+                    if (jpegCodec == null)
+                    {
+                        throw new InvalidOperationException("JPEG 编码器不可用！");
+                    }
 
-                // Save the image to the memory stream in JPEG format
-                image.Save(ms, jpegCodec, encoderParams);
+                    // 设置编码参数
+                    EncoderParameters encoderParams = new EncoderParameters(1);
+                    encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
 
-                // Convert the memory stream to a Base64 string
-                byte[] imageBytes = ms.ToArray();
-                return Convert.ToBase64String(imageBytes);
+
+                    // 保存 Bitmap 到指定流
+                    image.Save(memoryStream, jpegCodec, encoderParams);
+                    imageBytes = memoryStream.ToArray();
+
+
+                    return Convert.ToBase64String(imageBytes);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"压缩时发生错误: {ex.Message}");
+                }
+            }
+
+            return null;
+        }
+
+        static ImageCodecInfo GetEncoderInfo(string mimeType)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.MimeType.Equals(mimeType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return codec;
+                }
+            }
+            throw new InvalidOperationException($"找不到 MIME 类型为 {mimeType} 的编码器！");
+        }
+
+
+
+
+        static Bitmap ConvertBytesToBitmap(byte[] imageBytes)
+        {
+            if (imageBytes == null || imageBytes.Length == 0) return null;
+               
+
+            using (MemoryStream memoryStream = new MemoryStream(imageBytes))
+            {
+                try
+                {
+                    // 从内存流加载 Bitmap
+                    return new Bitmap(memoryStream);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"加载 Bitmap 时出错: {ex.Message}");
+                    return null;
+                }
             }
         }
+
+
         // Save processed image
         private static void SaveImage(Bitmap image, string outputImagePath, int quality)
         {
@@ -125,21 +196,11 @@ namespace Kugua
 
             // Save the image as JPEG
             image.Save(outputImagePath, jpegCodec, encoderParams);
-            Logger.Instance.Log($"Image saved to: {outputImagePath}", LogType.Debug);
+            Logger.Log($"Image saved to: {outputImagePath}", LogType.Debug);
         }
 
         // Helper function to get encoder info for the desired format (JPEG)
-        private static ImageCodecInfo GetEncoderInfo(string mimeType)
-        {
-            foreach (ImageCodecInfo codec in ImageCodecInfo.GetImageDecoders())
-            {
-                if (codec.MimeType == mimeType)
-                {
-                    return codec;
-                }
-            }
-            return null;
-        }
+
     }
 
 

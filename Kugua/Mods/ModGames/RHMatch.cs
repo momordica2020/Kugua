@@ -80,7 +80,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
             return true;
@@ -185,7 +185,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
                 return $"ERROR:{ex.Message}";
             }
 
@@ -336,7 +336,7 @@ namespace Kugua
                 foreach (var winner in winners)
                 {
                     allNeed  += (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
-                    Logger.Instance.Log($"[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
+                    Logger.Log($"[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
                 }
                 
                 //if(ModBank.Instance.GetMoney(Config.Instance.BotQQ) < allNeed)
@@ -398,7 +398,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                //Logger.Instance.Log(ex, LogType.Debug);
+                //Logger.Log(ex, LogType.Debug);
             }
             raceLoopTimer.Start();
         }
@@ -530,7 +530,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
 
         }
@@ -629,7 +629,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex);
+                Logger.Log(ex);
             }
         }
 
