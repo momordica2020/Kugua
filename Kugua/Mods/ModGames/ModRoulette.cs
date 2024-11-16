@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components;
 using ChatGPT.Net.DTO.ChatGPT;
 using static System.Net.WebRequestMethods;
 using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
+using System.Text;
 
 
 namespace Kugua
@@ -21,6 +22,7 @@ namespace Kugua
     {
 
         public Dictionary<long, RouletteGame> info = new Dictionary<long, RouletteGame>();
+        public Dictionary<long, RoulettePlayerHistory> history = new Dictionary<long, RoulettePlayerHistory>();
 
 
         private static readonly Lazy<ModRoulette> instance = new Lazy<ModRoulette>(() => new ModRoulette());
@@ -30,15 +32,27 @@ namespace Kugua
 
 
         }
+
+
         public override bool Init(string[] args)
         {
             try
             {
-
+                ModCommands[new Regex(@"^\s*轮盘介绍\s*")] = IntroduceGame;
                 ModCommands[new Regex(@"^\s*轮盘\s*(\d+)")] = StartGame;
                 //ModCommands[new Regex(@"^\s*加入\s*(\d+)")] = JoinGame;
-                ModCommands[new Regex(@"射我")] = ShootMe;
-                ModCommands[new Regex(@"射他")] = ShootHim;
+                ModCommands[new Regex(@"^\s*射我")] = ShootMe;
+                ModCommands[new Regex(@"^\s*射他")] = ShootHim;
+
+
+
+                var lines = LocalStorage.ReadResourceLines("game/roulette_user.txt");
+                foreach (var line in lines)
+                {
+                    RoulettePlayerHistory user = new RoulettePlayerHistory();
+                    user.Init(line);
+                    history[user.id] = user;
+                }
 
             }
             catch (Exception ex)
@@ -47,6 +61,48 @@ namespace Kugua
             }
             return true;
         }
+        public override void Save()
+        {
+
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var user in history.Values)
+                {
+                    sb.Append($"{user.ToString()}\r\n");
+                }
+                LocalStorage.writeText(Config.Instance.ResourceFullPath("game/roulette_user.txt"), sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            
+        }
+
+        public string UserHistory(long id)
+        {
+            if (history.ContainsKey(id))
+            {
+                var h = history[id];
+                return $"玩轮盘{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+            }
+            return "没有轮盘游戏记录";
+        }
+
+
+        private string IntroduceGame(MessageContext context, string[] param)
+        {
+            var res = $"恶魔轮盘pvp游戏介绍：\r\n";
+            res += $"2人参与后自动启动，回合制轮流操作，谁存活到底获得双方投注之和*1.5\r\n";
+            res += $"开局会显示本轮子弹总数和实弹/空弹的数量，装填顺序随机\r\n";
+            res += $"输入“轮盘10”投10{ModBank.unitName}加入游戏\r\n";
+            res += $"输入“射我”开枪射击自己，若是空弹则下一回合还是你操作\r\n";
+            res += $"输入“射他”射击对手，且下一回合轮到对手操作\r\n";
+
+            return res ;
+        }
+
         private string StartGame(MessageContext context, string[] param)
         {
             try
@@ -80,7 +136,7 @@ namespace Kugua
             }
 
 
-            return "";
+            return null;
         }
 
         private string ShootMe(MessageContext context, string[] param)
@@ -92,7 +148,7 @@ namespace Kugua
                 context.SendBackPlain(res, false);
             }
 
-            return "";
+            return null;
 
         }
 
@@ -101,16 +157,63 @@ namespace Kugua
 
 
 
+        /// <summary>
+        /// 玩家战绩
+        /// </summary>
+        public class RoulettePlayerHistory
+        {
+            public long id = 0;
+            public long money = 0;
+            public long playnum = 0;
+            public long winnum = 0;
 
+            public long losenum
+            {
+                get { return playnum - winnum; }
+            }
 
+            public double winP
+            {
+                get
+                {
+                    return (playnum <= 0 ? 0 : Math.Round(100.0 * winnum / playnum, 2));
+                }
+            }
 
+            public override string ToString()
+            {
+                return $"{id}\t{money}\t{playnum}\t{winnum}";
+            }
+
+            public void Init(string line)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        var items = line.Split('\t', StringSplitOptions.TrimEntries);
+                        if (items.Length >= 4)
+                        {
+                            id = int.Parse(items[0]);
+                            money = int.Parse(items[1]);
+                            playnum = int.Parse(items[2]);
+                            winnum = int.Parse(items[3]);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+            }
+        }
         // 玩家类
         public class RoulettePlayer
         {
             public long id;
             public string name;
             public int hp;
-            public int money;
+            public long money;
 
             public bool IsAlive => hp > 0;
 
@@ -133,7 +236,7 @@ namespace Kugua
             public int round = 0;
 
 
-            public string Start(long p, int money)
+            public string Start(long p, long money)
             {
                 if(round > 0)
                 {
@@ -149,7 +252,7 @@ namespace Kugua
                 return Join(p, money);
             }
 
-            public string Join(long p, int money)
+            public string Join(long p, long money)
             {
                 string res = "";
 
@@ -194,7 +297,10 @@ namespace Kugua
                     };
                     if (string.IsNullOrWhiteSpace(p2.name)) p2.name = p2.id.ToString();
                 }
-                
+                if (!ModRoulette.Instance.history.ContainsKey(p)) ModRoulette.Instance.history[p] = new RoulettePlayerHistory();
+                ModRoulette.Instance.history[p].money += money;
+                ModRoulette.Instance.history[p].id = p;
+
                 res = $"{Config.Instance.UserInfo(p).Name}已成功加入恶魔轮盘，投了{money}{ModBank.unitName}\r\n";
                 if (round <= 0 && p1 != null && p2 != null)
                 {
@@ -230,7 +336,7 @@ namespace Kugua
                 else
                 {
                     // not avliable
-                    return "";
+                    return null ;
                 }
 
                 if (fromp.IsAlive)
@@ -423,20 +529,23 @@ namespace Kugua
             private string GameOver()
             {
                 string res = "游戏结束！";
-
+                ModRoulette.Instance.history[p1.id].playnum++;
+                ModRoulette.Instance.history[p2.id].playnum++;
                 if (p1.IsAlive && !p2.IsAlive)
                 {
+                    ModRoulette.Instance.history[p1.id].winnum++;
                     res +=  Reward(p1);
                 }
                 else if (p2.IsAlive && !p1.IsAlive)
                 {
-
+                    ModRoulette.Instance.history[p2.id].winnum++;
                     res += Reward(p2);
                 }
 
                 round = 0;
                 currentPlayerIndex = 0;
                 chamber.Clear();
+                
                 p1 = null;
                 p2 = null;
 

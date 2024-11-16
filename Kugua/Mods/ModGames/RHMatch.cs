@@ -332,6 +332,7 @@ namespace Kugua
                 double rakeP = 0.05;    // 抽水5%
 
                 // 这里判断如果我苦账上钱不够了，则只把现有的钱有多少分多少瓜分给用户
+                // 公式：   赢钱=[在赌中马上的投注*赔率+（所有人没中的钱数/赌中的总人数）]*95%
                 long allNeed = 0;
                 foreach (var winner in winners)
                 {

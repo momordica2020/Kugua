@@ -74,7 +74,9 @@ namespace Kugua
             {
                 Config.Instance.Save();
                 GPT.Instance.AISaveMemory();
+                ModRoulette.Instance.Save();
                 ModRaceHorse.Instance.Save();
+
                 return  $"配置文件以存档 {DateTime.Now.ToString("F")}";
             }
 

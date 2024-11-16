@@ -67,7 +67,7 @@ namespace Kugua
 
 
                     ModCommands[new Regex(@"^赛马(介绍|玩法)$")] = getIntroduction;
-                    ModCommands[new Regex(@"^个人信息$")] = getRHInfo;
+                    ModCommands[new Regex(@"^个人信息$")] = getUserGameInfo;
                     ModCommands[new Regex(@"^赛马$")] = playGame;
                     ModCommands[new Regex(@"^胜率榜$")] = showBigWinner;
                     ModCommands[new Regex(@"^败率榜$")] = showBigLoser;
@@ -305,24 +305,45 @@ namespace Kugua
         }
 
         /// <summary>
-        /// 个人赌马记录
+        /// 个人游戏记录
         /// </summary>
         /// <param name="userqq"></param>
         /// <returns></returns>
-        public string getRHInfo(MessageContext context, string[] param)
+        public string getUserGameInfo(MessageContext context, string[] param)
         {
-            if (!users.ContainsKey(context.userId)) users[context.userId] = new RHUser(context.userId);
-            var u = users[context.userId];
-            return $"{ModBank.Instance.getUserInfo(context.userId)}\n您在赌马上消费过{u.hrmoney}枚{ModBank.unitName}，共下注{u.losetime + u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%";
+            
+            return ModBank.Instance.getUserInfo(context.userId) + "\n"
+                + ModRaceHorse.Instance.UserHistory(context.userId) + "\n"
+                + ModRoulette.Instance.UserHistory(context.userId) + "\n"
+                + ModSlotMachine.Instance.UserHistory(context.userId) + "\n";
             //outputMessage(group, userqq, $"您在赌马上消费过{u.hrmoney}枚{BTCActor.unitName}，共下注{u.losetime+u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%");
         }
+
+
+        /// <summary>
+        /// 个人赛马记录
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public string UserHistory(long id)
+        {
+            if (users.ContainsKey(id))
+            {
+                var h = users[id];
+                return $"玩赛马{h.losetime + h.wintime}次，共下注{h.hrmoney}，胜率{h.wintime}-{h.losetime}({Math.Round(h.getWinPercent(), 2)}%)";
+            }
+            return "没有赛马游戏记录";
+        }
+
 
         public string getIntroduction(MessageContext context, string[] param)
         {
             return $"赛🐎游戏介绍：\r\n" +
                 $"输入“赛马”开始一局比赛\r\n" +
-                $"在比赛开始时会有下注时间，输入x号y可以向x号马下注y元\r\n" +
-                $"比赛开始后自动演算，比赛期间不接收指令\r\n" +
+                $"在比赛开始时会有下注时间，输入“x号y”可以向x号马下注y元\r\n" +
+                $"比赛开始后自动演算，比赛期间不接收指令，每个群同时只开一局\r\n" +
+                $"胜者获得的收益=[在赌中马上的投注*赔率+（所有人没中的钱数/赌中的总人数）]*95%\r\n" +
+                $"其中押1匹，倍率=5，押两匹，倍率=3\r\n" +
                 $"其他指令包括“签到”“个人信息”“富豪榜”“穷人榜”“胜率榜”“败率榜”“赌狗榜”";
         }
 
