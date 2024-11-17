@@ -36,8 +36,10 @@ namespace Kugua
             ModCommands[new Regex(@"^帮我撤回(\d{1,2})?条?")] = handleRecall;
             ModCommands[new Regex(@"^刷新列表")] = refreshList;
             
-            ModCommands[new Regex(@"^来点狐狸")] = getFox;
-            ModCommands[new Regex(@"^来点小猫")] = getCat;
+            
+            ModCommands[new Regex(@"^来点(\S+)")] = getSome;
+
+
             ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
             ModCommands[new Regex(@"^说[:|：](.+)", RegexOptions.Singleline)] = say;
@@ -234,38 +236,56 @@ namespace Kugua
             return null;
         }
 
-        private string getFox(MessageContext context, string[] param)
+
+        private string getSome(MessageContext context, string[] param)
         {
-            var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifsfox", "*.gif");
-            if (files != null)
+            try
             {
-                string fname = files[MyRandom.Next(files.Length)];
-                var msg = new Message[] {
-                     new Image(null,null,fname),
-                };
-                context.SendBack(msg);
+                var something = param[1].Trim();
+                string[] files = null;
+                if (something == "小猫")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifscat", "*.gif");
 
-                return null;
+                }
+                else if (something == "狐狸")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifsfox", "*.gif");
+                }
+                else if (something == "非主流")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgfzl", "*.*");
+                }
+                else if (something == "杀马特")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgsmt", "*.*");
+                }
+                else if (something == "猫姬")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgmj", "*.*");
+                }
+
+
+
+                if (files != null)
+                {
+                    string fname = files[MyRandom.Next(files.Length)];
+                    var msg = new Message[] {
+                        new Image(null,null,fname),
+                    };
+                    context.SendBack(msg);
+                    return null;
+                }
             }
-
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+        
             return "";
         }
-        private string getCat(MessageContext context, string[] param)
-        {
-            var files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifscat", "*.gif");
-            if (files != null)
-            {
-                string fname = files[MyRandom.Next(files.Length)];
-                var msg = new Message[] {
-                     new Image(null,null,fname),
-                };
-                context.SendBack(msg);
 
-                return null;
-            }
 
-            return "";
-        }
         private string refreshList(MessageContext context, string[] param)
         {
             if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))

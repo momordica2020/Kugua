@@ -63,7 +63,7 @@ namespace Kugua
                 //"B站live搜索：“绘画区谁在播”“虚拟区有多少B限”“xxx在播吗”\r\n" +
                 "~赛马：“赛马介绍”“签到”“个人信息”\r\n" +
                 "~生成攻受文：“A攻B受”\r\n" +
-                //"~生成笑话：“讽刺 本国=A国，好人=甲，坏人=乙，事件=xx”\r\n" +
+                "~生成笑话：“讽刺 本国=A国，好人=甲，坏人=乙，事件=xx”\r\n" +
                 "~生成随机汉字：“随机5*4”\r\n" +
                 "~周易占卜：“占卜 xxx”\r\n";
         }
@@ -98,6 +98,7 @@ namespace Kugua
                 rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\n";
                 rmsg += $"在群里被乐{Config.Instance.UseTimeGroup}次\n";
                 rmsg += $"在私聊被乐{Config.Instance.UseTimePrivate}次\n";
+                rmsg += $"报错{Config.Instance.ErrorTime}次\n";
                 rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\n";
             }
             if (context.isGroup)

@@ -558,7 +558,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             // 计数统计
             if (talked)
             {
-                Config.Instance.UserInfo(context.userId).UseTimes += 1;
+                //Config.Instance.UserInfo(context.userId).UseTimes += 1;
             }
         }
 
@@ -632,7 +632,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             if (sendNum > 0)
             {
                 //p.UseTimes += 1;
-                Config.Instance.UserInfo(context.userId).UseTimes += 1;
+                //Config.Instance.UserInfo(context.userId).UseTimes += 1;
             }
         }
 

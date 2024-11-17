@@ -46,6 +46,10 @@ namespace Kugua
         List<string[]> chaosWord = new List<string[]>();
         List<string> chaosMotion = new List<string>();
         List<string> chaosXwb = new List<string>();
+        List<string> bencao = new List<string>();
+        List<string> xy_drugs = new List<string>();
+        List<string> xy_disease = new List<string>();
+        List<string> xy_treatment = new List<string>();
 
         string yunjief = "云杰说道.txt";
         List<string> yjsd = new List<string>();
@@ -71,7 +75,7 @@ namespace Kugua
             try
             {
                 ModCommands[new Regex(@"^模式列表")] = printModeList;
-                ModCommands[new Regex(@"^(清空|清除)记忆")] = clearMemory;
+                ModCommands[new Regex(@"^(清空|清除|删除)记忆")] = clearMemory;
                 ModCommands[new Regex(@"^prompt=(.*)", RegexOptions.Singleline)] = setPrompt;
                 ModCommands[new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase)] = selectMode;
 
@@ -228,6 +232,8 @@ namespace Kugua
                 modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
                 modedict["喷人"] = new ModeInfo { name = "喷人", config = { "隐藏" } };
                 modedict["语音"] = new ModeInfo { name = "语音", config = { "隐藏" } };
+                modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
+                modedict["西医"] = new ModeInfo { name = "西医", config = { } };
                 // replace
                 wordReplace = new Dictionary<string, string>();
                 var lines = LocalStorage.ReadLines($"{PluginPath}/{replacefile}");
@@ -278,8 +284,13 @@ namespace Kugua
                 // yunjieshuodao
                 yjsd = LocalStorage.ReadLines($"{PluginPath}/{yunjief}").ToList();
 
-                // random
+                // bencao
+                bencao = LocalStorage.ReadLines($"{PluginPath}/本草.csv").ToList();
 
+                // 西医
+                xy_disease = LocalStorage.ReadLines($"{PluginPath}/西医病名.txt").ToList();
+                xy_drugs = LocalStorage.ReadLines($"{PluginPath}/西医西药.txt").ToList();
+                xy_treatment = LocalStorage.ReadLines($"{PluginPath}/西医检查.txt").ToList();
 
                 // default
                 defaultAnswers = LocalStorage.ReadLines($"{PluginPath}/{defaultAnswerName}").ToList();
@@ -474,8 +485,12 @@ namespace Kugua
                     case "小万邦":
                         answer.Add(getGong());
                         break;
-
-
+                    case "本草":
+                        answer.Add(bencao[MyRandom.Next(bencao.Count)]);
+                        break;
+                    case "西医":
+                        answer.Add(getXiyi());
+                        break;
 
                     case "喷人":
                         answer.AddRange(getPen());
@@ -648,7 +663,22 @@ namespace Kugua
 
 
 
+        public string getXiyi()
+        {
 
+            var disease = "";
+            var drug = "";
+            var treatment = "";
+
+            int num = MyRandom.Next(1, 4);
+            for (int i = 0; i < num; i++) disease += xy_disease[MyRandom.Next(xy_disease.Count)] + "，";
+            num = MyRandom.Next(1, 4);
+            for (int i = 0; i < num; i++) drug += xy_drugs[MyRandom.Next(xy_drugs.Count)] + "，";
+            num = MyRandom.Next(1, 4);
+            for (int i = 0; i < num; i++) treatment += xy_treatment[MyRandom.Next(xy_treatment.Count)] + "，";
+
+            return  $"查了下{treatment}怀疑你得了{disease}建议吃{drug}祝你早日康复！";
+        }
 
         /// <summary>
         /// 龚诗 bot 特有的模拟

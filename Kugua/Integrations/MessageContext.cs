@@ -71,10 +71,12 @@ namespace Kugua
                     if (isGroup)
                     {
                         new GroupMessage(groupId, sendMessages).Send(client);
+                        Config.Instance.GroupInfo(groupId).UseTimes += 1;
                     }
                     else
                     {
                         new FriendMessage(userId, sendMessages).Send(client);
+                        Config.Instance.UserInfo(userId).UseTimes += 1;
                     }
                 }
             }
