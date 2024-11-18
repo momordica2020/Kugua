@@ -106,6 +106,7 @@ namespace Kugua
                     ModRaceHorse.Instance,
                     ModSlotMachine.Instance,
                     ModRoulette.Instance,
+                    ModDiceGame.Instance,
                     new ModDice(),
                     new ModProof(),
                     new ModTextFunction(),
@@ -177,6 +178,7 @@ namespace Kugua
 
                     ClientX.OnFriendMessageReceive += OnFriendMessageReceive;
                     ClientX.OnGroupMessageReceive += OnGroupMessageReceive;
+                    ClientX.OnTempMessageReceive += OnTempMessageReceive;
                     ClientX.OnEventBotInvitedJoinGroupRequestEvent += OnEventBotInvitedJoinGroupRequestEvent;
                     ClientX.OnEventNewFriendRequestEvent += OnEventNewFriendRequestEvent;
                     ClientX.OnEventFriendNickChangedEvent += OnEventFriendNickChangedEvent;
@@ -561,7 +563,26 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 //Config.Instance.UserInfo(context.userId).UseTimes += 1;
             }
         }
+        async void OnTempMessageReceive(TempMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
+        {
+            if (e == null) return;
+            var sourceItem = e.First() as Source;
+            Logger.Log($"[{sourceItem.id}]群({s.group.id})信息 [qq:{s.id},昵称:{s.memberName}] \n内容:{e.MGetPlainString()}", LogType.Debug);
+            if (!Config.Instance.AllowPlayer(s.id) || !Config.Instance.AllowGroup(s.group.id)) return; // 黑名单
 
+            var uinfo = Config.Instance.UserInfo(s.id);
+            uinfo.Name = s.memberName;
+
+            var context = new MessageContext
+            {
+                userId = s.id,
+                groupId = s.group.id,
+                client = ClientX,
+                recvMessages = e,
+            };
+            HistoryManager.Instance.saveMsg(sourceItem.id, context.groupId, context.userId, context.recvMessages.MGetPlainString());
+            HandleGroupMessageReceiveMultiIO(context);
+        }
         async void OnGroupMessageReceive(GroupMessageSender s, MeowMiraiLib.Msg.Type.Message[] e)
         {
             if (e == null) return;

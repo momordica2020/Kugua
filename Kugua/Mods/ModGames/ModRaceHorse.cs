@@ -315,7 +315,8 @@ namespace Kugua
             return ModBank.Instance.getUserInfo(context.userId) + "\n"
                 + ModRaceHorse.Instance.UserHistory(context.userId) + "\n"
                 + ModRoulette.Instance.UserHistory(context.userId) + "\n"
-                + ModSlotMachine.Instance.UserHistory(context.userId) + "\n";
+                + ModSlotMachine.Instance.UserHistory(context.userId) + "\n"
+                + ModDiceGame.Instance.UserHistory(context.userId) + "\n";
             //outputMessage(group, userqq, $"您在赌马上消费过{u.hrmoney}枚{BTCActor.unitName}，共下注{u.losetime+u.wintime}场，赢{u.wintime}场，胜率{Math.Round(u.getWinPercent(), 2)}%");
         }
 

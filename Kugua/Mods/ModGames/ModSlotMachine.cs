@@ -16,7 +16,7 @@ namespace Kugua
     {
         public Dictionary<string, byte[]> emojis = new Dictionary<string, byte[]>();
         public Dictionary<long, object> playerLock = new Dictionary<long, object>();
-        public Dictionary<long, SlotPlayerHistory> history = new Dictionary<long, SlotPlayerHistory>();
+        public Dictionary<long, GamePlayerHistory> history = new Dictionary<long, GamePlayerHistory>();
 
         private static readonly Lazy<ModSlotMachine> instance = new Lazy<ModSlotMachine>(() => new ModSlotMachine());
         public static ModSlotMachine Instance => instance.Value;
@@ -32,7 +32,7 @@ namespace Kugua
                 var lines = LocalStorage.ReadResourceLines("game/slot_user.txt");
                 foreach (var line in lines)
                 {
-                    SlotPlayerHistory user = new SlotPlayerHistory();
+                    GamePlayerHistory user = new GamePlayerHistory();
                     user.Init(line);
                     history[user.id] = user;
                 }
@@ -163,10 +163,10 @@ namespace Kugua
 
 
 
-                    if (!ModSlotMachine.Instance.history.ContainsKey(context.userId)) ModSlotMachine.Instance.history[context.userId] = new SlotPlayerHistory();
-                    ModSlotMachine.Instance.history[context.userId].money += money;
-                    ModSlotMachine.Instance.history[context.userId].id = context.userId;
-                    ModSlotMachine.Instance.history[context.userId].playnum++;
+                    if (!history.ContainsKey(context.userId)) history[context.userId] = new GamePlayerHistory();
+                    history[context.userId].money += money;
+                    history[context.userId].id = context.userId;
+                    history[context.userId].playnum++;
 
                     string resultString = $"你投了{money}{ModBank.unitName}，";
                     if (score <= 0)
@@ -175,7 +175,7 @@ namespace Kugua
                     }
                     else
                     {
-                        ModSlotMachine.Instance.history[context.userId].winnum++;
+                        history[context.userId].winnum++;
                         long getmoney = money * (score);
                         if (ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, getmoney, out string msg2) != getmoney)
                         {
@@ -213,57 +213,4 @@ namespace Kugua
 
     }
 
-
-
-
-    /// <summary>
-    /// 玩家战绩
-    /// </summary>
-    public class SlotPlayerHistory
-    {
-        public long id = 0;
-        public long money = 0;
-        public long playnum = 0;
-        public long winnum = 0;
-
-        public long losenum
-        {
-            get { return playnum - winnum; }
-        }
-
-        public double winP
-        {
-            get
-            {
-                return (playnum <= 0 ? 0 : Math.Round(100.0 * winnum / playnum, 2));
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{id}\t{money}\t{playnum}\t{winnum}";
-        }
-
-        public void Init(string line)
-        {
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    var items = line.Split('\t', StringSplitOptions.TrimEntries);
-                    if (items.Length >= 4)
-                    {
-                        id = int.Parse(items[0]);
-                        money = int.Parse(items[1]);
-                        playnum = int.Parse(items[2]);
-                        winnum = int.Parse(items[3]);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-        }
-    }
 }

@@ -319,7 +319,7 @@ namespace Kugua
             try
             {
                 
-                if (id == App.Avatar.myQQ) return false;   // 不许套娃
+                //if (id == App.Avatar.myQQ) return false;   // 不许套娃
                 var u = UserInfo(id);
                 if (u.Type == PlayerType.Blacklist || u.Is("屏蔽")) return false;
                 

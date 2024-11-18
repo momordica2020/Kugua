@@ -22,7 +22,7 @@ namespace Kugua
     {
 
         public Dictionary<long, RouletteGame> info = new Dictionary<long, RouletteGame>();
-        public Dictionary<long, RoulettePlayerHistory> history = new Dictionary<long, RoulettePlayerHistory>();
+        public Dictionary<long, GamePlayerHistory> history = new Dictionary<long, GamePlayerHistory>();
 
 
         private static readonly Lazy<ModRoulette> instance = new Lazy<ModRoulette>(() => new ModRoulette());
@@ -49,7 +49,7 @@ namespace Kugua
                 var lines = LocalStorage.ReadResourceLines("game/roulette_user.txt");
                 foreach (var line in lines)
                 {
-                    RoulettePlayerHistory user = new RoulettePlayerHistory();
+                    GamePlayerHistory user = new GamePlayerHistory();
                     user.Init(line);
                     history[user.id] = user;
                 }
@@ -156,57 +156,6 @@ namespace Kugua
 
 
 
-
-        /// <summary>
-        /// 玩家战绩
-        /// </summary>
-        public class RoulettePlayerHistory
-        {
-            public long id = 0;
-            public long money = 0;
-            public long playnum = 0;
-            public long winnum = 0;
-
-            public long losenum
-            {
-                get { return playnum - winnum; }
-            }
-
-            public double winP
-            {
-                get
-                {
-                    return (playnum <= 0 ? 0 : Math.Round(100.0 * winnum / playnum, 2));
-                }
-            }
-
-            public override string ToString()
-            {
-                return $"{id}\t{money}\t{playnum}\t{winnum}";
-            }
-
-            public void Init(string line)
-            {
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        var items = line.Split('\t', StringSplitOptions.TrimEntries);
-                        if (items.Length >= 4)
-                        {
-                            id = int.Parse(items[0]);
-                            money = int.Parse(items[1]);
-                            playnum = int.Parse(items[2]);
-                            winnum = int.Parse(items[3]);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-            }
-        }
         // 玩家类
         public class RoulettePlayer
         {
@@ -297,7 +246,7 @@ namespace Kugua
                     };
                     if (string.IsNullOrWhiteSpace(p2.name)) p2.name = p2.id.ToString();
                 }
-                if (!ModRoulette.Instance.history.ContainsKey(p)) ModRoulette.Instance.history[p] = new RoulettePlayerHistory();
+                if (!ModRoulette.Instance.history.ContainsKey(p)) ModRoulette.Instance.history[p] = new GamePlayerHistory();
                 ModRoulette.Instance.history[p].money += money;
                 ModRoulette.Instance.history[p].id = p;
 
