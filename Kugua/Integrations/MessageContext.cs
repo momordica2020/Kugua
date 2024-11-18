@@ -79,15 +79,17 @@ namespace Kugua
                     }
                 }
                 bool firstFrame = true;
+                if (msgStrings.Count <= 0) msgStrings.Add("");
                 foreach(var s in msgStrings)
                 {
                     var pmsg = new List<Message>();
                     if (firstFrame)
                     {
+                        //foreach (var item in sendMessagesOthers)pmsg.Add(item);
                         pmsg.AddRange(sendMessagesOthers);
                         firstFrame = false;
                     }
-                    pmsg.Add(new Plain(s));
+                    if(!string.IsNullOrWhiteSpace(s)) pmsg.Add(new Plain(s));
                     
                     if (client is LocalClient)
                     {
