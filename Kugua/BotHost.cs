@@ -579,6 +579,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 groupId = s.group.id,
                 client = ClientX,
                 recvMessages = e,
+                isTemp=true,
             };
             HistoryManager.Instance.saveMsg(sourceItem.id, context.groupId, context.userId, context.recvMessages.MGetPlainString());
             HandleGroupMessageReceiveMultiIO(context);
