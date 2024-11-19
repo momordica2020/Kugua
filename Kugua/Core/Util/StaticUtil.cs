@@ -374,7 +374,7 @@ namespace Kugua
             inputFile = Path.GetFullPath(inputFile);
             string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.wav";
             string cmd = "D:\\ffmpeg\\bin\\ffmpeg.exe";
-            string param = $" -i {inputFile} -acodec libmp3lame -y {outputFile}";
+            string param = $" -i \"{inputFile}\" -acodec libmp3lame -y \"{outputFile}\"";
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
@@ -416,12 +416,12 @@ namespace Kugua
             {
                 //param = $" -i {inputFile} -acodec amr_wb -ar 16000 -ac 1 -filter:a \"loudnorm=i=-14:tp=0.0\" -y {outputFile}";
                 //param = $" -i {inputFile} -acodec amr_wb -ar 16000 -ac 1 -filter:a \"volume={addDB}dB\" -y {outputFile}";
-                param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"loudnorm=i=-14:tp=0.0\" -y {outputFile}";
+                param = $" -i \"{inputFile}\" -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"loudnorm=i=-14:tp=0.0\" -y \"{outputFile}\"";
                 // param = $" -i {inputFile} -c:a amr_nb -b:a 12.20k -ar 8000 -filter:a \"volume={addDB}dB\" -y {outputFile}";
             }
             else
             {
-                    param = $" -i {inputFile} -acodec amr_wb -ar 16000 -ac 1 -y {outputFile}";
+                    param = $" -i \"{inputFile}\" -acodec amr_wb -ar 16000 -ac 1 -y \"{outputFile}\"";
                 //param = $" -i {inputFile} -acodec amr_nb -ab 12.2k -ar 8000 -ac 1 -y {outputFile}";
             }
             

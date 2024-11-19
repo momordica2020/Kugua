@@ -36,7 +36,45 @@ namespace Kugua
             UseProxy = true,
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // 忽略所有证书错误
         };
-        public static async void DownloadImageAsync(string url, string localPath)
+
+        public static void Download(string url, string localPath, bool useProxy=false)
+        {
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                UseProxy = useProxy,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // 忽略所有证书错误
+            };
+            if (useProxy)
+            {
+                handler.Proxy = new WebProxy(proxyAddress);
+            }
+            using (HttpClient client = new HttpClient(handler))
+            {
+                try
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", defaultHeaderAgentString);
+
+                    // 获取图片的响应
+                    using (HttpResponseMessage response = client.GetAsync(url).Result)
+                    {
+                        response.EnsureSuccessStatusCode(); // 确保请求成功
+
+                        // 读取图片内容
+                        using (var stream = response.Content.ReadAsStream())
+                        using (var fileStream = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            stream.CopyTo(fileStream); // 将内容写入本地文件
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+            }
+        }
+        public static async void DownloadAsync(string url, string localPath)
         {
             //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
             HttpClientHandler handler = new HttpClientHandler
@@ -199,7 +237,32 @@ namespace Kugua
             return Regex.Replace(htmlDocument.DocumentNode.InnerText, @"\s+", "");
         }
 
+        public static string Get(string url)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    // 发送 POST 请求
+                    HttpResponseMessage response = client.GetAsync(url).Result;
 
+                    // 确认响应状态
+                    response.EnsureSuccessStatusCode();
+
+                    // 读取响应内容
+                    string responseBody = response.Content.ReadAsStringAsync().Result;
+                    //Console.WriteLine("Received response: " + responseBody);
+
+                    return responseBody;
+                }
+                catch (HttpRequestException e)
+                {
+                    Logger.Log(e);
+                }
+            }
+
+            return "";
+        }
         public static async Task<string> PostAsync(string url, StringContent paramString)
         {
             using (HttpClient client = new HttpClient())

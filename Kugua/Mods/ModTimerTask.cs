@@ -1,5 +1,6 @@
 ﻿
 using System.Runtime.InteropServices.Marshalling;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using MeowMiraiLib;
 using MeowMiraiLib.Msg;
@@ -84,24 +85,91 @@ namespace Kugua
             else return "";
             
         }
-
+        MusicDownloader musicDownloader = new MusicDownloader();
         private string getMusic(MessageContext context, string[] param)
         {
-            string mname = param[1].Trim();
-            var music = Directory.GetFiles(@"D:\Projects\musicapi\music", $"{mname}.mp3");
-            if (music.Length > 0)
+            try
             {
-                var amrb64 = StaticUtil.Mp32AmrBase64(music.First());
-                if (!string.IsNullOrWhiteSpace(amrb64))
+                string mname = param[1].Trim();
+                string localPath = "";// Config.Instance.ResourceFullPath($"music/{mname}.mp3");
+                string infoDesc = "";
+                string url = "";
+                int index = 1;
+               
+                var mlist = musicDownloader.GetMusicList(mname);
+                if (mlist != null)
                 {
-                    context.SendBack(new Message[] {
-                        new Voice(null, null, null, amrb64)
-                    });
+                    foreach (var vm in mlist)
+                    {
+                        if (vm.CanDownload)
+                        {
+                            if (string.IsNullOrWhiteSpace(localPath))
+                            {
+                                localPath = Config.Instance.ResourceFullPath($"music/{vm.Name}_{vm.Singer}.mp3");
+                                if (System.IO.File.Exists(localPath)) System.IO.File.Delete(localPath);
+                                url = musicDownloader.GetMusicDownloadURL(vm.DownloadInfo, enmMusicSource.QQ);
+                                Network.Download(url, localPath);
+                                    
+                                    
+                                infoDesc += $"[{index++}]-{vm.Name} {vm.Singer} ({vm.Class})\n";
+                            }
+                            else
+                            {
+                                infoDesc += $" {index++} -{vm.Name} {vm.Singer} ({vm.Class})\n";
+                            }
+                                
+                        }
+
+                    }
                 }
                 
+                if (!string.IsNullOrWhiteSpace(infoDesc))
+                {
+                    context.SendBackPlain(infoDesc, true);
+                }
+                if (!string.IsNullOrWhiteSpace(localPath) && System.IO.File.Exists(localPath))
+                {
+                    context.SendBack(new Message[] {
+                                new Voice(null, null, localPath)
+                            });
+                    //var amrb64 = StaticUtil.Mp32AmrBase64(localPath);
+                    //if (!string.IsNullOrWhiteSpace(amrb64))
+                    //{
+                    //    context.SendBack(new Message[] {
+                    //            new Voice(null, null, null, amrb64)
+                    //        });
+                    //}
+                }
                 return null;
+
             }
-            return $"曲库没有{mname}";
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+
+            }
+            return $"不给点";
+
+
+            
+
+
+
+
+            //var music = Directory.GetFiles(@"D:\Projects\musicapi\music", $"{mname}.mp3");
+            //if (music.Length > 0)
+            //{
+            //    var amrb64 = StaticUtil.Mp32AmrBase64(music.First());
+            //    if (!string.IsNullOrWhiteSpace(amrb64))
+            //    {
+            //        context.SendBack(new Message[] {
+            //            new Voice(null, null, null, amrb64)
+            //        });
+            //    }
+                
+            //    return null;
+            //}
+            //return $"曲库没有{mname}";
             //if(!string.IsNullOrWhiteSpace(mname))
         }
 
@@ -192,7 +260,7 @@ namespace Kugua
             string data = "";
             data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
 
-            GPT.Instance.AITalk(context, $"你是谁啊？");
+            //GPT.Instance.AITalk(context, $"你是谁啊？");
 
 
             //foreach (var msg in e)
@@ -203,20 +271,20 @@ namespace Kugua
 
 
 
-            //new GroupMessage(groupId, [
+            //new GroupMessage(context.groupId, [
             //        //new At(userId, ""),
-            //        new Plain($"{data}"),
-            //        new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
+            //        //new Plain($"{data}"),
+            //        //new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
+            //        new Voice(null,null,"D:\\Projects\\momordica2020\\Kugua\\output\\Debug\\net8.0\\RunningData\\music\\殇_徐嘉良.mp3")
+            //        ]).Send(context.client);
 
-            //        ]).Send(client);
 
-
-            //var ress = new Anno_publish(groupId, "Bot 公告推送").Send(client);
-            //var res2 = new Anno_list(groupId).Send(client);
-            //foreach (var ano in res2)
-            //{
-            //    data += $"{ano.content}\n望周知！\n";
-            //}
+            var ress = new Anno_publish(context.groupId, "Bot 公告推送").Send(context.client);
+            var res2 = new Anno_list(context.groupId).Send(context.client);
+            foreach (var ano in res2)
+            {
+                data += $"{ano.content}\n望周知！\n";
+            }
 
             //new GroupMessage(groupId, [
             //    //new At(userId, ""),
@@ -236,7 +304,28 @@ namespace Kugua
             return null;
         }
 
-
+        class NewsInfo
+        {
+            public string title;
+            public string desc;
+            public string url;
+            public static Dictionary<string,string> platform = new Dictionary<string, string>(){
+            { "百度","baidu" },
+            { "少数派","shaoshupai" },
+            { "微博","weibo" },
+            { "知乎","zhihu" },
+            { "36氪","36kr" },
+            { "52破解","52pojie" },
+            { "b站","bilibili" },
+            { "豆瓣","douban" },
+            { "虎扑","hupu" },
+            { "贴吧","tieba" },
+            { "掘金","juejin" },
+            { "抖音","douyin" },
+            { "v2ex","v2ex" },
+            { "头条","jinritoutiao" },
+           };
+        }
         private string getSome(MessageContext context, string[] param)
         {
             try
@@ -264,7 +353,43 @@ namespace Kugua
                 {
                     files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgmj", "*.*");
                 }
+                else if (NewsInfo.platform.ContainsKey(something))
+                {
+                    List<NewsInfo> news = new List<NewsInfo>();
+                    string plat = NewsInfo.platform[something];
+                   var jstr = Network.Get($"https://orz.ai/dailynews/?platform={plat}");
+                    if (!string.IsNullOrWhiteSpace(jstr))
+                    {
+                        string res = "";
+                        var jo = JsonObject.Parse(jstr);
+                        if (jo["data"] != null)
+                        {
+                            foreach (var item in jo["data"]?.AsArray())
+                            {
+                                var n = new NewsInfo
+                                {
+                                    title = item["title"]?.ToString(),
+                                    url = item["url"]?.ToString(),
+                                    desc = item["desc"]?.ToString(),
+                                };
 
+                                news.Add(n);
+                            }
+                        }
+                        if (news.Count > 0)
+                        {
+                            var nlist = news.Select(e=>e.title).ToArray();
+                            StaticUtil.FisherYates(nlist);
+                            for(int i=0; i < Math.Min(10, news.Count); i++)
+                            {
+                                if (!string.IsNullOrWhiteSpace(nlist[i])) res += $"- {nlist[i]}\r\n";
+                            }
+                        }
+                        //LocalStorage.writeLines(Config.Instance.ResourceFullPath("news.txt"), news.Select(v => $"{DateTime.Now.ToString("yyyyMMdd")}\t{v.title}\t{v.desc}\t{v.url}"));
+                        context.SendBackPlain(res);
+                        return null;
+                    }
+                }
 
 
                 if (files != null)
@@ -334,6 +459,11 @@ namespace Kugua
 
         private void TaskTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            // 系统定时任务
+            
+
+
+            // 用户的定时任务
             for(int i = tasks.Count - 1; i >= 0; i--)
             {
                 try
@@ -566,7 +696,7 @@ namespace Kugua
                     {
                         string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{context.userId}";
                         if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
-                        Network.DownloadImageAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
+                        Network.DownloadAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
                     }
                     //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
 

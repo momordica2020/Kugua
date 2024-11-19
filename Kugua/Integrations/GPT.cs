@@ -142,18 +142,18 @@ namespace Kugua
                 string res = jsonResponse["audio_files"].First()["filename"].ToString();
 
 
-                string amrf = StaticUtil.Wav2Amr(res, 1);
-                var amrb64 = StaticUtil.ConvertFileToBase64(amrf);
-                if (string.IsNullOrWhiteSpace(amrb64)) return;
+                //string amrf = StaticUtil.Wav2Amr(res, 1);
+                //var amrb64 = StaticUtil.ConvertFileToBase64(amrf);
+                //if (string.IsNullOrWhiteSpace(amrb64)) return;
 
                 //Logger.Log($"=> {amrFile}");
 
                 Message[] msg = [
-                        new Voice(null,null,null, amrb64)
+                        new Voice(null,null,res)
                ];
                 context.SendBack(msg);
                 Thread.Sleep(1000);
-                System.IO.File.Delete(amrf);
+                //System.IO.File.Delete(amrf);
                 System.IO.File.Delete(res);
 
 
