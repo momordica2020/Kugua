@@ -28,7 +28,7 @@ namespace Kugua
 
         List<MyTask> tasks = new List<MyTask>();
 
-
+        //IpLocation ipLocation;
 
 
 
@@ -50,6 +50,8 @@ namespace Kugua
 
             ModCommands[new Regex(@"^闹钟(列表|信息|状态)\b+")] = checkClock;
 
+            ModCommands[new Regex(@"^查IP(.+)")] = checkIP;
+
             ModCommands[new Regex(@"^(删除闹钟|别[叫喊][了我]?)")] = removeClock;
 
 
@@ -57,9 +59,40 @@ namespace Kugua
             TaskTimer.AutoReset = true;
             TaskTimer.Start();
             TaskTimer.Elapsed += TaskTimer_Elapsed;
-            
-            
+
+            //ipLocation = new IpLocation();
+
+
             return true;
+        }
+
+        private string checkIP(MessageContext context, string[] param)
+        {
+            var ipstr = param[1].Trim();
+            try
+            {
+                string ipcheck = $"https://ip.dnomd343.top/info/{ipstr}";
+                var dd = Network.Get(ipcheck);
+                if (dd != null)
+                {
+                    var jo = JsonObject.Parse(dd.ToString());
+                    string res = $"{jo["detail"]} ({jo["loc"]})";
+                    return res;
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            //var res = ipLocation.Find(ipstr);
+            //if (res != null && res.Length > 0)
+            //{
+
+            //    string str = string.Join(",", res);
+            //    return str;
+            //    //return null;
+            //}
+            return "";
         }
 
         private string getOldJpg(MessageContext context, string[] param)
