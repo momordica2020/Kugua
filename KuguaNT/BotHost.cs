@@ -460,11 +460,11 @@ _OnUnknownEvent	string	接收到后端传送未知指令
                 isAskme = true
             };
             HistoryManager.Instance.saveMsg(e.message_id, context.groupId, context.userId, e.raw_message);
-            HandleFriendMessageReceiveMultiIO(context);
+            HandlePrivateMessageReceiveMultiIO(context);
         }
 
 
-        async void HandleFriendMessageReceiveMultiIO(MessageContext context)
+        async void HandlePrivateMessageReceiveMultiIO(MessageContext context)
         {
             if (!Config.Instance.AllowPlayer(context.userId)) return; // 黑名单
             if (context.recvMessages == null) return;
