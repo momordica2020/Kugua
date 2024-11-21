@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "KuguaNT": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\Projects\\momordica2020\\Kugua\\output\\Debug\\net8.0",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": ""
+    }
+  }
+}

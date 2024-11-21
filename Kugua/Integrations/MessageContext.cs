@@ -46,12 +46,55 @@ namespace Kugua
             }
         }
 
+        private void tmp_sendAnno(Message[] messages)
+        {
+            string txt = "";
+            string imgurl = "";
+            string imgbase64 = "";
+            foreach(var item in messages)
+            {
+                if (item is Plain p) txt += p.text + "\r\n";
+                else if(item is Image img)
+                {
+                    if (img.base64 != null)
+                    {
+                        imgbase64 = img.base64;
+                    }
+                    if (img.path != null)
+                    {
+                        imgurl = img.path;
+                    }
+                }
+            }
+            //Logger.Log(imgbase64 + "\r\n" + imgurl);
+            //if (string.IsNullOrWhiteSpace(txt)) txt = ",,,";
+           if(!string.IsNullOrWhiteSpace(txt) || !string.IsNullOrWhiteSpace(imgurl) ||!string.IsNullOrWhiteSpace(imgbase64))
+            {
+                new Anno_publish(groupId, txt, false, false, false, true, false, null, string.IsNullOrWhiteSpace(imgurl) ? null : imgurl, string.IsNullOrWhiteSpace(imgbase64) ? null : imgbase64).Send(client);
+
+            }
+
+        }
+
 
         public void SendBack(Message[] _sendMessages)
         {
             if (_sendMessages != null)
             {
                 if (client == null) return;
+                //if (groupId != 0)
+                //{
+                //    try
+                //    {
+                //        tmp_sendAnno(_sendMessages);
+                //    }
+                //    catch (Exception ex)
+                //    {
+
+                //    }
+                //    return;
+                //}
+      
 
                 // filtered
                 List<string> msgStrings = new List<string>();

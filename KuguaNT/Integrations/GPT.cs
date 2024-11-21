@@ -1,9 +1,9 @@
 ﻿
-using MeowMiraiLib.Msg.Type;
+
 
 using System.Text;
 
-using MeowMiraiLib.Msg;
+
 
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
@@ -11,8 +11,8 @@ using System.Diagnostics;
 
 using Newtonsoft.Json;
 using System.Web;
-using MeowMiraiLib;
-using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
+using Kugua.Integrations.NTBot;
+
 
 
 
@@ -149,7 +149,7 @@ namespace Kugua
                 //Logger.Log($"=> {amrFile}");
                 //var resInc = StaticUtil.WavInc(res);
                 Message[] msg = [
-                        new Voice(null,null,res)
+                        new Record($"file://{res}",0)
                ];
                 context.SendBack(msg);
                 Thread.Sleep(3000);
@@ -190,7 +190,7 @@ namespace Kugua
 
 
 
-        public static string GetChatId(long groupId, long userId)
+        public static string GetChatId(string groupId, string userId)
         {
             return $"{groupId}_{userId}";
         }
@@ -224,14 +224,14 @@ namespace Kugua
         }
 
 
-        public void AISetPrompt(long groupId, long userId, string prompt)
+        public void AISetPrompt(string groupId, string userId, string prompt)
         {
             string chatId = GetChatId(groupId, userId);
 
             ChatMessageList[chatId] = new List<dynamic> { new { role = "system", content = prompt } };
         }
 
-        public void AIClearMemory(long groupId, long userId)
+        public void AIClearMemory(string groupId, string userId)
         {
 
             string uniqKey = GetChatId(groupId, userId);
@@ -611,7 +611,7 @@ namespace Kugua
                     //        description = $"Image {i + 1}" // 可选描述信息
                     //    };
                     //}
-                    var res = await SendChatImageRequest(context.recvMessages.MGetPlainString(), imgUrls);
+                    var res = await SendChatImageRequest(context.recvMessages.ToTextString(), imgUrls);
                     //UserMessageList[chatid].Add(new { role = "assistant", content = res });
 
                     res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
@@ -637,7 +637,7 @@ namespace Kugua
             try
             {
                 if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.OllamaUri)) return;
-                if(string.IsNullOrWhiteSpace(context.recvMessages.MGetPlainString())) return;
+                if(string.IsNullOrWhiteSpace(context.recvMessages.ToTextString())) return;
                 string chatId = GetChatId(context.groupId, context.userId);
                 if (string.IsNullOrWhiteSpace(chatId)) return;
                 if (!ChatMessageList.ContainsKey(chatId))
@@ -651,7 +651,7 @@ namespace Kugua
                 //    return;
                 //}
                 ChatMessageContext[chatId] = context;
-                ChatMessageList[chatId].Add(new { role = "user", content = context.recvMessages.MGetPlainString() });
+                ChatMessageList[chatId].Add(new { role = "user", content = context.recvMessages.ToTextString() });
 
                 await HandleMessageList(chatId, ChatMessageList[chatId]);
 
@@ -883,7 +883,7 @@ namespace Kugua
                         var base64data = await Network.ConvertImageUrlToBase64(imageUrl);
                         if (base64data.Length > 0)
                         {
-                            ChatMessageContext[chatid].SendBack([new Image(null, null, null, base64data)]);
+                            ChatMessageContext[chatid].SendBack([new Image($"base64://{base64data}")]);
                             return "图片发送成功！";
                         }
                     }

@@ -1,10 +1,6 @@
-﻿using MeowMiraiLib;
-using MeowMiraiLib.Msg;
-using MeowMiraiLib.Msg.Sender;
-using MeowMiraiLib.Msg.Type;
+﻿
 using System.Text;
 using System.Text.RegularExpressions;
-using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
 
 
 namespace Kugua
@@ -30,9 +26,9 @@ namespace Kugua
         object matchMutex = new object();
 
 
-        public Dictionary<long, RHUser> users = new Dictionary<long, RHUser>();
+        public Dictionary<string, RHUser> users = new Dictionary<string, RHUser>();
         public Dictionary<string, RHHorse> horses = new Dictionary<string, RHHorse>();
-        public Dictionary<long, RHMatch> matches = new Dictionary<long, RHMatch>();
+        public Dictionary<string, RHMatch> matches = new Dictionary<string, RHMatch>();
 
         public TimeSpan raceBegin = new TimeSpan(21, 0, 0);
         public TimeSpan raceEnd = new TimeSpan(23, 0, 0);
@@ -326,7 +322,7 @@ namespace Kugua
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public string UserHistory(long id)
+        public string UserHistory(string id)
         {
             if (users.ContainsKey(id))
             {

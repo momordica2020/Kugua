@@ -1,13 +1,10 @@
 ﻿
+using Kugua.Integrations.NTBot;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using MeowMiraiLib;
-using MeowMiraiLib.Msg;
-using MeowMiraiLib.Msg.Sender;
-using MeowMiraiLib.Msg.Type;
 
-using static MeowMiraiLib.Msg.Sender.GroupMessageSender;
+
 
 
 namespace Kugua
@@ -53,7 +50,6 @@ namespace Kugua
             ModCommands[new Regex(@"^查IP(.+)")] = checkIP;
 
             ModCommands[new Regex(@"^(删除闹钟|别[叫喊][了我]?)")] = removeClock;
-            ModCommands[new Regex(@"^拍拍我")] = Paipai;
 
 
             TaskTimer = new(1000 * 10);
@@ -65,27 +61,6 @@ namespace Kugua
 
 
             return true;
-        }
-
-        private string Paipai(MessageContext context, string[] param)
-        {
-            try
-            {
-                Logger.Log(context.groupId > 0 ? "Group" : (context.isTemp ? "Stranger" : "Friend"));
-                new SendNudge(
-                    context.userId, 
-                    context.groupId, 
-                    context.groupId > 0 ? "Group" : (context.isTemp ? "Stranger" : "Friend")).Send(context.client);
-
-                
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-            return "";
         }
 
         private string checkIP(MessageContext context, string[] param)
@@ -131,7 +106,7 @@ namespace Kugua
                     //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),
-                        new Image(null,null,null, newImgbase64),
+                        new Image($"base64://{newImgbase64}"),
                         ]);
                     findImg = true;
                 }
@@ -185,7 +160,7 @@ namespace Kugua
                 if (!string.IsNullOrWhiteSpace(localPath) && System.IO.File.Exists(localPath))
                 {
                     context.SendBack(new Message[] {
-                                new Voice(null, null, localPath)
+                                new Record($"file://{localPath}",0)
                             });
                     //var amrb64 = StaticUtil.Mp32AmrBase64(localPath);
                     //if (!string.IsNullOrWhiteSpace(amrb64))
@@ -311,9 +286,9 @@ namespace Kugua
         private string checkState(MessageContext context, string[] param)
         {
             if (context.client is LocalClient) return "";
-            var res = new BotProfile().Send(context.client);
+            //var res = new BotProfile().Send(context.client);
             string data = "";
-            data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
+            //data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
 
             //GPT.Instance.AITalk(context, $"你是谁啊？");
 
@@ -334,12 +309,12 @@ namespace Kugua
             //        ]).Send(context.client);
 
 
-            var ress = new Anno_publish(context.groupId, "Bot 公告推送").Send(context.client);
-            var res2 = new Anno_list(context.groupId).Send(context.client);
-            foreach (var ano in res2)
-            {
-                data += $"{ano.content}\n望周知！\n";
-            }
+            //var ress = new Anno_publish(context.groupId, "Bot 公告推送").Send(context.client);
+            //var res2 = new Anno_list(context.groupId).Send(context.client);
+            //foreach (var ano in res2)
+            //{
+            //    data += $"{ano.content}\n望周知！\n";
+            //}
 
             //new GroupMessage(groupId, [
             //    //new At(userId, ""),
@@ -451,7 +426,7 @@ namespace Kugua
                 {
                     string fname = files[MyRandom.Next(files.Length)];
                     var msg = new Message[] {
-                        new Image(null,null,fname),
+                        new Image($"file://{fname}"),
                     };
                     context.SendBack(msg);
                     return null;
@@ -468,14 +443,14 @@ namespace Kugua
 
         private string refreshList(MessageContext context, string[] param)
         {
-            if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
-            {
-                Logger.Log($"更新好友列表和群列表...");
-                RefreshFriendList();
-                Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
+            //if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
+            //{
+            //    Logger.Log($"更新好友列表和群列表...");
+            //    RefreshFriendList();
+            //    Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
 
-                return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
-            }
+            //    return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
+            //}
             return "";
         }
 
@@ -493,14 +468,14 @@ namespace Kugua
                 {
                     Logger.Log($"?{historys[i].messageId}");
 
-                    if (clientMirai != null)
-                    {
-                        new GroupMessage(context.groupId, [
-                            new Quote(historys[i].messageId,context.groupId,context.userId,context.groupId,
-                                [new Plain(historys[i].message)])]
-                            ).Send(clientMirai);
-                        new Recall(historys[i].messageId).Send(clientMirai);
-                    }
+                    //if (clientMirai != null)
+                    //{
+                    //    new GroupMessage(context.groupId, [
+                    //        new Quote(historys[i].messageId,context.groupId,context.userId,context.groupId,
+                    //            [new Plain(historys[i].message)])]
+                    //        ).Send(clientMirai);
+                    //    new Recall(historys[i].messageId).Send(clientMirai);
+                    //}
                 }
                 return null;
                 //new MeowMiraiLib.Msg.GroupMessage(groupId, [
@@ -542,62 +517,62 @@ namespace Kugua
         {
             try
             {
-                if (clientMirai != null)
-                {
-                    var fp = new FriendList().Send(clientMirai);
-                    Config.Instance.qqfriends.Clear();
-                    if (fp == null)
-                    {
-                        Logger.Log($"不会吧不会吧不会没有好友吧");
+                //if (clientMirai != null)
+                //{
+                //    var fp = new FriendList().Send(clientMirai);
+                //    Config.Instance.qqfriends.Clear();
+                //    if (fp == null)
+                //    {
+                //        Logger.Log($"不会吧不会吧不会没有好友吧");
 
-                    }
-                    else
-                    {
-                        foreach (var f in fp)
-                        {
-                            var friend = Config.Instance.UserInfo(f.id);
-                            friend.Name = f.nickname;
-                            //friend.Mark = f.remark;
-                            friend.Tags.Add("好友");
-                            //friend.Type = PlayerType.Normal;
-                            Config.Instance.qqfriends.Add(f.id, f);
-                        }
-                    }
-
-
+                //    }
+                //    else
+                //    {
+                //        foreach (var f in fp)
+                //        {
+                //            var friend = Config.Instance.UserInfo(f.id);
+                //            friend.Name = f.nickname;
+                //            //friend.Mark = f.remark;
+                //            friend.Tags.Add("好友");
+                //            //friend.Type = PlayerType.Normal;
+                //            Config.Instance.qqfriends.Add(f.id, f);
+                //        }
+                //    }
 
 
-                    var gp = new GroupList().Send(clientMirai);
-                    Config.Instance.qqgroups.Clear();
-                    Config.Instance.qqgroupMembers.Clear();
-                    if (gp == null)
-                    {
-                        Logger.Log($"不会吧不会吧不会没有群吧");
 
-                    }
-                    else
-                    {
-                        foreach (var g in gp)
-                        {
-                            var group = Config.Instance.GroupInfo(g.id);
-                            group.Name = g.name;
-                            var groupMembers = g.GetMemberList(clientMirai);
-                            if (groupMembers == null)
-                            {
-                                Logger.Log($"不会吧不会吧不会{g.id}是鬼群吧");
-                                continue;
-                            }
-                            Config.Instance.qqgroups.Add(g.id, g);
-                            Config.Instance.qqgroupMembers.Add(g.id, groupMembers);
-                            foreach (var gf in groupMembers)
-                            {
-                                var member = Config.Instance.UserInfo(gf.id);
-                                member.Mark = gf.memberName;    //群昵称？
-                            }
-                        }
-                    }
 
-                }
+                //    var gp = new GroupList().Send(clientMirai);
+                //    Config.Instance.qqgroups.Clear();
+                //    Config.Instance.qqgroupMembers.Clear();
+                //    if (gp == null)
+                //    {
+                //        Logger.Log($"不会吧不会吧不会没有群吧");
+
+                //    }
+                //    else
+                //    {
+                //        foreach (var g in gp)
+                //        {
+                //            var group = Config.Instance.GroupInfo(g.id);
+                //            group.Name = g.name;
+                //            var groupMembers = g.GetMemberList(clientMirai);
+                //            if (groupMembers == null)
+                //            {
+                //                Logger.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+                //                continue;
+                //            }
+                //            Config.Instance.qqgroups.Add(g.id, g);
+                //            Config.Instance.qqgroupMembers.Add(g.id, groupMembers);
+                //            foreach (var gf in groupMembers)
+                //            {
+                //                var member = Config.Instance.UserInfo(gf.id);
+                //                member.Mark = gf.memberName;    //群昵称？
+                //            }
+                //        }
+                //    }
+
+                //}
             }
             catch (Exception ex)
             {
@@ -608,7 +583,7 @@ namespace Kugua
 
 
 
-        int TaskRemove(long userId, long groupId)
+        int TaskRemove(string userId, string groupId)
         {
             int haveTask = 0;
             for (int i = tasks.Count - 1; i >= 0; i--)
@@ -631,14 +606,14 @@ namespace Kugua
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (context.recvMessages == null || context.recvMessages.Length < 2) return false;
+            if (context.recvMessages == null) return false;
 
             var source = context.recvMessages[0];
             if (context.isPrivate)
             {
                 foreach (var msg in context.recvMessages)
                 {
-                    if (msg is Plain plain)
+                    if (msg is Text plain)
                     {
                         var str = plain.text;
                         if (str == "测试")
@@ -654,7 +629,7 @@ namespace Kugua
                         //    ]).Send(client);
                         return false;
                     }
-                    if (msg is Voice voice)
+                    if (msg is Record voice)
                     {
 
                         //new FriendMessage(s.id, [
@@ -667,7 +642,7 @@ namespace Kugua
             }
             else if (context.isGroup)
             {
-                var message = context.recvMessages.MGetPlainString();
+                var message = context.recvMessages.ToTextString();
                 var group = Config.Instance.GroupInfo(context.groupId);
                 var user = Config.Instance.UserInfo(context.userId);
 
@@ -676,7 +651,7 @@ namespace Kugua
                     if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
                     {
                         List<string> imgPaths = new List<string>();
-                        string cmd = context.recvMessages.MGetPlainString();
+                        string cmd = context.recvMessages.ToTextString();
                         foreach (var item in context.recvMessages)
                         {
                             if (item is Image image)
@@ -704,7 +679,7 @@ namespace Kugua
                     foreach (var msg in context.recvMessages)
                     {
 
-                        if (msg is Plain plain)
+                        if (msg is Text plain)
                         {
                             if (plain.text == "发语音")
                             {
@@ -749,9 +724,9 @@ namespace Kugua
 
                     if (msg is Image itemImg)
                     {
-                        string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{context.userId}";
-                        if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
-                        Network.DownloadAsync(itemImg.url, $"{userImgDict}/{itemImg.imageId}");
+                        //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{context.userId}";
+                        //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+                        //Network.DownloadAsync(itemImg.url, $"{userImgDict}/{}.jpg");
                     }
                     //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
 
@@ -784,17 +759,16 @@ namespace Kugua
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        bool isAskMe(MeowMiraiLib.Msg.Type.Message[] e)
+        bool isAskMe(Message[] e)
         {
             foreach(var item in e)
             {
-                if (item is AtAll) return true;
                 if(item is At itemat)
                 {
-                    if(itemat.target == Config.Instance.App.Avatar.myQQ)  return true;
+                    if(itemat.qq == Config.Instance.App.Avatar.myQQ)  return true;
                     
                 }
-                if(item is Plain plain)
+                if(item is Text plain)
                 {
                     if (plain.text.TrimStart().StartsWith(Config.Instance.App.Avatar.askName))
                     {
