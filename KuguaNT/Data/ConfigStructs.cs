@@ -1,4 +1,6 @@
-﻿namespace Kugua
+﻿using System.Numerics;
+
+namespace Kugua
 {
     #region 用户和 群组
 
@@ -24,7 +26,7 @@
 
 
 
-        public long Money { get; set; }
+        public BigInteger Money { get; set; }
         public DateTime LastSignTime { get; set; }
         public long SignTimes { get; set; }
 

@@ -383,6 +383,10 @@ namespace Kugua
                 {
                     files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgmj", "*.*");
                 }
+                else if (something == "车万" || something=="东方")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgth", "*.*");
+                }
                 else if (NewsInfo.platform.ContainsKey(something))
                 {
                     List<NewsInfo> news = new List<NewsInfo>();

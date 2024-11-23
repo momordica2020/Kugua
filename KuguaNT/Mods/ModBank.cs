@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ChatGPT.Net;
+
 
 namespace Kugua
 {
@@ -29,18 +31,58 @@ namespace Kugua
         {
             ModCommands[new Regex(@"^签到$")] = DailyAttendance;
 
-            ModCommands[new Regex(@"^发币(\d+)")] = AddBotMoney;
-
+            ModCommands[new Regex(@"^发币(.+)")] = AddBotMoney;
+            ModCommands[new Regex(@"^给(.+)补贴(.+)")] = Grant;
+            //ModCommands[new Regex(@"^捐(.+)")] = Donate;
+            //ModCommands[new Regex(@"^供养(.+)")] = Donate2;
             ModCommands[new Regex(@"^(富人榜|富豪榜)")] = showRichest;
 
             ModCommands[new Regex(@"^(穷人榜)")] = showPoorest;
 
-            ModCommands[new Regex(@"^给(.+)转\s*(\d+)")] = PostMoney;
+            ModCommands[new Regex(@"^给(.+)转(.+)")] = PostMoney;
 
 
 
 
             return true;
+        }
+
+        //private string Donate2(MessageContext context, string[] param)
+        //{
+            
+        //}
+
+        //private string Donate(MessageContext context, string[] param)
+        //{
+            
+        //}
+
+        /// <summary>
+        /// 苦银个人补贴
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string Grant(MessageContext context, string[] param)
+        {
+            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            
+            
+            long targetqq = -1;
+            if (!long.TryParse(param[1], out targetqq)) return $"{param[1]}?不认识";
+            var money = StaticUtil.ConvertToBigInteger(param[2]);
+            if(money > 0)
+            {
+                string res = "";
+                // 补贴
+                BigInteger succeedMoney = TransMoney(Config.Instance.BotQQ, targetqq.ToString(), money, out res);
+                //racehorse.dailyAttendance(group, user);
+                return res;
+            }
+            else
+            {
+                return "？";
+            }
         }
 
         private string PostMoney(MessageContext context, string[] param)
@@ -62,8 +104,8 @@ namespace Kugua
                 }
                 else
                 {
-                    long money = long.Parse(param[2]);
-                    long succeedMoney = TransMoney(context.userId, targetqq.ToString(), money, out res);
+                    BigInteger money = StaticUtil.ConvertToBigInteger(param[2]);
+                    BigInteger succeedMoney = TransMoney(context.userId, targetqq.ToString(), money, out res);
                 }
 
                 if (!string.IsNullOrWhiteSpace(res))
@@ -75,11 +117,18 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// bot增加存款
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string AddBotMoney(MessageContext context, string[] param)
         {
             if (Config.Instance.UserHasAdminAuthority(context.userId))
             {
-                if (long.TryParse(param[1], out long money))
+                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                if (money > 0)
                 {
                     var message = AddMoney(context.groupId, Config.Instance.BotQQ, money);
                     //racehorse.dailyAttendance(group, user);
@@ -97,7 +146,7 @@ namespace Kugua
         /// <param name="userqq"></param>
         /// <param name="money"></param>
         /// <returns></returns>
-        public string AddMoney(string group, string userqq, long money)
+        public string AddMoney(string group, string userqq, BigInteger money)
         {
             string answer = "";
             try
@@ -106,7 +155,7 @@ namespace Kugua
                 var u = Config.Instance.UserInfo(userqq);
 
                 u.Money += money;
-                answer += $"{u.Name} 新到账 {money}元。{unitName}余额：{u.Money}";
+                answer += $"{u.Name} 新到账 {money}元。{unitName}余额：{u.Money.ToHans()}";
             }
             catch(Exception ex)
             {
@@ -135,7 +184,7 @@ namespace Kugua
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
-                return $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money}枚";
+                return $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money.ToHans()}枚";
             }
             else
             {
@@ -148,7 +197,7 @@ namespace Kugua
         public string getUserInfo(string userqq)
         {
             var u = Config.Instance.UserInfo(userqq);
-            return $"您的账上共有{u.Money}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
+            return $"您的账上共有{u.Money.ToHans()}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
         }
 
         /// <summary>
@@ -156,7 +205,7 @@ namespace Kugua
         /// </summary>
         /// <param name="userqq"></param>
         /// <returns></returns>
-        public long GetMoney(string userqq)
+        public BigInteger GetMoney(string userqq)
         {
             var user = Config.Instance.UserInfo(userqq);
             return user.Money;
@@ -170,7 +219,7 @@ namespace Kugua
         /// <param name="money">转账金额</param>
         /// <param name="message">转账结果信息</param>
         /// <returns>成功钱数，失败为0</returns>
-        public long TransMoney(string fromqq, string targetqq, long money, out string message)
+        public BigInteger TransMoney(string fromqq, string targetqq, BigInteger money, out string message)
         {
             message = "";
             if (money <= 0)
@@ -191,16 +240,16 @@ namespace Kugua
                 }
                 else
                 {
-                    message = $"您的余额不足。当前余额{user1.Money}{unitName}";
+                    message = $"您的余额不足。当前余额{user1.Money.ToHans()}{unitName}";
                     return 0;
                 }
 
                
             }
 
-            message = $"您向{targetqq}转了{money}枚{unitName}，";
-            long user1OldMoney = user1.Money;
-            long user2OldMoney = user2.Money;
+            message = $"您向{targetqq}转了{money.ToHans()}枚{unitName}，";
+            BigInteger user1OldMoney = user1.Money;
+            BigInteger user2OldMoney = user2.Money;
             try
             {
                 
@@ -212,7 +261,7 @@ namespace Kugua
             }
             catch (OverflowException)
             {
-                message += $"转币失败：{user1}或{user2}的{unitName}溢出，所转数额{money}，发起者余额{user1.Money}，接收者余额{user2.Money}。";
+                message += $"转币失败：{user1}或{user2}的{unitName}溢出，所转数额{money.ToHans()}，发起者余额{user1.Money.ToHans()}，接收者余额{user2.Money.ToHans()}。";
                 Logger.Log(message);
                 user1.Money = user1OldMoney; // 恢复余额
                 user2.Money = user2OldMoney; // 恢复余额
@@ -224,7 +273,7 @@ namespace Kugua
                 message += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
                 return 0;
             }
-            message += $"转币成功，您的{unitName}余额{user1.Money}，对方余额{user2.Money}";
+            message += $"转币成功，您的{unitName}余额{user1.Money.ToHans()}，对方余额{user2.Money.ToHans()}";
 
             return money;
         }
@@ -266,7 +315,7 @@ namespace Kugua
                 sb.Append($"富 豪 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())}) \r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
-                    sb.Append($"{i + 1}:{users[i].Name},{users[i].Money}枚\r\n");
+                    sb.Append($"{i + 1}:{users[i].Name},{users[i].Money.ToHans()}枚\r\n");
                 }
                 return sb.ToString();
             }
@@ -298,7 +347,7 @@ namespace Kugua
                 sb.Append($"穷 人 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())})\r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
-                    sb.Append($"{i + 1}:{users[i].Name},{users[i].Money}枚\r\n");
+                    sb.Append($"{i + 1}:{users[i].Name},{users[i].Money.ToHans()}枚\r\n");
                 }
                 return sb.ToString();
             }

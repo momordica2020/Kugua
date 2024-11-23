@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using static Kugua.ModRoulette;
 using System.Text;
 using Kugua.Integrations.NTBot;
+using System.Numerics;
 
 
 namespace Kugua
@@ -44,7 +45,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^老虎(\d+)?")] = StartGame;
+                ModCommands[new Regex(@"^老虎(.+)?")] = StartGame;
 
             }
             catch (Exception ex)
@@ -77,7 +78,7 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩老虎{h.playnum}次，共下{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩老虎{h.playnum}次，共下{h.money.ToHans()}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
             return "没有老虎游戏记录";
         }
@@ -85,15 +86,15 @@ namespace Kugua
 
         private string StartGame(MessageContext context, string[] param)
         {
-            long money = 1;
+            BigInteger money = 1;
             if (param.Length < 2) money = 1;
-            else if (!long.TryParse(param[1], out money)) money = 1;
+            money = StaticUtil.ConvertToBigInteger(param[1]);
 
             var tuser = Config.Instance.UserInfo(context.userId);
             if (tuser.Money < money)
             {
                 // money not enough.
-                return ($"{ModBank.unitName}不够，余额：{tuser.Money}");
+                return ($"{ModBank.unitName}不够，余额：{tuser.Money.ToHans()}");
             }
 
 
@@ -106,7 +107,7 @@ namespace Kugua
                     {
                         return ($"{msg}");
                     }
-                    long userNowMoney = tuser.Money;    // 防止多线程时候，后面钱数显示bug
+                    BigInteger userNowMoney = tuser.Money;    // 防止多线程时候，后面钱数显示bug
 
 
 
@@ -165,31 +166,29 @@ namespace Kugua
                     history[context.userId].id = context.userId;
                     history[context.userId].playnum++;
 
-                    string resultString = $"你投了{money}{ModBank.unitName}，";
+                    string resultString = $"你投了{money.ToHans()}{ModBank.unitName}，";
                     if (score <= 0)
                     {
-                        resultString += $"很遗憾，没中，余额{userNowMoney}";
+                        resultString += $"很遗憾，没中，余额{userNowMoney.ToHans()}";
                     }
                     else
                     {
                         history[context.userId].winnum++;
-                        long getmoney = money * (score);
+                        BigInteger getmoney = money * (score);
                         if (ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, getmoney, out string msg2) != getmoney)
                         {
-                            resultString += $"得到{score}分！但是{msg2}，余额{tuser.Money}";
+                            resultString += $"得到{score}分！但是{msg2}，余额{tuser.Money.ToHans()}";
                         }
                         else
                         {
-                            resultString += $"得到{score}分！恭喜赚得{getmoney}{ModBank.unitName}，余额{tuser.Money}";
+                            resultString += $"得到{score}分！恭喜赚得{getmoney.ToHans()}{ModBank.unitName}，余额{tuser.Money.ToHans()}";
                         }
                     }
 
                     var sendOutMsg = new Message[]
                     {
                         new At(context.userId),
-                        new Text(emojis),
-                        //new Image(null,null,null, gifBase64),
-                        new Text(resultString),
+                        new Text(emojis + "\n" + resultString),
                     };
                     context.SendBack(sendOutMsg);
                     // save();

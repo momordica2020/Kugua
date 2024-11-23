@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,7 +21,7 @@ namespace Kugua
     /// <summary>
     /// 全局功能
     /// </summary>
-    public class StaticUtil
+    public static class StaticUtil
     {
         /// <summary>
         /// 标点符号
@@ -130,30 +131,34 @@ namespace Kugua
         /// </summary>
         /// <param name="incomes"></param>
         /// <returns></returns>
-        public static double CalculateGiniCoefficient(List<long> incomes)
+        public static double CalculateGiniCoefficient(List<BigInteger> incomes)
         {
-            // Sort incomes in ascending order
             var sortedIncomes = incomes.OrderBy(income => income).ToList();
 
             int count = sortedIncomes.Count;
             if (count == 0) return 0.0;
 
-            double totalIncome = sortedIncomes.Sum();
-            if (totalIncome == 0) return 0.0;
+            BigInteger totalIncome = sortedIncomes.Aggregate(BigInteger.Zero, (acc, income) => acc + income);
+            if (totalIncome == BigInteger.Zero) return 0.0;
 
             // Calculate cumulative proportions
-            double cumulativeIncome = 0;
-            double cumulativeProportionSum = 0;
+            BigInteger cumulativeIncome = BigInteger.Zero;
+            BigInteger cumulativeProportionSum = BigInteger.Zero;
 
             for (int i = 0; i < count; i++)
             {
                 cumulativeIncome += sortedIncomes[i];
-                double currentCumulativeProportion = cumulativeIncome / totalIncome;
-                cumulativeProportionSum += currentCumulativeProportion;
+                cumulativeProportionSum += cumulativeIncome * 2;
             }
 
             // Gini coefficient formula
-            double giniCoefficient = 1 - 2 * cumulativeProportionSum / count;
+            BigInteger totalPopulation = new BigInteger(count);
+            BigInteger numerator = totalPopulation * cumulativeProportionSum;
+            BigInteger denominator = totalIncome * totalPopulation;
+
+            BigInteger giniNumerator = denominator - numerator;
+            double giniCoefficient = (double)giniNumerator / (double)denominator;
+
             return Math.Round(giniCoefficient, 2);
         }
 
@@ -173,6 +178,230 @@ namespace Kugua
             return fileInfo.LastWriteTime;
         }
 
+        #region 数字转换
+        /// <summary>
+        /// 将科学计数法字符串解析为 BigInteger
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="FormatException"></exception>
+        private static BigInteger ParseScientificNotation(string input)
+        {
+            var match = Regex.Match(input, @"^([+-]?\d+(\.\d+)?)[eE]([+-]?\d+)$");
+            if (!match.Success)
+            {
+                throw new FormatException($"Invalid scientific notation: {input}");
+            }
+
+            // 提取科学计数法部分
+            string baseValueStr = match.Groups[1].Value;
+            int exponent = int.Parse(match.Groups[3].Value);
+
+            // 分离小数部分
+            string[] baseParts = baseValueStr.Split('.');
+            BigInteger integerPart = BigInteger.Parse(baseParts[0]);
+            BigInteger fractionalPart = baseParts.Length > 1 ? BigInteger.Parse(baseParts[1]) : BigInteger.Zero;
+            int fractionalLength = baseParts.Length > 1 ? baseParts[1].Length : 0;
+
+            // 调整指数
+            exponent -= fractionalLength;
+
+            // 构造 BigInteger
+            BigInteger result = integerPart * BigInteger.Pow(10, Math.Max(0, exponent));
+            if (fractionalPart > 0)
+            {
+                result += fractionalPart * BigInteger.Pow(10, Math.Max(0, exponent - fractionalLength));
+            }
+
+            if (exponent < 0)
+            {
+                throw new InvalidOperationException("Result is too small for BigInteger; consider a different type.");
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// 中文数字映射表
+        /// </summary>
+        private static readonly Dictionary<char, int> ChineseDigitMap = new()
+        {
+            { '零', 0 }, 
+            { '一', 1 }, 
+            { '二', 2 }, 
+            { '三', 3 }, 
+            { '四', 4 },
+            { '五', 5 }, 
+            { '六', 6 }, 
+            { '七', 7 }, 
+            { '八', 8 }, 
+            { '九', 9 }
+        };
+
+            /// <summary>
+            /// 中文单位映射表
+            /// </summary>
+            private static readonly Dictionary<string, BigInteger> ChineseUnitMap = new()
+        {
+            { "十", 10 }, 
+            { "百", 100 },
+            { "千", 1000 }, 
+            { "万", 10_000 },
+            { "亿", 100_000_000 }, 
+            { "兆", BigInteger.Pow(10, 12) },
+            { "京", BigInteger.Pow(10, 16) }, 
+            { "垓", BigInteger.Pow(10, 20) },
+            { "秭", BigInteger.Pow(10, 24) }, 
+            { "穰", BigInteger.Pow(10, 28) },
+            { "沟", BigInteger.Pow(10, 32) }, 
+            { "涧", BigInteger.Pow(10, 36) },
+            { "正", BigInteger.Pow(10, 40) }, 
+            { "载", BigInteger.Pow(10, 44) },
+            { "极", BigInteger.Pow(10, 48) }, 
+            { "无量大数", BigInteger.Pow(10, 52) },
+            { "恒河沙", BigInteger.Pow(10, 56) },
+            { "阿僧祇", BigInteger.Pow(10, 60) },
+            { "那由他", BigInteger.Pow(10, 64) }, 
+            { "不可思议", BigInteger.Pow(10, 68) },
+            { "无量数", BigInteger.Pow(10, 72) }, 
+            { "大数", BigInteger.Pow(10, 76) }
+        };
+
+        /// <summary>
+        /// 替换中文数字字符为对应阿拉伯数字
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private static string ConvertChineseDigitsToArabic(string input)
+        {
+            foreach (var pair in ChineseDigitMap)
+            {
+                input = input.Replace(pair.Key.ToString(), pair.Value.ToString());
+            }
+            return input;
+        }
+
+        public static string ToHans(this BigInteger number)
+        {
+            return ConvertToChinese(number);
+        }
+        /// <summary>
+        /// 解析字符串为BigInteger
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static BigInteger ConvertToBigInteger(string input)
+        {
+            if (input == null) return BigInteger.Zero;
+
+
+            // 检查是否是科学计数法
+            if (Regex.IsMatch(input, @"^[+-]?\d+(\.\d+)?[eE][+-]?\d+$"))
+            {
+                return ParseScientificNotation(input);
+            }
+
+            BigInteger result = 0;
+            BigInteger currentValue = 0;
+            input = ConvertChineseDigitsToArabic(input.Trim());
+
+            // 检查正负号
+            bool isNegative = input.StartsWith("负");
+            input = isNegative ? input.Substring(1) : input;
+
+            var regex = new Regex(@"(\d+)(十|百|千|万|亿|兆|京|垓|秭|穰|沟|涧|正|载|极|无量大数|恒河沙|阿僧祇|那由他|不可思议|无量数|大数)?");
+            var matches = regex.Matches(input);
+
+            foreach (Match match in matches)
+            {
+                string numberStr = match.Groups[1].Value;
+                string unit = match.Groups[2].Value;
+
+                BigInteger value = BigInteger.Parse(numberStr);
+
+                if (ChineseUnitMap.ContainsKey(unit))
+                {
+                    currentValue += value * ChineseUnitMap[unit];
+                }
+                else
+                {
+                    currentValue += value;
+                }
+
+                if (ChineseUnitMap.ContainsKey(unit))
+                {
+                    result += currentValue;
+                    currentValue = 0;
+                }
+            }
+
+            result += currentValue;
+
+            return isNegative ? -result : result;
+        }
+
+        /// <summary>
+        /// 转换 BigInteger 为中文自然语言表示
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public static string ConvertToChinese(BigInteger number)
+        {
+            if (number == 0) return "零";
+            var unitMap = new List<(BigInteger Threshold, string Unit)>
+            {
+                (BigInteger.Pow(10, 76), "大数"),
+                (BigInteger.Pow(10, 72), "无量数"),
+                (BigInteger.Pow(10, 68), "不可思议"),
+                (BigInteger.Pow(10, 64), "那由他"),
+                (BigInteger.Pow(10, 60), "阿僧祇"),
+                (BigInteger.Pow(10, 56), "恒河沙"),
+                (BigInteger.Pow(10, 48), "极"),
+                (BigInteger.Pow(10, 44), "载"),
+                (BigInteger.Pow(10, 40), "正"),
+                (BigInteger.Pow(10, 36), "涧"),
+                (BigInteger.Pow(10, 32), "沟"),
+                (BigInteger.Pow(10, 28), "穰"),
+                (BigInteger.Pow(10, 24), "秭"),
+                (BigInteger.Pow(10, 20), "垓"),
+                (BigInteger.Pow(10, 16), "京"),
+                (BigInteger.Pow(10, 12), "兆"),
+                (100_000_000, "亿"),
+                (10_000, "万"),
+                (1_000, "千"),
+                //(100, "百"),
+                //(10, "十")
+            };
+            
+            // 处理负数
+            bool isNegative = number < 0;
+            number = BigInteger.Abs(number);
+
+            var result = new List<string>();
+            foreach (var (threshold, unit) in unitMap)
+            {
+                if (number >= threshold)
+                {
+                    var value = number / threshold;
+                    result.Add($"{value}{unit}");
+                    number %= threshold;
+                }
+            }
+
+            if (number > 0)
+            {
+                if (result.Count > 0 && result[^1] != "零")
+                {
+                    result.Add("零"); // 添加“零”连接符
+                }
+                result.Add(number.ToString());
+            }
+
+            return isNegative ? "负" + string.Join("", result) : string.Join("", result);
+        }
+
+        #endregion 数字转换
 
 
         #region 洗牌算法们

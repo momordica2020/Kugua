@@ -244,13 +244,18 @@ namespace Kugua.Integrations.NTBot
 
         private async void OnMessageReceived(object? s, MessageReceivedEventArgs e)
         {
-            string json = e.Message;
+            try
+            {
+                string json = e.Message;
 
             JObject jo = JObject.Parse(json);
             //Logger.Log(jo.ToString());
             if (jo["status"] != null)
             {
                 // reply!
+              
+
+              
                 var reply = JsonConvert.DeserializeObject<SenderReplyAPI>(json);
                 //Logger.Log(jo.ToString());
                 if (reply != null)
@@ -449,7 +454,10 @@ namespace Kugua.Integrations.NTBot
                         break;
                 }
 
-
+                }
+            }catch(Exception ex)
+            {
+                Logger.Log(ex.ToString());
             }
 
         }

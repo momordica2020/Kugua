@@ -1,4 +1,6 @@
-﻿namespace Kugua
+﻿using System.Numerics;
+
+namespace Kugua
 {
     /// <summary>
     /// 玩家战绩
@@ -6,7 +8,7 @@
     public class GamePlayerHistory
     {
         public string id = "";
-        public long money = 0;
+        public BigInteger money = 0;
         public long playnum = 0;
         public long winnum = 0;
 
@@ -38,7 +40,7 @@
                     if (items.Length >= 4)
                     {
                         id = (items[0]);
-                        money = long.Parse(items[1]);
+                        money = BigInteger.Parse(items[1]);
                         playnum = long.Parse(items[2]);
                         winnum = long.Parse(items[3]);
                     }

@@ -49,9 +49,7 @@ namespace Kugua
         {
             if(client!=null && client is not LocalClient)
             {
-                Logger.Log("!!");
                 var msgid = SendBack([new Dice()]).Result;
-                Logger.Log(msgid);
                 if (!string.IsNullOrWhiteSpace(msgid))
                 {
                     var r = client.Send(new get_msg(msgid)).Result;

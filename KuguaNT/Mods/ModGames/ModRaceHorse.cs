@@ -1,4 +1,5 @@
 ﻿
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -68,7 +69,7 @@ namespace Kugua
                     ModCommands[new Regex(@"^胜率榜$")] = showBigWinner;
                     ModCommands[new Regex(@"^败率榜$")] = showBigLoser;
                     ModCommands[new Regex(@"^赌狗榜$")] = showMostPlayTime;
-                    ModCommands[new Regex(@"^^(\d+)\s*号\s*(\d+)")] = AddBet;
+                    ModCommands[new Regex(@"^^(\d+)\s*号(.+)")] = AddBet;
                 }
                 catch (Exception ex)
                 {
@@ -81,9 +82,9 @@ namespace Kugua
         private string AddBet(MessageContext context, string[] param)
         {
             int roadnum = 0;
-            long money = 0;
+            BigInteger money = StaticUtil.ConvertToBigInteger(param[2].Trim());
             if (int.TryParse(param[1], out roadnum)
-             && long.TryParse(param[2], out money))
+             && money > 0)
             {
                 if (matches.TryGetValue(context.groupId, out var matchInfo))
                 {
@@ -274,22 +275,27 @@ namespace Kugua
             try
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append("赛 🐎 赌 狗 榜 \r\n");
+                sb.Append("赌 狗 榜 \r\n");
 
                 int maxnum = 10;
-                var users = this.users.Values.ToList();
-                users.Sort((left, right) =>
+                var dogs = new Dictionary<string, BigInteger>();
+                foreach (var u in users.Values) { if (!dogs.ContainsKey(u.id)) dogs[u.id] = 0; dogs[u.id] += u.wintime + u.losetime; }
+                foreach (var u in ModRoulette.Instance.history) { if (!dogs.ContainsKey(u.Key)) dogs[u.Key] = 0; dogs[u.Key] +=u.Value.playnum; }
+                foreach (var u in ModDiceGame.Instance.history) { if (!dogs.ContainsKey(u.Key)) dogs[u.Key] = 0; dogs[u.Key] += u.Value.playnum; }
+                foreach (var u in ModSlotMachine.Instance.history) { if (!dogs.ContainsKey(u.Key)) dogs[u.Key] = 0; dogs[u.Key] += u.Value.playnum; }
+                var v = dogs.Select(d => (d.Key, d.Value)).ToList();
+                v.Sort((left, right) =>
                 {
-                    if (left.getPlayTime() < right.getPlayTime())
+                    if (left.Value < right.Value)
                         return 1;
-                    else if (left.getPlayTime() == right.getPlayTime())
+                    else if (left.Value == right.Value)
                         return 0;
                     else
                         return -1;
                 });
-                for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
+                for (int i = 0; i < Math.Min(v.Count, maxnum); i++)
                 {
-                    sb.Append($"{i + 1}:{Config.Instance.UserInfo(users[i].id).Name},赌了{users[i].wintime + users[i].losetime}次\r\n");
+                    sb.Append($"{i + 1}:{Config.Instance.UserInfo(v[i].Key).Name},赌了{v[i].Value}次\r\n");
                 }
                 return sb.ToString();
             }
@@ -327,7 +333,7 @@ namespace Kugua
             if (users.ContainsKey(id))
             {
                 var h = users[id];
-                return $"玩赛马{h.losetime + h.wintime}次，共下注{h.hrmoney}，胜率{h.wintime}-{h.losetime}({Math.Round(h.getWinPercent(), 2)}%)";
+                return $"玩赛马{h.losetime + h.wintime}次，共下注{h.hrmoney.ToHans()}，胜率{h.wintime}-{h.losetime}({Math.Round(h.getWinPercent(), 2)}%)";
             }
             return "没有赛马游戏记录";
         }

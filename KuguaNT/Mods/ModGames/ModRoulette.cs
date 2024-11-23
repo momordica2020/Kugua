@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using ChatGPT.Net.DTO.ChatGPT;
 using static System.Net.WebRequestMethods;
 using System.Text;
+using System.Numerics;
 
 
 namespace Kugua
@@ -36,7 +37,7 @@ namespace Kugua
             try
             {
                 ModCommands[new Regex(@"^\s*轮盘介绍\s*")] = IntroduceGame;
-                ModCommands[new Regex(@"^\s*轮盘\s*(\d+)")] = StartGame;
+                ModCommands[new Regex(@"^\s*轮盘(.+)")] = StartGame;
                 //ModCommands[new Regex(@"^\s*加入\s*(\d+)")] = JoinGame;
                 ModCommands[new Regex(@"^\s*射我")] = ShootMe;
                 ModCommands[new Regex(@"^\s*射他")] = ShootHim;
@@ -82,7 +83,7 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩轮盘{h.playnum}次，共下{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩轮盘{h.playnum}次，共下{h.money.ToHans()}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
             return "没有轮盘游戏记录";
         }
@@ -109,8 +110,13 @@ namespace Kugua
                     info[context.groupId] = new RouletteGame();
                 }
                 var g = info[context.groupId];
-                var res =  g.Start(context.userId, int.Parse(param[1]));
-                context.SendBackPlain(res, false);
+                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                if(money < 0)
+                {
+                    var res =  g.Start(context.userId, money);
+                    context.SendBackPlain(res, false);
+                }
+                
             }
             catch (Exception ex)
             {
@@ -159,7 +165,7 @@ namespace Kugua
             public string id;
             public string name;
             public int hp;
-            public long money;
+            public BigInteger money;
 
             public bool IsAlive => hp > 0;
 
@@ -182,7 +188,7 @@ namespace Kugua
             public int round = 0;
 
 
-            public string Start(string p, long money)
+            public string Start(string p, BigInteger money)
             {
                 if(round > 0)
                 {
@@ -198,7 +204,7 @@ namespace Kugua
                 return Join(p, money);
             }
 
-            public string Join(string p, long money)
+            public string Join(string p, BigInteger money)
             {
                 string res = "";
 
@@ -217,7 +223,7 @@ namespace Kugua
                 if (ModBank.Instance.TransMoney(p, Config.Instance.BotQQ, money, out var msg) != money)
                 {
                     // 转账失败
-                    return $"余额不足？你还剩{Config.Instance.UserInfo(p).Money}{ModBank.unitName}";
+                    return $"余额不足？你还剩{Config.Instance.UserInfo(p).Money.ToHans()}{ModBank.unitName}";
                 }
 
 
@@ -247,7 +253,7 @@ namespace Kugua
                 ModRoulette.Instance.history[p].money += money;
                 ModRoulette.Instance.history[p].id = p;
 
-                res = $"{Config.Instance.UserInfo(p).Name}已成功加入恶魔轮盘，投了{money}{ModBank.unitName}\r\n";
+                res = $"{Config.Instance.UserInfo(p).Name}已成功加入恶魔轮盘，投了{money.ToHans()}{ModBank.unitName}\r\n";
                 if (round <= 0 && p1 != null && p2 != null)
                 {
                     // begin! game
@@ -506,9 +512,9 @@ namespace Kugua
                 else if(winner == p2) loser = p1;
 
 
-                var res = $"{winner.name}活到了最后！而{loser.name}被爆了{loser.money}枚{ModBank.unitName}\r\n";
-                long reward = 0;
-                reward = (long)((loser.money + winner.money) * 1.5);
+                var res = $"{winner.name}活到了最后！而{loser.name}被爆了{loser.money.ToHans()}枚{ModBank.unitName}\r\n";
+                BigInteger reward = 0;
+                reward = (BigInteger)((decimal)(loser.money + winner.money) * (decimal)1.5);
 
                 
                 
@@ -516,7 +522,7 @@ namespace Kugua
                 {
                     res += msg;
                 }
-                res += $"{winner.name}赢了{reward}{ModBank.unitName}，余额{Config.Instance.UserInfo(winner.id).Money}";
+                res += $"{winner.name}赢了{reward.ToHans()}{ModBank.unitName}，余额{Config.Instance.UserInfo(winner.id).Money.ToHans()}";
                 return res;
             }
         }

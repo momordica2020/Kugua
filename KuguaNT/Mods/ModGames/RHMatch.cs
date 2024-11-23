@@ -1,4 +1,5 @@
 ﻿
+using System.Numerics;
 using System.Text;
 using System.Timers;
 
@@ -15,7 +16,7 @@ namespace Kugua
         public MessageContext context;
         
         // 单个用户可用下多个赛道的赌注
-        Dictionary<RHUser, Dictionary<int, long>> bets = new Dictionary<RHUser, Dictionary<int, long>>();
+        Dictionary<RHUser, Dictionary<int, BigInteger>> bets = new Dictionary<RHUser, Dictionary<int, BigInteger>>();
         Dictionary<int, RHRoad> roads = new Dictionary<int, RHRoad>();
 
         string id = "";  //用qq群号作为比赛唯一标识，避免同一个群同时多局
@@ -134,7 +135,7 @@ namespace Kugua
         /// <param name="roadnum"></param>
         /// <param name="betMoney"></param>
         /// <returns></returns>
-        public string bet(RHUser betUser, int roadnum, long betMoney)
+        public string bet(RHUser betUser, int roadnum, BigInteger betMoney)
         {
             try
             {
@@ -143,11 +144,11 @@ namespace Kugua
 
                 if (roadnum <= 0 || roadnum > this.roadnum) return $"没有第{roadnum}条赛道";
 
-                long userHadMoney = ModBank.Instance.GetMoney(betUser.id);
+                BigInteger userHadMoney = ModBank.Instance.GetMoney(betUser.id);
                 if (userHadMoney <= 0) return $"一分钱都没有，下你🐎呢？";
 
 
-                if (!bets.ContainsKey(betUser)) bets[betUser] = new Dictionary<int, long>();
+                if (!bets.ContainsKey(betUser)) bets[betUser] = new Dictionary<int, BigInteger>();
 
                 if (bets[betUser].Keys.Count >= MaxBetTime && !bets[betUser].ContainsKey(roadnum))
                 {
@@ -159,14 +160,14 @@ namespace Kugua
                 if(userHadMoney <= betMoney)
                 {
                     betMoney = userHadMoney;
-                    res = $"All in!把手上的{userHadMoney}枚{ModBank.unitName}都押了{roadnum}号马";
+                    res = $"All in!把手上的{userHadMoney.ToHans()}枚{ModBank.unitName}都押了{roadnum}号马";
                 }
                 else
                 {
-                    res = $"成功在{roadnum}号马下{betMoney}枚{ModBank.unitName}"; 
+                    res = $"成功在{roadnum}号马下{betMoney.ToHans()}枚{ModBank.unitName}"; 
                 }
                 string outMsg = "";
-                long tranResult = ModBank.Instance.TransMoney(betUser.id, Config.Instance.BotQQ, betMoney, out outMsg);
+                BigInteger tranResult = ModBank.Instance.TransMoney(betUser.id, Config.Instance.BotQQ, betMoney, out outMsg);
                 if (tranResult == betMoney)
                 {
                     // 转账成功
@@ -174,7 +175,7 @@ namespace Kugua
                     if (!bets[betUser].ContainsKey(roadnum)) bets[betUser][roadnum] = 0;
                     bets[betUser][roadnum] += betMoney;
 
-                    res += $"，余额{ModBank.Instance.GetMoney(betUser.id)}";
+                    res += $"，余额{ModBank.Instance.GetMoney(betUser.id).ToHans()}";
                 }
                 else
                 {
@@ -271,16 +272,16 @@ namespace Kugua
 
 
             //foreach (var bet in bets.Values) foreach (var money in bet.Values) allmoney += money;
-            List<(RHUser user, double multi, long betMoney)> winners = new List<(RHUser user, double multi, long betMoney)>();
+            List<(RHUser user, decimal multi, BigInteger betMoney)> winners = new List<(RHUser user, decimal multi, BigInteger betMoney)>();
 
-            long loserMoneys = 0;
+            BigInteger loserMoneys = 0;
             foreach (var bet in bets)
             {
                 var betUser = bet.Key;
                 var betList = bet.Value;
-                double multi = -1;
-                long winBetMoney = 0;
-                long loseBetMoney = 0;
+                decimal multi = -1;
+                BigInteger winBetMoney = 0;
+                BigInteger loseBetMoney = 0;
                 foreach (var betpair in betList)
                 {
                     
@@ -291,12 +292,12 @@ namespace Kugua
                         if (bet.Value.Count == 1)
                         {
                             // 只押了一匹，倍率
-                            multi = 5.0;
+                            multi = (decimal)5.0;
                         }
                         else if (bet.Value.Count >= 2)
                         {
                             //两匹 
-                            multi = 3.0;
+                            multi = (decimal)3.0;
                         }
                     }
                     else
@@ -321,7 +322,7 @@ namespace Kugua
 
             if (winners.Count <= 0)
             {
-                sb.Append($"很遗憾，本场无人猜中！本场入币{loserMoneys}。");
+                sb.Append($"很遗憾，本场无人猜中！本场入币{loserMoneys.ToHans()}。");
                 // 已经预先转账了，这里不需要再入账 ModBank.Instance.TransMoney()
                 // 钱入苦瓜账上
                 
@@ -329,14 +330,14 @@ namespace Kugua
             else
             {
                 // 分账
-                double rakeP = 0.05;    // 抽水5%
+                decimal rakeP = (decimal)0.05;    // 抽水5%
 
                 // 这里判断如果我苦账上钱不够了，则只把现有的钱有多少分多少瓜分给用户
                 // 公式：   赢钱=[在赌中马上的投注*赔率+（所有人没中的钱数/赌中的总人数）]*95%
-                long allNeed = 0;
+                BigInteger allNeed = 0;
                 foreach (var winner in winners)
                 {
-                    allNeed  += (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
+                    allNeed  += (BigInteger)(( (decimal)winner.betMoney* winner.multi + (decimal)loserMoneys / winners.Count) * (1 - rakeP));
                     Logger.Log($"[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
                 }
                 
@@ -349,10 +350,10 @@ namespace Kugua
                 {
                     foreach (var winner in winners)
                     {
-                        var money = (long)((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (1 - rakeP));
+                        var money = (BigInteger)((winner.multi * (decimal)winner.betMoney + (decimal)loserMoneys / winners.Count) * (1 - rakeP));
                         string msg;
-                        long res = ModBank.Instance.TransMoney(Config.Instance.BotQQ, winner.user.id, money, out msg);
-                        sb.Append($"{Config.Instance.UserInfo(winner.user.id).Name}赢了{money}枚{ModBank.unitName}！恭喜\n");
+                        BigInteger res = ModBank.Instance.TransMoney(Config.Instance.BotQQ, winner.user.id, money, out msg);
+                        sb.Append($"{Config.Instance.UserInfo(winner.user.id).Name}赢了{money.ToHans()}枚{ModBank.unitName}！恭喜\n");
                         if (res == 0)
                         {
                             // failed
@@ -362,7 +363,7 @@ namespace Kugua
                     }
                 }
             }
-            sb.Append($"目前币池{ModBank.Instance.GetMoney(Config.Instance.BotQQ)}");
+            sb.Append($"目前币池{ModBank.Instance.GetMoney(Config.Instance.BotQQ).ToHans()}");
             return sb.ToString();
         }
        
@@ -502,7 +503,7 @@ namespace Kugua
     {
         public string id;
         //public BTCUser user;
-        public ulong hrmoney = 0;
+        public BigInteger hrmoney = 0;
         public ulong wintime = 0;
         public ulong losetime = 0;
 
@@ -524,7 +525,7 @@ namespace Kugua
                 if (items.Length >= 4)
                 {
                     id = (items[0].Trim());
-                    hrmoney = ulong.Parse(items[1]);
+                    hrmoney = BigInteger.Parse(items[1]);
                     wintime = ulong.Parse(items[2]);
                     losetime = ulong.Parse(items[3]);
                 }

@@ -6,6 +6,7 @@ using System.Text;
 using NvAPIWrapper.Display;
 using System;
 using Kugua.Integrations.NTBot;
+using System.Numerics;
 
 
 namespace Kugua
@@ -15,7 +16,7 @@ namespace Kugua
         public Dictionary<string, object> matchLock = new Dictionary<string, object>();
         public Dictionary<string, GamePlayerHistory> history = new Dictionary<string, GamePlayerHistory>();
         public object matchInfoLock = new object();
-        public string diceGifPath = "game/dice/";
+        //public string diceGifPath = "game/dice/";
 
         private static readonly Lazy<ModDiceGame> instance = new Lazy<ModDiceGame>(() => new ModDiceGame());
         public static ModDiceGame Instance => instance.Value;
@@ -40,7 +41,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^\s*(\d+)\s*押\s*(\S+)")] = StartGame;
+                ModCommands[new Regex(@"^(.+)押(.+)")] = StartGame;
 
             }
             catch (Exception ex)
@@ -73,7 +74,7 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩大小{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩大小{h.playnum}次，共下注{h.money.ToHans()}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
             return "没有大小游戏记录";
         }
@@ -82,15 +83,16 @@ namespace Kugua
 
         private string StartGame(MessageContext context, string[] param)
         {
-            long money = 1;
-            long.TryParse(param[1], out money);
+            BigInteger money = 1;
+            money = StaticUtil.ConvertToBigInteger(param[1]);
+            if (money < 1) return "";
             string betDesc = param[2].Trim();
 
             var tuser = Config.Instance.UserInfo(context.userId);
             if (tuser.Money < money)
             {
                 // money not enough.
-                return ($"{ModBank.unitName}不够，余额：{tuser.Money}");
+                return ($"{ModBank.unitName}不够，余额：{tuser.Money.ToHans()}");
             }
 
 
@@ -102,7 +104,7 @@ namespace Kugua
                     return ($"请求失败。{msg}");
                 }
 
-                long winMoney = 0;
+                BigInteger winMoney = 0;
                 lock (matchInfoLock)
                 {
                     int val = context.SendBackDice().Result;
@@ -140,8 +142,8 @@ namespace Kugua
                     {
                         if (bi == val)
                         {
-                            double multi = (bet.Count == 1 ? 5 : 2);
-                            winMoney = (long)(multi * money);
+                            decimal multi = (bet.Count == 1 ? 5 : 2);
+                            winMoney = (BigInteger)(multi * (decimal)money);
                         }
                     }
                    // context.SendBack([
@@ -165,7 +167,7 @@ namespace Kugua
                     }
                     else
                     {
-                        result = $"中了！赢得{winMoney}{ModBank.unitName},余额{Config.Instance.UserInfo(context.userId).Money}";
+                        result = $"中了！赢得{winMoney.ToHans()}{ModBank.unitName},余额{Config.Instance.UserInfo(context.userId).Money.ToHans()}";
                     }
                     
                     history[context.userId].winnum++;

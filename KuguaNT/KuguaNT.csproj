@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="LogNT\**" />
+    <Content Remove="LogNT\**" />
+    <EmbeddedResource Remove="LogNT\**" />
+    <None Remove="LogNT\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="config.json" />
   </ItemGroup>
 
