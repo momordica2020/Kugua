@@ -227,11 +227,11 @@ namespace Kugua
                     }
                 }
                 modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
-                modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
-                modedict["喷人"] = new ModeInfo { name = "喷人", config = { "隐藏" } };
-                modedict["语音"] = new ModeInfo { name = "语音", config = { "隐藏" } };
-                modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
-                modedict["西医"] = new ModeInfo { name = "西医", config = { } };
+               // modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
+                modedict["喷人"] = new ModeInfo { name = "喷人", config = {  } };
+                modedict["语音"] = new ModeInfo { name = "语音", config = { } };
+                //modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
+                //modedict["西医"] = new ModeInfo { name = "西医", config = { } };
                 // replace
                 wordReplace = new Dictionary<string, string>();
                 var lines = LocalStorage.ReadLines($"{PluginPath}/{replacefile}");
@@ -471,24 +471,24 @@ namespace Kugua
                 string modeName = mode.name;
                 switch (modeName)
                 {
-                    case "正常":
-                    case "AI":
-                        string uName = Config.Instance.UserInfo(context.userId).Name;
-                        if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        GPT.Instance.AIReply(context);
-                        break;
                     case "混沌":
                         answer.Add(getAnswerChaos(context.recvMessages.ToTextString()));
                         break;
+                    case "正常":
+                        //string uName = Config.Instance.UserInfo(context.userId).Name;
+                        //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
+                        //GPT.Instance.AIReply(context);
+                        //break;
+                    
                     case "小万邦":
                         answer.Add(getGong());
                         break;
-                    case "本草":
-                        answer.Add(bencao[MyRandom.Next(bencao.Count)]);
-                        break;
-                    case "西医":
-                        answer.Add(getXiyi());
-                        break;
+                    //case "本草":
+                    //    answer.Add(bencao[MyRandom.Next(bencao.Count)]);
+                    //    break;
+                    //case "西医":
+                    //    answer.Add(getXiyi());
+                    //    break;
 
                     case "喷人":
                         answer.AddRange(getPen());

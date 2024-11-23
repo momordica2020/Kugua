@@ -144,14 +144,14 @@ namespace Kugua
                 if (roadnum <= 0 || roadnum > this.roadnum) return $"没有第{roadnum}条赛道";
 
                 long userHadMoney = ModBank.Instance.GetMoney(betUser.id);
-                if (userHadMoney <= 0) return $"一分钱都没有，下你🐎的注呢？";
+                if (userHadMoney <= 0) return $"一分钱都没有，下你🐎呢？";
 
 
                 if (!bets.ContainsKey(betUser)) bets[betUser] = new Dictionary<int, long>();
 
                 if (bets[betUser].Keys.Count >= MaxBetTime && !bets[betUser].ContainsKey(roadnum))
                 {
-                    return $"最多押{MaxBetTime}匹，你已经押了{string.Join("、", bets[betUser].Keys)}。";
+                    return $"最多{MaxBetTime}匹，你已经下了{string.Join("、", bets[betUser].Keys)}。";
                 }
 
 
@@ -163,7 +163,7 @@ namespace Kugua
                 }
                 else
                 {
-                    res = $"成功在{roadnum}号马下注{betMoney}枚{ModBank.unitName}"; 
+                    res = $"成功在{roadnum}号马下{betMoney}枚{ModBank.unitName}"; 
                 }
                 string outMsg = "";
                 long tranResult = ModBank.Instance.TransMoney(betUser.id, Config.Instance.BotQQ, betMoney, out outMsg);
@@ -174,12 +174,12 @@ namespace Kugua
                     if (!bets[betUser].ContainsKey(roadnum)) bets[betUser][roadnum] = 0;
                     bets[betUser][roadnum] += betMoney;
 
-                    res += $"，账户余额{ModBank.Instance.GetMoney(betUser.id)}";
+                    res += $"，余额{ModBank.Instance.GetMoney(betUser.id)}";
                 }
                 else
                 {
                     // 转账失败
-                    res = $"下注失败：{outMsg}";
+                    res = $"请求失败：{outMsg}";
                 }
                 return res;
             }
@@ -321,7 +321,7 @@ namespace Kugua
 
             if (winners.Count <= 0)
             {
-                sb.Append($"很遗憾，本场无人猜中！本场入账{loserMoneys}。");
+                sb.Append($"很遗憾，本场无人猜中！本场入币{loserMoneys}。");
                 // 已经预先转账了，这里不需要再入账 ModBank.Instance.TransMoney()
                 // 钱入苦瓜账上
                 
@@ -362,7 +362,7 @@ namespace Kugua
                     }
                 }
             }
-            sb.Append($"目前总奖池{ModBank.Instance.GetMoney(Config.Instance.BotQQ)}");
+            sb.Append($"目前币池{ModBank.Instance.GetMoney(Config.Instance.BotQQ)}");
             return sb.ToString();
         }
        

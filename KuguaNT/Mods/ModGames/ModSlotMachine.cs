@@ -44,7 +44,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^老虎机(\d+)?")] = StartGame;
+                ModCommands[new Regex(@"^老虎(\d+)?")] = StartGame;
 
             }
             catch (Exception ex)
@@ -77,9 +77,9 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩老虎机{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩老虎{h.playnum}次，共下{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
-            return "没有老虎机游戏记录";
+            return "没有老虎游戏记录";
         }
 
 

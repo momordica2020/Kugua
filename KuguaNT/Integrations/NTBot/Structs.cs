@@ -3,15 +3,17 @@ using System.Text;
 
 namespace Kugua.Integrations.NTBot
 {
-    public class BaseEvent
+    public class event_base
     {
         public long time { get; set; }
 
-        public long self_id { get; set; }
+        public string self_id { get; set; }
 
         public string post_type { get; set; }
     }
-    public class GroupMessageEvent : BaseEvent
+
+    #region message
+    public class group_message_event : event_base
     {
         public string message_type { get; set; }
 
@@ -23,7 +25,7 @@ namespace Kugua.Integrations.NTBot
 
         public string user_id { get; set; }
 
-        public Anonymous anonymous { get; set; }
+        public group_message_anonymous anonymous { get; set; }
         [JsonIgnore]
         public List<Message> message { get; set; }
 
@@ -31,10 +33,10 @@ namespace Kugua.Integrations.NTBot
 
         public int font { get; set; }
 
-        public Sender sender { get; set; }
+        public message_sender sender { get; set; }
     }
 
-    public class Anonymous
+    public class group_message_anonymous
     {
         public long id { get; set; }
 
@@ -42,80 +44,8 @@ namespace Kugua.Integrations.NTBot
 
         public string flag { get; set; }
     }
-    public class GroupFileUploadEvent : BaseEvent
-    {
-        public string notice_type { get; set; }
 
-        public long group_id { get; set; }
-
-        public long user_id { get; set; }
-
-        public FileInfo file { get; set; }
-    }
-
-    public class FileInfo
-    {
-        public string id { get; set; }
-
-        public string name { get; set; }
-
-        public long size { get; set; }
-
-        public long busid { get; set; }
-    }
-    public class GroupAdminChangeEvent : BaseEvent
-    {
-        public string notice_type { get; set; }
-
-        public string sub_type { get; set; }
-
-        public long group_id { get; set; }
-
-        public long user_id { get; set; }
-    }
-    public class FriendRequestEvent : BaseEvent
-    {
-        public string request_type { get; set; }
-
-        public long user_id { get; set; }
-
-        public string comment { get; set; }
-
-        public string flag { get; set; }
-
-        public bool approve { get; set; }
-
-        public string remark { get; set; }
-    }
-    public class GroupRequestEvent : BaseEvent
-    {
-        public string request_type { get; set; }
-
-        public string sub_type { get; set; }
-
-        public long group_id { get; set; }
-
-        public long user_id { get; set; }
-
-        public string comment { get; set; }
-
-        public string flag { get; set; }
-    }
-    public class LifecycleEvent : BaseEvent
-    {
-        public string meta_event_type { get; set; }
-
-        public string sub_type { get; set; }
-    }
-    public class HeartbeatEvent : BaseEvent
-    {
-        public string meta_event_type { get; set; }
-
-        public object status { get; set; } // 状态信息，根据 get_status 接口的定义
-
-        public long interval { get; set; } // 到下次心跳的间隔，单位毫秒
-    }
-    public class PrivateMessageEvent : BaseEvent
+    public class private_message_event : event_base
     {
         public string message_type { get; set; }
 
@@ -131,9 +61,9 @@ namespace Kugua.Integrations.NTBot
 
         public int font { get; set; }
 
-        public Sender sender { get; set; } // 发送人信息
+        public message_sender sender { get; set; } // 发送人信息
     }
-    public class Sender
+    public class message_sender
     {
         public string user_id { get; set; }
 
@@ -165,6 +95,10 @@ namespace Kugua.Integrations.NTBot
                 {
                     sb.Append((i.data as Text).text);
                 }
+                else if (i.data is Dice d)
+                {
+                    if (d.result != 0) sb.Append(d.result.ToString());
+                }
             }
             return sb.ToString();
         }
@@ -178,12 +112,325 @@ namespace Kugua.Integrations.NTBot
                 {
                     sb.Append((i as Text).text);
                 }
+                else if(i is Dice d)
+                {
+                    if(d.result!=0)sb.Append(d.result.ToString());
+                }
             }
             return sb.ToString();
         }
     }
 
+    #endregion message
 
+
+
+
+
+    #region notice
+    /// <summary>
+    /// 群上传文件事件
+    /// </summary>
+    public class group_upload_event : event_base
+    {
+        /// <summary>
+        /// group_upload
+        /// </summary>
+        public string notice_type { get; set; }
+
+        public string group_id { get; set; }
+
+        public string user_id { get; set; }
+
+        public group_upload_file file { get; set; }
+    }
+    /// <summary>
+    /// 群上传文件
+    /// </summary>
+    public class group_upload_file
+    {
+        public string id { get; set; }
+
+        public string name { get; set; }
+        /// <summary>
+        /// 文件大小（字节数）
+        /// </summary>
+        public long size { get; set; }
+        /// <summary>
+        /// 暂时无用
+        /// </summary>
+        public long busid { get; set; }
+    }
+    /// <summary>
+    /// 群管理员变动
+    /// </summary>
+    public class group_admin_event : event_base
+    {
+        /// <summary>
+        /// group_admin
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// set / unset
+        /// </summary>
+        public string sub_type { get; set; }
+
+        public string group_id { get; set; }
+
+        public string user_id { get; set; }
+    }
+    public class group_decrease_event : event_base
+    {
+        /// <summary>
+        /// group_decrease
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// leave / kick / kick_me
+        /// </summary>
+        public string sub_type { get; set; }
+
+        public string group_id { get; set; }
+        /// <summary>
+        /// 操作者qq号（如果是主动退群，则和 user_id 相同）
+        /// </summary>
+        public string operator_id { get; set; }
+        /// <summary>
+        /// 离开者qq号
+        /// </summary>
+        public string user_id;
+    }
+    /// <summary>
+    /// 群成员增加
+    /// </summary>
+    public class group_increase_event : event_base
+    {
+        /// <summary>
+        /// group_increase
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// approve  /  invite
+        /// </summary>
+        public string sub_type { get; set; }
+
+        public string group_id { get; set; }
+        /// <summary>
+        /// 操作者qq号
+        /// </summary>
+        public string operator_id { get; set; }
+        /// <summary>
+        /// 目标qq号
+        /// </summary>
+        public string user_id;
+    }
+
+    /// <summary>
+    /// 群禁言
+    /// </summary>
+    public class group_ban_event : event_base
+    {
+        /// <summary>
+        /// group_ban
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// ban  /  lift_ban  禁言和解除禁言
+        /// </summary>
+        public string sub_type { get; set; }
+
+        public string group_id { get; set; }
+        /// <summary>
+        /// 操作者qq号
+        /// </summary>
+        public string operator_id { get; set; }
+        /// <summary>
+        /// 目标qq号
+        /// </summary>
+        public string user_id;
+        /// <summary>
+        /// 禁言时长，单位是秒
+        /// </summary>
+        public int duration;
+    }
+    /// <summary>
+    /// 好友添加
+    /// </summary>
+    public class friend_add_event : event_base
+    {
+        /// <summary>
+        /// friend_add
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// 目标qq号
+        /// </summary>
+        public string user_id;
+    }
+    /// <summary>
+    /// 群消息撤回
+    /// </summary>
+    public class group_recall_event : event_base
+    {
+        /// <summary>
+        /// group_recall
+        /// </summary>
+        public string notice_type { get; set; }
+        public string group_id { get; set; }
+        /// <summary>
+        /// 目标qq号
+        /// </summary>
+        public string user_id;
+        /// <summary>
+        /// 操作者qq号
+        /// </summary>
+        public string operator_id { get; set; }
+        /// <summary>
+        /// 被撤回的消息id
+        /// </summary>
+        public string message_id;
+    }
+    /// <summary>
+    /// 好友消息撤回
+    /// </summary>
+    public class friend_recall_event : event_base
+    {
+        /// <summary>
+        /// friend_recall
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// 目标qq号
+        /// </summary>
+        public string user_id;
+        /// <summary>
+        /// 被撤回的消息id
+        /// </summary>
+        public string message_id;
+    }
+    /// <summary>
+    /// 群内戳一戳 / 运气王
+    /// </summary>
+    public class notify_event : event_base
+    {
+        /// <summary>
+        /// notify
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// poke / lucky_king
+        /// </summary>
+        public string sub_type { get; set; }
+        public string group_id;
+        public string user_id;
+        public string target_id;
+    }
+    /// <summary>
+    /// 群内荣耀变更
+    /// </summary>
+    public class notify_honor_event : event_base
+    {
+        /// <summary>
+        /// notify
+        /// </summary>
+        public string notice_type { get; set; }
+        /// <summary>
+        /// honor
+        /// </summary>
+        public string sub_type { get; set; }
+        public string group_id;
+        public string user_id;
+        /// <summary>
+        /// talkative / performer / emotion
+        /// </summary>
+        public string honor_type;
+    }
+    #endregion notice
+
+
+
+
+    #region request
+
+    public class friend_request_event : event_base
+    {
+        /// <summary>
+        /// friend
+        /// </summary>
+        public string request_type { get; set; }
+
+        public long user_id { get; set; }
+        /// <summary>
+        /// 验证信息
+        /// </summary>
+        public string comment { get; set; }
+        /// <summary>
+        /// 请求 flag，在调用处理请求的 API 时需要传入
+        /// </summary>
+        public string flag { get; set; }
+
+        //public bool? approve { get; set; }
+        /////
+        //public string? remark { get; set; }
+    }
+    public class group_request_event : event_base
+    {
+        /// <summary>
+        /// group
+        /// </summary>
+        public string request_type { get; set; }
+        /// <summary>
+        /// add、invite 分别表示加群请求、邀请登录号入群
+        /// </summary>
+        public string sub_type { get; set; }
+
+        public long group_id { get; set; }
+
+        public long user_id { get; set; }
+        /// <summary>
+        /// 验证信息
+        /// </summary>
+        public string comment { get; set; }
+        /// <summary>
+        /// 请求 flag，在调用处理请求的 API 时需要传入
+        /// </summary>
+        public string flag { get; set; }
+    }
+
+    #endregion request
+
+
+    #region meta
+
+
+    public class lifecycle_event : event_base
+    {
+        /// <summary>
+        /// livecycle
+        /// </summary>
+        public string meta_event_type { get; set; }
+
+        /// <summary>
+        /// enable、disable、connect
+        /// </summary>
+        public string sub_type { get; set; }
+    }
+
+
+    public class heartbeat_event : event_base
+    {
+        /// <summary>
+        /// heartbeat
+        /// </summary>
+        public string meta_event_type { get; set; }
+
+        public dynamic status { get; set; } // 状态信息，根据 get_status 接口的定义
+        /// <summary>
+        /// 到下次心跳的间隔，单位毫秒
+        /// </summary>
+        public long interval { get; set; } // 到下次心跳的间隔，单位毫秒
+    }
+    #endregion meta
     //    /// <summary>
     //    /// 信息类的公开定义
     //    /// </summary>
@@ -194,7 +441,7 @@ namespace Kugua.Integrations.NTBot
     //    /// </summary>
     //    public string type { get; protected set; }
 
-        
+
     //}
     ///// <summary>
     ///// 源类型(永远为信息链的第一个元素)

@@ -32,25 +32,45 @@ namespace Kugua
 
         public List<Message> recvMessages;
 
-        public void SendBackPlain(string message, bool isAt = false)
+        public async Task<string> SendBackPlain(string message, bool isAt = false)
         {
             if (isGroup)
             {
-                if (isAt) SendBack([new At(userId), new Text(message)]);
-                else SendBack([new Text(message)]);
+                if (isAt) return SendBack([new At(userId), new Text(message)]).Result;
+                else return SendBack([new Text(message)]).Result;
             }
             else
             {
-                SendBack([new Text(message)]);
+                return SendBack([new Text(message)]).Result;
             }
         }
 
+        public async Task<int> SendBackDice()
+        {
+            if(client!=null && client is not LocalClient)
+            {
+                Logger.Log("!!");
+                var msgid = SendBack([new Dice()]).Result;
+                Logger.Log(msgid);
+                if (!string.IsNullOrWhiteSpace(msgid))
+                {
+                    var r = client.Send(new get_msg(msgid)).Result;
+                    int rint = 0;
+                    if (int.TryParse(r, out rint))
+                    {
+                        return rint;
+                    }
+                    
+                }
+            }
 
-        public void SendBack(Message[] _sendMessages)
+            return 0;
+        }
+        public async Task<string> SendBack(Message[] _sendMessages)
         {
             if (_sendMessages != null)
             {
-                if (client == null) return;
+                if (client == null) return "";
 
                 // filtered
                 List<string> msgStrings = new List<string>();
@@ -107,19 +127,22 @@ namespace Kugua
                         //else
                         if (isGroup)
                         {
-                            client.Send(new send_group_msg(groupId, pmsg));
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
+                            return client.Send(new send_group_msg(groupId, pmsg)).Result;
+                            
                         }
                         else
                         {
-                            client.Send(new send_private_msg(userId, pmsg));
                             Config.Instance.UserInfo(userId).UseTimes += 1;
+                            return client.Send(new send_private_msg(userId, pmsg)).Result;
+                            
                         }
                     }
                 }
 
                 
             }
+            return "";
         }
 
     }

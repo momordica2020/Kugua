@@ -166,7 +166,7 @@ namespace Kugua
                     //ClientX._OnServiceDropped += OnServiceDropped;
 
 
-                    ClientX.Connect();
+                    ClientX.ConnectAsync();
                     
                     
 
@@ -273,7 +273,7 @@ namespace Kugua
                 new Text(message),
             }; 
             
-            GroupMessageEvent gms = new()
+            group_message_event gms = new()
             {
                 user_id = "",
                 message = msgs,
@@ -446,7 +446,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
 
 
 
-        async void OnPrivateMessageReceive(PrivateMessageEvent e)
+        async void OnPrivateMessageReceive(private_message_event e)
         {
             Logger.Log($"好友信息 [qq:{e.message_id},昵称:{e.sender.nickname}] \n内容:{e.raw_message}", LogType.Debug);
             var uinfo = Config.Instance.UserInfo(e.user_id);
@@ -511,7 +511,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
         //    HistoryManager.Instance.saveMsg(sourceItem.id, context.groupId, context.userId, context.recvMessages.MGetPlainString());
         //    HandleGroupMessageReceiveMultiIO(context);
         //}
-        async void OnGroupMessageReceive(GroupMessageEvent e)
+        async void OnGroupMessageReceive(group_message_event e)
         {
             if (e == null) return;
             Logger.Log($"[{e.message_id}]群({e.group_id})信息 [qq:{e.user_id},昵称:{e.sender.nickname}] \n内容:{e.raw_message}", LogType.Debug);

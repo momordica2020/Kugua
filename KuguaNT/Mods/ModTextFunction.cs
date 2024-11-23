@@ -30,10 +30,6 @@ namespace Kugua
         string gongshouName = "gongshou.txt";
         List<string> gongshou = new List<string>();
 
-        string qianzeName = "gengshuang.txt";
-        List<string> qianze1 = new List<string>();
-        List<string> qianze2 = new List<string>();
-
         string jokeName = "jokes.txt";
         List<string> jokes = new List<string>();
         List<string> jokesEvent = new List<string>();
@@ -84,27 +80,27 @@ namespace Kugua
             }
             if (!string.IsNullOrWhiteSpace(thistmp)) gongshou.Add(thistmp);
 
-            // qianze
-            qianze1 = new List<string>();
-            qianze2 = new List<string>();
-            int pos = 0;
-            res = LocalStorage.ReadLines($"{PluginPath}/{qianzeName}");
-            foreach (var line in res)
-            {
-                if (line.Trim().StartsWith("#1"))
-                {
-                    pos = 1;
-                    continue;
-                }
-                else if (line.Trim().StartsWith("#2"))
-                {
-                    pos = 2;
-                    continue;
-                }
+            //// qianze
+            //qianze1 = new List<string>();
+            //qianze2 = new List<string>();
+            //int pos = 0;
+            //res = LocalStorage.ReadLines($"{PluginPath}/{qianzeName}");
+            //foreach (var line in res)
+            //{
+            //    if (line.Trim().StartsWith("#1"))
+            //    {
+            //        pos = 1;
+            //        continue;
+            //    }
+            //    else if (line.Trim().StartsWith("#2"))
+            //    {
+            //        pos = 2;
+            //        continue;
+            //    }
 
-                if (pos == 1) qianze1.Add(line.Trim());
-                else if (pos == 2) qianze2.Add(line.Trim());
-            }
+            //    if (pos == 1) qianze1.Add(line.Trim());
+            //    else if (pos == 2) qianze2.Add(line.Trim());
+            //}
 
             // joke
             jokes = new List<string>();
@@ -153,49 +149,49 @@ namespace Kugua
             //}
 
 
-            // junk
-            if (File.Exists($"{PluginPath}/{junkf}"))
-            {
-                lines = File.ReadAllLines($"{PluginPath}/{junkf}", Encoding.UTF8);
+            //// junk
+            //if (File.Exists($"{PluginPath}/{junkf}"))
+            //{
+            //    lines = File.ReadAllLines($"{PluginPath}/{junkf}", Encoding.UTF8);
 
-                List<string> nowline = new List<string>();
-                foreach (var line in lines)
-                {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        if (nowline.Count > 0)
-                        {
-                            junks.Add(nowline);
-                            nowline = new List<string>();
-                        }
-                    }
-                    else
-                    {
-                        nowline.Add(line.Trim());
-                    }
-                }
-                if (nowline.Count > 0)
-                {
-                    junks.Add(nowline);
-                }
-            }
+            //    List<string> nowline = new List<string>();
+            //    foreach (var line in lines)
+            //    {
+            //        if (string.IsNullOrWhiteSpace(line))
+            //        {
+            //            if (nowline.Count > 0)
+            //            {
+            //                junks.Add(nowline);
+            //                nowline = new List<string>();
+            //            }
+            //        }
+            //        else
+            //        {
+            //            nowline.Add(line.Trim());
+            //        }
+            //    }
+            //    if (nowline.Count > 0)
+            //    {
+            //        junks.Add(nowline);
+            //    }
+            //}
 
 
-            // symbols
-            lines = LocalStorage.ReadLines($"{PluginPath}/{symbolf}");
-            symbollist = new Dictionary<string, List<string>>();
-            foreach (var line in lines)
-            {
-                if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("/"))
-                {
-                    var items = line.Trim().Split('\t');
-                    if (items.Length >= 2)
-                    {
-                        if (!symbollist.ContainsKey(items[0])) symbollist[items[0]] = new List<string>();
-                        symbollist[items[0]].Add(items[1]);
-                    }
-                }
-            }
+            //// symbols
+            //lines = LocalStorage.ReadLines($"{PluginPath}/{symbolf}");
+            //symbollist = new Dictionary<string, List<string>>();
+            //foreach (var line in lines)
+            //{
+            //    if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("/"))
+            //    {
+            //        var items = line.Trim().Split('\t');
+            //        if (items.Length >= 2)
+            //        {
+            //            if (!symbollist.ContainsKey(items[0])) symbollist[items[0]] = new List<string>();
+            //            symbollist[items[0]].Add(items[1]);
+            //        }
+            //    }
+            //}
 
             return true;
         }

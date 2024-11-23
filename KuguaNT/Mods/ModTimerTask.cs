@@ -606,7 +606,7 @@ namespace Kugua
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (context.recvMessages == null) return false;
+            if (context.recvMessages == null || context.recvMessages.Count<=0) return false;
 
             var source = context.recvMessages[0];
             if (context.isPrivate)

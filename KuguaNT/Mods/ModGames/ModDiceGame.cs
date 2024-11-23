@@ -40,7 +40,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^骰子\s*(\d+)\s*押\s*(\S+)")] = StartGame;
+                ModCommands[new Regex(@"^\s*(\d+)\s*押\s*(\S+)")] = StartGame;
 
             }
             catch (Exception ex)
@@ -73,9 +73,9 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩猜大小{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩大小{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
-            return "没有猜大小游戏记录";
+            return "没有大小游戏记录";
         }
 
 
@@ -99,13 +99,15 @@ namespace Kugua
             {
                 if (ModBank.Instance.TransMoney(context.userId, Config.Instance.BotQQ, money, out string msg) != money)
                 {
-                    return ($"下注失败。{msg}");
+                    return ($"请求失败。{msg}");
                 }
 
                 long winMoney = 0;
                 lock (matchInfoLock)
                 {
-                    var val = MyRandom.Next(1, 7);// = 1~6
+                    int val = context.SendBackDice().Result;
+
+                    //var val = MyRandom.Next(1, 7);// = 1~6
                  
                         var bet = new List<int>();
                         if (betDesc == "单")
@@ -142,9 +144,9 @@ namespace Kugua
                             winMoney = (long)(multi * money);
                         }
                     }
-                    context.SendBack([
-                        new Image($"file://{Config.Instance.ResourceFullPath(diceGifPath)}{val}.gif")
-                   ]);
+                   // context.SendBack([
+                   //     new Image($"file://{Config.Instance.ResourceFullPath(diceGifPath)}{val}.gif")
+                   //]);
                 }
                 if (!history.ContainsKey(context.userId)) history[context.userId] = new GamePlayerHistory();
                 history[context.userId].money += money;
@@ -159,7 +161,7 @@ namespace Kugua
                     if (mres != winMoney)
                     {
                         // 转账出错
-                        result = $"转账出错，{mres}";
+                        result = $"转币出错，{mres}";
                     }
                     else
                     {

@@ -82,7 +82,7 @@ namespace Kugua
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩轮盘{h.playnum}次，共下注{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩轮盘{h.playnum}次，共下{h.money}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
             return "没有轮盘游戏记录";
         }
@@ -91,11 +91,11 @@ namespace Kugua
         private string IntroduceGame(MessageContext context, string[] param)
         {
             var res = $"恶魔轮盘pvp游戏介绍：\r\n";
-            res += $"2人参与后自动启动，回合制轮流操作，谁存活到底获得双方投注之和*1.5\r\n";
-            res += $"开局会显示本轮子弹总数和实弹/空弹的数量，装填顺序随机\r\n";
+            res += $"2人参与后自动启动，回合制轮流操作，谁存活到底获得双方投币之和*1.5\r\n";
+            res += $"开局会显示本轮弹总数和实/空的数量，装填顺序随机\r\n";
             res += $"输入“轮盘10”投10{ModBank.unitName}加入游戏\r\n";
-            res += $"输入“射我”开枪射击自己，若是空弹则下一回合还是你操作\r\n";
-            res += $"输入“射他”射击对手，且下一回合轮到对手操作\r\n";
+            res += $"输入“射我”开枪射自己，若是空弹则下一回合还是你操作\r\n";
+            res += $"输入“射他”射对手，且下一回合轮到对手操作\r\n";
 
             return res ;
         }
@@ -382,7 +382,7 @@ namespace Kugua
             {
                 if (chamber.Count == 0)
                 {
-                    desc = $"没子弹了\r\n";
+                    desc = $"没弹了\r\n";
                     return false;
                 }
 
@@ -516,7 +516,7 @@ namespace Kugua
                 {
                     res += msg;
                 }
-                res += $"{winner.name}赚了{reward}{ModBank.unitName}，余额{Config.Instance.UserInfo(winner.id).Money}";
+                res += $"{winner.name}赢了{reward}{ModBank.unitName}，余额{Config.Instance.UserInfo(winner.id).Money}";
                 return res;
             }
         }

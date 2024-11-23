@@ -202,6 +202,7 @@ namespace Kugua.Integrations.NTBot
     /// </summary>
     public class Rps : Message
     {
+        public int? result;
         public Rps()
         {
 
@@ -214,6 +215,7 @@ namespace Kugua.Integrations.NTBot
     /// </summary>
     public class Dice : Message
     {
+        public int? result;
         public Dice()
         {
 

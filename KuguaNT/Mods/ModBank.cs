@@ -58,7 +58,7 @@ namespace Kugua
                 string res = "";
                 if (targetqq <= 0)
                 {
-                    res = $"系统里找不到昵称 {target} ，转账失败。可以输入qq号码直接转";
+                    res = $"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转";
                 }
                 else
                 {
@@ -175,7 +175,7 @@ namespace Kugua
             message = "";
             if (money <= 0)
             {
-                message = "只允许正向转账";
+                message = "只允许正向转币";
                 return 0;
             }
 
@@ -212,7 +212,7 @@ namespace Kugua
             }
             catch (OverflowException)
             {
-                message += $"转账失败：{user1}或{user2}的{unitName}溢出，所转数额{money}，发起者余额{user1.Money}，接收者余额{user2.Money}。";
+                message += $"转币失败：{user1}或{user2}的{unitName}溢出，所转数额{money}，发起者余额{user1.Money}，接收者余额{user2.Money}。";
                 Logger.Log(message);
                 user1.Money = user1OldMoney; // 恢复余额
                 user2.Money = user2OldMoney; // 恢复余额
@@ -224,7 +224,7 @@ namespace Kugua
                 message += $"银行被橄榄了，你钱没了！请带截图联系bot管理者{Config.Instance.App.Avatar.adminQQ}";
                 return 0;
             }
-            message += $"转账成功，您的{unitName}余额{user1.Money}，对方余额{user2.Money}";
+            message += $"转币成功，您的{unitName}余额{user1.Money}，对方余额{user2.Money}";
 
             return money;
         }

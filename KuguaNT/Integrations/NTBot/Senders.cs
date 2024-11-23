@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using NvAPIWrapper.Native.GPU;
+using System;
 using System.Security.Cryptography;
 
 namespace Kugua.Integrations.NTBot
@@ -108,6 +109,18 @@ namespace Kugua.Integrations.NTBot
         {
             message_id = msg_id;
         }
+    }
+
+    public class get_msg_reply : SenderReply
+    {
+        public int time;//  发送时间
+        public string message_type;  // 消息类型，同 消息事件
+        public string message_id;// 消息 ID
+        public string real_id;//   消息真实 ID
+        public message_sender sender;// object 发送人信息，同 消息事件
+
+        [JsonIgnore]
+        public List<Message> message { get; set; }// 消息内容
     }
 
     public class get_forward_msg : SenderData
