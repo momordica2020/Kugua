@@ -257,9 +257,6 @@ namespace Kugua.Integrations.NTBot
             if (jo["status"] != null)
             {
                 // reply!
-              
-
-              
                 var reply = JsonConvert.DeserializeObject<SenderReplyAPI>(json);
                 //Logger.Log(jo.ToString());
                 if (reply != null)

@@ -20,11 +20,11 @@ namespace Kugua
         }
 
         System.Timers.Timer TaskTimer;
-
+        
 
 
         List<MyTask> tasks = new List<MyTask>();
-
+        QQWry qqwry;
         //IpLocation ipLocation;
 
 
@@ -57,6 +57,8 @@ namespace Kugua
             TaskTimer.Start();
             TaskTimer.Elapsed += TaskTimer_Elapsed;
 
+            qqwry = new QQWry(Config.Instance.ResourceFullPath("qqwry.dat"));
+
             //ipLocation = new IpLocation();
 
 
@@ -75,6 +77,13 @@ namespace Kugua
                     var jo = JsonObject.Parse(dd.ToString());
                     string res = $"{jo["detail"]} ({jo["loc"]})";
                     return res;
+                }
+
+                else
+                {
+                    // failed. use local qqwry.day
+                    var info = qqwry.find_info(ipstr);
+                    return $"{info.Item1}\n{info.Item2}\n{info.Item3}";
                 }
             }
             catch(Exception ex)
