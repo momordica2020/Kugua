@@ -70,7 +70,7 @@ namespace Kugua
             {
                 if (client == null) return "";
 
-                // filtered
+                
                 List<string> msgStrings = new List<string>();
 
                 List<Message> sendMessagesOthers = new List<Message>();
@@ -79,7 +79,9 @@ namespace Kugua
                 {
                     if (item is Text itemPlain)
                     {
+                        // filtered
                         itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
+                        
 
                         int index = 0;
                         int maxlen = 1500;

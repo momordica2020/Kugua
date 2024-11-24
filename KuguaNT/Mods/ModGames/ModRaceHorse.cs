@@ -156,20 +156,6 @@ namespace Kugua
 
 
 
-        public string isAllow(long group)
-        {
-            DateTime time = DateTime.Now;
-            DateTime nightRaceBegin = new DateTime(time.Year, time.Month, time.Day) + raceBegin;
-            DateTime nightRaceEnd = new DateTime(time.Year, time.Month, time.Day) + raceEnd;
-
-            if (time >= nightRaceBegin && time <= nightRaceEnd)
-            {
-                return "";
-            }
-            string res = $"夜间赛事起止时间为{nightRaceBegin.ToString("HH:mm")}-{nightRaceEnd.ToString("HH:mm")}";
-            return res;
-        }
-
 
 
         public string showBigWinner(MessageContext context, string[] param)

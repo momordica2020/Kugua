@@ -180,7 +180,7 @@ namespace Kugua
                 int maxmoney = 114;
                 int minmoney = 30;
                 // success
-                long money = MyRandom.Next(minmoney, maxmoney);
+                BigInteger money = MyRandom.Next(minmoney, maxmoney);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
@@ -278,7 +278,7 @@ namespace Kugua
             return money;
         }
 
-        public bool ProcessTransfer(Player user1, Player user2, long money)
+        public bool ProcessTransfer(Player user1, Player user2, BigInteger money)
         {
             
 
@@ -373,24 +373,24 @@ namespace Kugua
     /// </summary>
     class BankRecord
     {
-        public long src;
-        public long tar;
+        public string src;
+        public string tar;
         public DateTime time;
-        public long money;
+        public BigInteger money;
         public string reason;
         public string result;
 
         public BankRecord()
         {
-            src = -1;
-            tar = -1;
+            src = "";
+            tar = "";
             time = DateTime.Now;
             money = 0;
             reason = "";
             result = "";
         }
 
-        public BankRecord(long _src, long _tar, long _money, string _reason, string _result)
+        public BankRecord(string _src, string _tar, BigInteger _money, string _reason, string _result)
         {
             src = _src;
             tar = _tar;
@@ -412,10 +412,10 @@ namespace Kugua
                 var items = line.Trim().Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (items.Length >= 6)
                 {
-                    src = long.Parse(items[0]);
-                    tar = long.Parse(items[1]);
+                    src = items[0];
+                    tar = items[1];
                     time = DateTime.ParseExact(items[2], "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
-                    money = long.Parse(items[3]);
+                    money = StaticUtil.ConvertToBigInteger(items[3]);
                     reason = items[4];
                     result = items[5];
                 }

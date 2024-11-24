@@ -23,7 +23,7 @@ namespace Kugua.Integrations.NTBot
         public int reconnect { get; private set; }
         public Action<private_message_event> OnPrivateMessageReceive { get; internal set; }
         public Action<group_message_event> OnGroupMessageReceive { get; internal set; }
-
+        public object SessionLock = new object();
         public Queue<JObject> SSMRequestList { get; set; }
 
         public string url;
@@ -122,12 +122,16 @@ namespace Kugua.Integrations.NTBot
                     while(true)
                     {
                         await Task.Delay(100);
-                        if (session_messageid.ContainsKey(api.echo))
+                        lock (SessionLock)
                         {
-                            messageId = session_messageid[api.echo];
-                            session_messageid.Remove(api.echo);
-                            break;
+                            if (session_messageid.ContainsKey(api.echo))
+                            {
+                                messageId = session_messageid[api.echo];
+                                session_messageid.Remove(api.echo);
+                                break;
+                            }
                         }
+
                     }
                     //return Task.CompletedTask;
                 }
@@ -269,7 +273,11 @@ namespace Kugua.Integrations.NTBot
                             case "send_group_msg":
                                 {
                                     var oo = JsonConvert.DeserializeObject<send_msg_reply>(jo["data"].ToString());
-                                    session_messageid[reply.echo] = oo.message_id.ToString();
+                                        lock (SessionLock)
+                                        {
+                                            session_messageid[reply.echo] = oo.message_id.ToString();
+                                        }
+                                            
                                     //Logger.Log("SEND SESSION  " + oo.message_id);
                                     break;
                                 }
@@ -281,7 +289,11 @@ namespace Kugua.Integrations.NTBot
                                     {
                                         parseMessages(oo.message, jo["data"]["message"].ToArray());
                                     }
-                                    session_messageid[reply.echo] = oo.message.ToTextString();
+                                        lock (SessionLock)
+                                        {
+                                            session_messageid[reply.echo] = oo.message.ToTextString();
+                                        }
+                                            
                                     //Logger.Log("READ DATA  " + oo.message.ToTextString());
                                     break;
                                 }

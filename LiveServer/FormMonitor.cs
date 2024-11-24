@@ -114,8 +114,8 @@ namespace LiveServer
         /// <param name="message"></param>
         public void virtualInput(string message)
         {
-            long userId;
-            long groupId;
+            string userId;
+            string groupId;
             bool isAtMe = false;
 
             if (IsVirtualGroup)
@@ -138,8 +138,8 @@ namespace LiveServer
             else
             {
 
-                userId = -1;
-                groupId = 0;
+                userId = "";
+                groupId = "";
                 textLocalTest.AppendText($"[me]:{message}\r\n");
 
                 isAtMe = true;

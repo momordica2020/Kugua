@@ -38,7 +38,7 @@ namespace Kugua.Integrations.NTBot
 
     public class group_message_anonymous
     {
-        public long id { get; set; }
+        public string id { get; set; }
 
         public string name { get; set; }
 
@@ -359,7 +359,7 @@ namespace Kugua.Integrations.NTBot
         /// </summary>
         public string request_type { get; set; }
 
-        public long user_id { get; set; }
+        public string user_id { get; set; }
         /// <summary>
         /// 验证信息
         /// </summary>
@@ -384,9 +384,9 @@ namespace Kugua.Integrations.NTBot
         /// </summary>
         public string sub_type { get; set; }
 
-        public long group_id { get; set; }
+        public string group_id { get; set; }
 
-        public long user_id { get; set; }
+        public string user_id { get; set; }
         /// <summary>
         /// 验证信息
         /// </summary>

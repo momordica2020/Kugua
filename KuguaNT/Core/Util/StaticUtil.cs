@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua
 {
@@ -124,6 +125,34 @@ namespace Kugua
             }
         }
 
+        /// <summary>
+        /// 将代码emoji变成真的emoji
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string ConvertEmoji(string input)
+        {
+            // 匹配 [emoji=xxxx] 的格式
+            const string pattern = @"\[emoji=([A-Fa-f0-9]+)\]";
+            var match = Regex.Match(input, pattern);
+
+            if (match.Success)
+            {
+                string hex = match.Groups[1].Value;
+
+                // 将十六进制字符串转换为字节数组
+                byte[] bytes = new byte[hex.Length / 2];
+                for (int i = 0; i < hex.Length; i += 2)
+                {
+                    bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+                }
+
+                // 将字节数组解码为字符串 (UTF-8)
+                return Encoding.UTF8.GetString(bytes);
+            }
+
+            return input; // 如果不匹配格式，返回原字符串
+        }
         #endregion
 
         /// <summary>
@@ -227,16 +256,18 @@ namespace Kugua
         /// </summary>
         private static readonly Dictionary<char, int> ChineseDigitMap = new()
         {
+            { '〇', 0 },
             { '零', 0 }, 
             { '一', 1 }, 
-            { '二', 2 }, 
+            { '二', 2 }, { '两', 2 },
             { '三', 3 }, 
             { '四', 4 },
             { '五', 5 }, 
             { '六', 6 }, 
             { '七', 7 }, 
             { '八', 8 }, 
-            { '九', 9 }
+            { '九', 9 },
+
         };
 
             /// <summary>
@@ -268,12 +299,92 @@ namespace Kugua
             { "大数", BigInteger.Pow(10, 76) }
         };
 
+
+
         /// <summary>
-        /// 替换中文数字字符为对应阿拉伯数字
+        /// 将汉字写的数字字符串转化成int，兼容本来就是阿拉伯数字的串
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private static string ConvertChineseDigitsToArabic(string input)
+        public static int ConvertToNumber(string input)
+        {
+            int result = 0;
+            int tempNumber = 0;
+            bool hasTen = false;
+
+            
+            if(int.TryParse(input, out result))
+            {
+                return result;
+            }
+            Logger.Log("??+" + input);
+            Dictionary<char, int> ChineseDigitMap2 = new()
+            {   
+                // 中文常见数字
+                { '〇', 0 }, { '零', 0 },
+                { '一', 1 }, { '壹', 1 }, { '壱', 1 }, { '〡', 1 }, // 异体
+                { '二', 2 }, { '贰', 2 }, { '弐', 2 }, { '貮', 2 }, { '两', 2 }, // 异体
+                { '三', 3 }, { '叁', 3 }, { '参', 3 }, { '仨', 3 }, // 异体和俗称
+                { '四', 4 }, { '肆', 4 }, { '〤', 4 }, // 异体
+                { '五', 5 }, { '伍', 5 }, { '〥', 5 }, // 异体
+                { '六', 6 }, { '陆', 6 }, { '〦', 6 }, // 异体
+                { '七', 7 }, { '柒', 7 }, { '〧', 7 }, // 异体
+                { '八', 8 }, { '捌', 8 }, { '〨', 8 }, // 异体
+                { '九', 9 }, { '玖', 9 }, { '〩', 9 }, // 异体
+                { '十', 10 }, { '拾', 10 }, { '廿', 20 }, { '卅', 30 }, { '卌', 40 }, // 异体和简写
+            };
+            foreach (char ch in input)
+            {
+                if (ChineseDigitMap2.TryGetValue(ch, out int value))
+                {
+                    if (value == 10) // 遇到“十”
+                    {
+                        if (tempNumber == 0)
+                        {
+                            tempNumber = 10; // “十”单独出现表示10
+                        }
+                        else
+                        {
+                            tempNumber *= 10; // 如“二十”表示2*10
+                        }
+                        hasTen = true;
+                    }
+                    else
+                    {
+                        if (hasTen) // 如果前面是“十”
+                        {
+                            tempNumber += value; // 累加个位数字，如“二十八”
+                            result += tempNumber; // 累计到结果
+                            tempNumber = 0; // 重置临时值
+                            hasTen = false;
+                        }
+                        else
+                        {
+                            tempNumber = value; // 普通数字直接赋值
+                        }
+                    }
+                }
+                else
+                {
+                    // 如果无法匹配，返回 0 表示无效
+                    return 0;
+                }
+            }
+
+            // 最后一部分累加
+            result += tempNumber;
+
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// 替换中文数字字符为对应阿拉伯数字，一一对应
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string ConvertChineseDigitsToArabic(string input)
         {
             foreach (var pair in ChineseDigitMap)
             {
@@ -281,7 +392,7 @@ namespace Kugua
             }
             return input;
         }
-
+        
         public static string ToHans(this BigInteger number)
         {
             return ConvertToChinese(number);

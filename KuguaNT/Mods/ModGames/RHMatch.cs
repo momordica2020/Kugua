@@ -171,7 +171,7 @@ namespace Kugua
                 if (tranResult == betMoney)
                 {
                     // 转账成功
-                    betUser.hrmoney += (ulong)betMoney;
+                    betUser.hrmoney += betMoney;
                     if (!bets[betUser].ContainsKey(roadnum)) bets[betUser][roadnum] = 0;
                     bets[betUser][roadnum] += betMoney;
 

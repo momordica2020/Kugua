@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace Kugua
@@ -35,6 +38,7 @@ namespace Kugua
         List<string> jokesEvent = new List<string>();
         List<string> jokesOrg = new List<string>();
         List<string> jokesEnemy = new List<string>();
+        
 
         string junkf = "spam.txt";
         List<List<string>> junks = new List<List<string>>();
@@ -53,7 +57,7 @@ namespace Kugua
             ModCommands[new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline)] = handleRandomString;
             ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline)] = handleCutString;
             ModCommands[new Regex(@"^讽刺(.+)", RegexOptions.Singleline)] = handleJoke;
-
+            ModCommands[new Regex(@"^历史上的(\S+)", RegexOptions.Singleline)] = handleHistoryToday;
 
 
 
@@ -195,14 +199,115 @@ namespace Kugua
 
             return true;
         }
+
+      
+
         public void Exit()
         {
 
         }
 
 
+        private DateTime getDateFromString(string str)
+        {
+            DateTime checkDate = DateTime.Now;
+            try
+            {
+
+                if (str == "今天") checkDate = DateTime.Now;
+                else if (str == "昨天") checkDate = DateTime.Now.AddDays(-1);
+                else if (str == "前天") checkDate = DateTime.Now.AddDays(-2);
+                else if (str == "明天") checkDate = DateTime.Now.AddDays(1);
+                else if (str == "后天") checkDate = DateTime.Now.AddDays(2);
+                else
+                {
+                    Match match = Regex.Match(str, @"^(大+)(前天)$");
+                    if (match.Success)
+                    {
+                        string dPart = match.Groups[1].Value;
+                        int dCount = dPart.Length;
+                        checkDate = DateTime.Now.AddDays(-2 - dCount);
+                    }
 
 
+                    match = Regex.Match(str, @"^(大+)(后天)$");
+                    if (match.Success)
+                    {
+                        string dPart = match.Groups[1].Value;
+                        int dCount = dPart.Length;
+                        checkDate = DateTime.Now.AddDays(2 + dCount);
+                    }
+
+                    match = Regex.Match(str, @"^(\d{1,2}|[一二三四五六七八九十]{1,2})月([一二三四五六七八九十]{1,3}|\d{1,2})(日)?$");
+                    if (match.Success)
+                    {
+                        int m = StaticUtil.ConvertToNumber(match.Groups[1].Value);
+                        int d = StaticUtil.ConvertToNumber(match.Groups[2].Value);
+                        checkDate = new DateTime(DateTime.Today.Year, m, d);
+                    }
+                }
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
+
+            return checkDate;
+        }
+
+        private string handleHistoryToday(MessageContext context, string[] param)
+        {
+            string date = param[1].Trim();
+            DateTime checkDate = getDateFromString(date);
+            string res = $"历史上的{checkDate.ToString("MM月dd日")}：\r\n";
+            try
+            {
+                
+                using (FileStream fs = new FileStream(Config.Instance.ResourceFullPath("history_in_today.txt"), FileMode.Open))
+                {
+                    using (StreamReader streamReader = new StreamReader(fs,Encoding.UTF8))
+                    {
+
+                        try
+                        {
+                            string line = "";
+                            int num = 0;
+                            while((line = streamReader.ReadLine()) != null)   
+                            {
+                                var lineitem = line.Split('\t', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                                //Logger.Log(lineitem.Length + "\t" + line);
+                                if (lineitem.Length >= 5)
+                                {
+                                    var y = lineitem[0];
+                                    var m = int.Parse(lineitem[1]);
+                                    var d = int.Parse(lineitem[2]);
+                                    var type = lineitem[3];
+                                    var data = lineitem[4];
+                                    
+                                    if(m== checkDate.Month && d == checkDate.Day && type=="1")
+                                    {
+                                        res += $"{y}年：{data}\r\n";
+                                        if (num++ > 10) break;
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex);
+                        }
+                           
+                    }
+                }
+            } 
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
+            return res;
+        }
 
 
         private string handleJoke(MessageContext context, string[] param)

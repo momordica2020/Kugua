@@ -230,7 +230,7 @@ namespace Kugua
                // modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
                 modedict["喷人"] = new ModeInfo { name = "喷人", config = {  } };
                 modedict["语音"] = new ModeInfo { name = "语音", config = { } };
-                //modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
+                modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
                 //modedict["西医"] = new ModeInfo { name = "西医", config = { } };
                 // replace
                 wordReplace = new Dictionary<string, string>();
@@ -483,9 +483,9 @@ namespace Kugua
                     case "小万邦":
                         answer.Add(getGong());
                         break;
-                    //case "本草":
-                    //    answer.Add(bencao[MyRandom.Next(bencao.Count)]);
-                    //    break;
+                    case "本草":
+                        answer.Add(bencao[MyRandom.Next(bencao.Count)]);
+                        break;
                     //case "西医":
                     //    answer.Add(getXiyi());
                     //    break;
@@ -767,6 +767,12 @@ namespace Kugua
             }
         }
 
+
+
+        /// <summary>
+        /// 用群聊记录来随机回应
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> getHistoryReact()
         {
             List<string> result = new List<string>();
@@ -800,12 +806,20 @@ namespace Kugua
                                 targetuser = items[1];
                                 string msg = items[2].Trim();
 
-                                if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
-
+                                // 过滤CQ代码
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
-                                if (string.IsNullOrWhiteSpace(msg.Trim())) continue;
-                                result.Add(msg);
-                                find = true;
+
+                                // 过严格过滤器
+                                if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
+  
+                                // 过滤emoji
+                                msg = StaticUtil.ConvertEmoji(msg);
+                                if (!string.IsNullOrWhiteSpace(msg))
+                                {
+                                    result.Add(msg);
+                                    find = true;
+                                }
+                                
                             }
                         }
                         catch (Exception e)
@@ -830,23 +844,7 @@ namespace Kugua
         }
 
 
-        public string getAnswerGong(long user, string question)
-        {
-            string msg = "";
-            if (MyRandom.Next(0, 100) < 85)
-            {
-                msg = getChaosRandomSentence(question) + getMotionString();
-            }
-            else
-            {
-                if (msg.Length <= 0 || MyRandom.Next(1, 100) < 40)
-                {
-                    msg = getSaoHua() + getMotionString();
-                }
-            }
 
-            return msg;
-        }
 
         /// <summary>
         /// 混沌模式的回复
