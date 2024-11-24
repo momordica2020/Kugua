@@ -105,7 +105,7 @@ namespace Kugua
                     new ModProof(),
                     new ModTextFunction(),
                     new ModZhanbu(),
-                    //new ModTranslate(),
+                    new ModTranslate(),
                     new ModTimerTask(),
                     new ModNLP(),
                     new ModRandomChat(),    // 这个会用闲聊收尾
