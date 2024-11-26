@@ -38,14 +38,18 @@ namespace Kugua
                 string input = param[2].Trim();
                 if (num > 10) num = 10;
                 List<string> langs = new List<string>();
+                var res = "(中";
                 langs.Add("zh-CN");
-                var ll = GoogleTranslate.Language.Values.ToList();
+                var ll = GoogleTranslate.Language.ToList();
+                
                 for (int i = 0; i < num; i++)
                 {
-                    langs.Add(ll[MyRandom.Next(ll.Count)]);
+                    langs.Add(ll[MyRandom.Next(ll.Count)].Value);
+                    res += $"译{ll[MyRandom.Next(ll.Count)].Key}";
+                    if (res.EndsWith("文") || res.EndsWith("语")) res = res.Remove(res.Length - 1);
                 }
                 langs.Add("zh-CN");
-                var res = $"({string.Join("=>", langs.ToArray())})\n";
+                res += "译中)\n";
                 res += getMultiTrans(input, langs);
                 return res;
             }
@@ -455,15 +459,15 @@ namespace Kugua
             { "科萨文", "xh" },
             { "科西嘉文", "co" },
             { "立陶宛文", "lt" },
-            { "简体中文", "zh-CN" },
-            { "简体中文（中国）", "zh-Hans" },
+            //{ "简体中文", "zh-CN" },
+            //{ "简体中文（中国）", "zh-Hans" },
             { "索拉尼库尔德文", "ckb" },
             { "索马里文", "so" },
-            { "繁体中文", "zh-TW" },
-            { "繁体中文（台湾）", "zh-Hant" },
+            //{ "繁体中文", "zh-TW" },
+            //{ "繁体中文（台湾）", "zh-Hant" },
             { "纳瓦霍文", "nv" },
             { "绍纳文", "sn" },
-            { "维吾尔文", "ug" },
+            //{ "维吾尔文", "ug" },
             { "缅甸文", "my" },
             { "罗马尼亚文", "ro" },
             { "老挝文", "lo" },
@@ -473,7 +477,7 @@ namespace Kugua
             { "荷兰文", "nl" },
             { "菲律宾文", "fil" },
             { "萨摩亚文", "sm" },
-            { "葡萄牙文（巴西）", "pt-BR" },
+            //{ "葡萄牙文（巴西）", "pt-BR" },
             { "葡萄牙文", "pt-PT" },
             { "蒙古文", "mn" },
             { "阿", "ar" },
@@ -493,7 +497,7 @@ namespace Kugua
             { "马来文", "ms" },
             { "马耳他文", "mt" },
             { "高棉文", "km" },
-            { "自动", "auto" },
+            //{ "自动", "auto" },
             { "汉", "zh-CN" },
             { "中", "zh-CN" },
             { "简", "zh-CN" },

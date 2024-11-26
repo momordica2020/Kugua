@@ -494,7 +494,7 @@ namespace Kugua
                         answer.AddRange(getPen());
                         break;
                     case "测试":
-                        answer.AddRange(getHistoryReact());
+                        answer.AddRange(getHistoryReact(context));
                         break;
 
 
@@ -502,7 +502,7 @@ namespace Kugua
                         
                     case "语音":
                         // string gong = getGong();
-                        var r = getHistoryReact();
+                        var r = getHistoryReact(context);
                         string sendString = "";
                         foreach(var rs in r)
                         {
@@ -773,7 +773,7 @@ namespace Kugua
         /// 用群聊记录来随机回应
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<string> getHistoryReact()
+        public IEnumerable<string> getHistoryReact(MessageContext context)
         {
             List<string> result = new List<string>();
 
@@ -808,6 +808,20 @@ namespace Kugua
 
                                 // 过滤CQ代码
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
+
+                                // xml直接发
+                                if (msg.Contains("xml"))
+                                {
+                                    var mth = new Regex(@"<\?xml.*?\?>|<([^>]+)>(.*?)<\/\1>", RegexOptions.Singleline).Match(msg);
+                                    if (mth.Success)
+                                    {
+                                        string xmlstr = mth.Groups[0].Value;
+                                        context.SendBack([new XmlData { data = xmlstr }]);
+                                        continue;
+                                    }
+
+                                }
+                                
 
                                 // 过严格过滤器
                                 if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;

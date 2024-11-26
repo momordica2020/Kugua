@@ -252,216 +252,216 @@ namespace Kugua.Integrations.NTBot
             {
                 string json = e.Message;
 
-            JObject jo = JObject.Parse(json);
-            //Logger.Log(jo.ToString());
-            if (jo["status"] != null)
-            {
-                // reply!
-                var reply = JsonConvert.DeserializeObject<SenderReplyAPI>(json);
+                JObject jo = JObject.Parse(json);
                 //Logger.Log(jo.ToString());
-                if (reply != null)
+                if (jo["status"] != null)
                 {
-                    if (sessions.ContainsKey(reply.echo))
+                    // reply!
+                    var reply = JsonConvert.DeserializeObject<SenderReplyAPI>(json);
+                    //Logger.Log(jo.ToString());
+                    if (reply != null)
                     {
-                        var sd = sessions[reply.echo];
-                        switch (sd.action)
+                        if (sessions.ContainsKey(reply.echo))
                         {
-                            case "send_private_msg":
-                            case "send_group_msg":
-                                {
-                                    var oo = JsonConvert.DeserializeObject<send_msg_reply>(jo["data"].ToString());
-                                        lock (SessionLock)
-                                        {
-                                            session_messageid[reply.echo] = oo.message_id.ToString();
-                                        }
-                                            
-                                    //Logger.Log("SEND SESSION  " + oo.message_id);
-                                    break;
-                                }
-                            case "get_msg":
-                                {
-                                    var oo = JsonConvert.DeserializeObject<get_msg_reply>(jo["data"].ToString());
-                                    oo.message = new List<Message>();
-                                    if (jo?["data"]?["message"] != null)
+                            var sd = sessions[reply.echo];
+                            switch (sd.action)
+                            {
+                                case "send_private_msg":
+                                case "send_group_msg":
                                     {
-                                        parseMessages(oo.message, jo["data"]["message"].ToArray());
-                                    }
-                                        lock (SessionLock)
-                                        {
-                                            session_messageid[reply.echo] = oo.message.ToTextString();
-                                        }
+                                        var oo = JsonConvert.DeserializeObject<send_msg_reply>(jo["data"].ToString());
+                                            lock (SessionLock)
+                                            {
+                                                session_messageid[reply.echo] = oo.message_id.ToString();
+                                            }
                                             
-                                    //Logger.Log("READ DATA  " + oo.message.ToTextString());
+                                        //Logger.Log("SEND SESSION  " + oo.message_id);
+                                        break;
+                                    }
+                                case "get_msg":
+                                    {
+                                        var oo = JsonConvert.DeserializeObject<get_msg_reply>(jo["data"].ToString());
+                                        oo.message = new List<Message>();
+                                        if (jo?["data"]?["message"] != null)
+                                        {
+                                            parseMessages(oo.message, jo["data"]["message"].ToArray());
+                                        }
+                                            lock (SessionLock)
+                                            {
+                                                session_messageid[reply.echo] = oo.message.ToTextString();
+                                            }
+                                            
+                                        //Logger.Log("READ DATA  " + oo.message.ToTextString());
+                                        break;
+                                    }
+                                default:
                                     break;
-                                }
-                            default:
-                                break;
-                        }
-                        sessions.Remove(reply.echo);
+                            }
+                            sessions.Remove(reply.echo);
 
+                        }
                     }
+                    return;
                 }
-                return;
-            }
-            else
-            {
-                // event!
-                var baseEvent = JsonConvert.DeserializeObject<event_base>(json);
-
-                // 根据 post_type 选择解析对应的事件类型
-
-                switch (baseEvent.post_type)
+                else
                 {
-                    case "message":
-                        // 根据 message_type 判断是私聊消息还是群消息
-                        if (jo["message_type"]?.ToString() == "private")
-                        {
-                            var eo = JsonConvert.DeserializeObject<private_message_event>(json);
-                            eo.message = new List<Message>();
-                            if (jo?["message"] != null)
-                            {
-                                parseMessages(eo.message, jo["message"].ToArray());
-                            }
-                            OnPrivateMessageReceive?.Invoke(eo);
-                        }
-                        else if (jo["message_type"].ToString() == "group")
-                        {
-                            var eo = JsonConvert.DeserializeObject<group_message_event>(json);
-                            eo.message = new List<Message>();
-                            if (jo?["message"] != null)
-                            {
-                                parseMessages(eo.message, jo["message"].ToArray());
-                            }
-                            OnGroupMessageReceive?.Invoke(eo);
-                        }
-                        break;
+                    // event!
+                    var baseEvent = JsonConvert.DeserializeObject<event_base>(json);
 
-                    case "notice":
-                        // 处理通知事件
-                        string notice_type = jo["notice_type"]?.ToString();
-                        switch (notice_type)
-                        {
-                            case "group_upload":
+                    // 根据 post_type 选择解析对应的事件类型
+
+                    switch (baseEvent.post_type)
+                    {
+                        case "message":
+                            // 根据 message_type 判断是私聊消息还是群消息
+                            if (jo["message_type"]?.ToString() == "private")
                             {
-                                var eo = JsonConvert.DeserializeObject<group_upload_event>(json);
-                                Logger.Log($"[群文件][{eo.group_id}]{eo.user_id}上传了文件{eo.file.name}(大小{eo.file.size}B)");
-                                break;
-                            }   
-                            case "group_admin":
-                            {
-                                var eo = JsonConvert.DeserializeObject<group_admin_event>(json);
-                                Logger.Log($"[群管理][{eo.group_id}]{eo.user_id}{(eo.sub_type == "set" ? "被设为" : "被取消")}管理员");
-                                break;
+                                var eo = JsonConvert.DeserializeObject<private_message_event>(json);
+                                eo.message = new List<Message>();
+                                if (jo?["message"] != null)
+                                {
+                                    parseMessages(eo.message, jo["message"].ToArray());
+                                }
+                                OnPrivateMessageReceive?.Invoke(eo);
                             }
-                            case "group_decrease":
+                            else if (jo["message_type"].ToString() == "group")
+                            {
+                                var eo = JsonConvert.DeserializeObject<group_message_event>(json);
+                                eo.message = new List<Message>();
+                                if (jo?["message"] != null)
                                 {
-                                    var eo = JsonConvert.DeserializeObject<group_decrease_event>(json);
-                                    Logger.Log($"[群减员][{eo.group_id}]{eo.user_id}{(eo.sub_type == "leave" ? "主动退群" : "被踢出群")}{(!string.IsNullOrWhiteSpace(eo.operator_id)?$"  操作者{eo.operator_id}":"")}");
+                                    parseMessages(eo.message, jo["message"].ToArray());
+                                }
+                                OnGroupMessageReceive?.Invoke(eo);
+                            }
+                            break;
+
+                        case "notice":
+                            // 处理通知事件
+                            string notice_type = jo["notice_type"]?.ToString();
+                            switch (notice_type)
+                            {
+                                case "group_upload":
+                                {
+                                    var eo = JsonConvert.DeserializeObject<group_upload_event>(json);
+                                    Logger.Log($"[群文件][{eo.group_id}]{eo.user_id}上传了文件{eo.file.name}(大小{eo.file.size}B)");
+                                    break;
+                                }   
+                                case "group_admin":
+                                {
+                                    var eo = JsonConvert.DeserializeObject<group_admin_event>(json);
+                                    Logger.Log($"[群管理][{eo.group_id}]{eo.user_id}{(eo.sub_type == "set" ? "被设为" : "被取消")}管理员");
                                     break;
                                 }
-                            case "group_increase":
-                                {
-                                    var eo = JsonConvert.DeserializeObject<group_decrease_event>(json);
-                                    Logger.Log($"[群加人][{eo.group_id}]{eo.user_id}{(eo.sub_type == "approve" ? "被邀入群" : "主动加群")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
-                                    break;
-                                }
-                            case "group_ban":
-                                {
-                                    var eo = JsonConvert.DeserializeObject<group_ban_event>(json);
-                                    Logger.Log($"[群禁言][{eo.group_id}]{eo.user_id}{(eo.sub_type == "ban" ? ($"被禁言{eo.duration}秒") : "被解除禁言")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
-                                    break;
-                                }
-                            case "friend_add":
-                                {
-                                    var eo = JsonConvert.DeserializeObject<friend_add_event>(json);
-                                    Logger.Log($"[加好友]{eo.user_id}加你为好友");
-                                    break;
-                                }
-                            case "group_recall":
-                                {
-                                    var eo = JsonConvert.DeserializeObject<group_recall_event>(json);
-                                    Logger.Log($"[群撤回][{eo.group_id}]{eo.user_id}发的消息，编号{eo.message_id}，被撤回{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
-                                    break;
-                                }
-                            case "friend_recall":
-                                {
-                                    var eo = JsonConvert.DeserializeObject<friend_recall_event>(json);
-                                    Logger.Log($"[私聊撤回]{eo.user_id}发的消息，编号{eo.message_id}，被撤回");
-                                    break;
-                                }
-                            case "notify":
-                                {
-                                    if (jo["sub_type"]?.ToString() == "honor")
+                                case "group_decrease":
                                     {
-                                        // honor_event
-                                        var eo = JsonConvert.DeserializeObject<notify_honor_event>(json);
-                                        Logger.Log($"[群荣耀][{eo.group_id}]{eo.user_id}获得群荣耀{eo.honor_type}");
+                                        var eo = JsonConvert.DeserializeObject<group_decrease_event>(json);
+                                        Logger.Log($"[群减员][{eo.group_id}]{eo.user_id}{(eo.sub_type == "leave" ? "主动退群" : "被踢出群")}{(!string.IsNullOrWhiteSpace(eo.operator_id)?$"  操作者{eo.operator_id}":"")}");
+                                        break;
                                     }
-                                    else
+                                case "group_increase":
                                     {
-                                        var eo = JsonConvert.DeserializeObject<notify_event>(json);
-                                        if (eo.sub_type == "poke")
+                                        var eo = JsonConvert.DeserializeObject<group_decrease_event>(json);
+                                        Logger.Log($"[群加人][{eo.group_id}]{eo.user_id}{(eo.sub_type == "approve" ? "被邀入群" : "主动加群")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
+                                        break;
+                                    }
+                                case "group_ban":
+                                    {
+                                        var eo = JsonConvert.DeserializeObject<group_ban_event>(json);
+                                        Logger.Log($"[群禁言][{eo.group_id}]{eo.user_id}{(eo.sub_type == "ban" ? ($"被禁言{eo.duration}秒") : "被解除禁言")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
+                                        break;
+                                    }
+                                case "friend_add":
+                                    {
+                                        var eo = JsonConvert.DeserializeObject<friend_add_event>(json);
+                                        Logger.Log($"[加好友]{eo.user_id}加你为好友");
+                                        break;
+                                    }
+                                case "group_recall":
+                                    {
+                                        var eo = JsonConvert.DeserializeObject<group_recall_event>(json);
+                                        Logger.Log($"[群撤回][{eo.group_id}]{eo.user_id}发的消息，编号{eo.message_id}，被撤回{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
+                                        break;
+                                    }
+                                case "friend_recall":
+                                    {
+                                        var eo = JsonConvert.DeserializeObject<friend_recall_event>(json);
+                                        Logger.Log($"[私聊撤回]{eo.user_id}发的消息，编号{eo.message_id}，被撤回");
+                                        break;
+                                    }
+                                case "notify":
+                                    {
+                                        if (jo["sub_type"]?.ToString() == "honor")
                                         {
-                                            Logger.Log($"[群戳一戳][{eo.group_id}]{eo.user_id}戳了戳{eo.target_id}");
-                                        }else if(eo.sub_type == "lucky_king")
-                                        {
-                                            Logger.Log($"[群红包运气王][{eo.group_id}]{eo.user_id}所发的红包被领光，{eo.target_id}成为运气王");
+                                            // honor_event
+                                            var eo = JsonConvert.DeserializeObject<notify_honor_event>(json);
+                                            Logger.Log($"[群荣耀][{eo.group_id}]{eo.user_id}获得群荣耀{eo.honor_type}");
                                         }
+                                        else
+                                        {
+                                            var eo = JsonConvert.DeserializeObject<notify_event>(json);
+                                            if (eo.sub_type == "poke")
+                                            {
+                                                Logger.Log($"[群戳一戳][{eo.group_id}]{eo.user_id}戳了戳{eo.target_id}");
+                                            }else if(eo.sub_type == "lucky_king")
+                                            {
+                                                Logger.Log($"[群红包运气王][{eo.group_id}]{eo.user_id}所发的红包被领光，{eo.target_id}成为运气王");
+                                            }
+                                        }
+                                        break;
                                     }
-                                    break;
-                                }
-                            default:break;
-                        }
+                                default:break;
+                            }
                         
 
-                        break;
+                            break;
 
-                    case "meta_event":
-                        // 处理元事件
-                        if (jo["meta_event_type"]?.ToString() == "lifecycle")
-                        {
-                            var eo = JsonConvert.DeserializeObject<lifecycle_event>(json);
-                            Logger.Log($"[生命周期]{eo.sub_type}");
-                        }
-                        else if (jo["meta_event_type"]?.ToString() == "heartbeat")
-                        {
-                            var eo = JsonConvert.DeserializeObject<heartbeat_event>(json);
-                            Logger.Log($"[心跳]({eo.status})间隔={eo.interval}ms");
-                        }
-                        break;
+                        case "meta_event":
+                            // 处理元事件
+                            if (jo["meta_event_type"]?.ToString() == "lifecycle")
+                            {
+                                var eo = JsonConvert.DeserializeObject<lifecycle_event>(json);
+                                Logger.Log($"[生命周期]{eo.sub_type}");
+                            }
+                            else if (jo["meta_event_type"]?.ToString() == "heartbeat")
+                            {
+                                var eo = JsonConvert.DeserializeObject<heartbeat_event>(json);
+                                Logger.Log($"[心跳]({eo.status})间隔={eo.interval}ms");
+                            }
+                            break;
 
-                    case "request":
-                        // 处理请求事件
-                        if (jo["request_type"]?.ToString() == "friend")
-                        {
-                            var eo = JsonConvert.DeserializeObject<friend_request_event>(json);
-                            Logger.Log($"[好友请求]{eo.user_id}附带消息：{eo.comment} flag={eo.flag}");
-                            Send(new set_friend_add_request { approve = true, flag = eo.flag });
-                        }
-                        else if (jo["request_type"]?.ToString() == "group")
-                        {
-                            var eo = JsonConvert.DeserializeObject<group_request_event>(json);
-                            if (eo.sub_type == "add")
+                        case "request":
+                            // 处理请求事件
+                            if (jo["request_type"]?.ToString() == "friend")
                             {
-                                // join in my group
-                                Logger.Log($"[加群请求][{eo.group_id}]申请人{eo.user_id}，附带消息：{eo.comment} flag={eo.flag}");
-                                //Send(new set_group_add_request { type = "add", approve = true, flag = eo.flag });
+                                var eo = JsonConvert.DeserializeObject<friend_request_event>(json);
+                                Logger.Log($"[好友请求]{eo.user_id}附带消息：{eo.comment} flag={eo.flag}");
+                                Send(new set_friend_add_request { approve = true, flag = eo.flag });
                             }
-                            else if(eo.sub_type == "invite")
+                            else if (jo["request_type"]?.ToString() == "group")
                             {
-                                // invite me to the group
-                                Logger.Log($"[邀请入群][{eo.group_id}]邀请者{eo.user_id}，附带消息：{eo.comment} flag={eo.flag}");
-                                Send(new set_group_add_request { type = "invite", approve = true, flag = eo.flag });
-                            }
+                                var eo = JsonConvert.DeserializeObject<group_request_event>(json);
+                                if (eo.sub_type == "add")
+                                {
+                                    // join in my group
+                                    Logger.Log($"[加群请求][{eo.group_id}]申请人{eo.user_id}，附带消息：{eo.comment} flag={eo.flag}");
+                                    //Send(new set_group_add_request { type = "add", approve = true, flag = eo.flag });
+                                }
+                                else if(eo.sub_type == "invite")
+                                {
+                                    // invite me to the group
+                                    Logger.Log($"[邀请入群][{eo.group_id}]邀请者{eo.user_id}，附带消息：{eo.comment} flag={eo.flag}");
+                                    Send(new set_group_add_request { type = "invite", approve = true, flag = eo.flag });
+                                }
                             
-                        }
-                        break;
+                            }
+                            break;
 
-                    default:
-                        Logger.Log(json);
-                        Logger.Log("-- Unsupported post_type --");
-                        break;
-                }
+                        default:
+                            Logger.Log(json);
+                            Logger.Log("-- Unsupported post_type --");
+                            break;
+                    }
 
                 }
             }catch(Exception ex)
