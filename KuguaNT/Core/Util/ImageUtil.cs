@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace Kugua
 {
     /// <summary>
-    /// 做旧生成器
+    /// 图像处理相关
     /// </summary>
-    public class ImageGreenSimulator
+    public class ImageUtil
     {
         // Clamp values to be within 0-65535
         private static int Clamp(int x)
@@ -40,6 +40,53 @@ namespace Kugua
             return new int[] { Clamp(r), Clamp(g), Clamp(b) };
         }
 
+        public static string GifSpeed(MagickImageCollection images, double speed)
+        {
+            if (images == null) return null;
+            images.Coalesce();
+            if (images.Count <= 1)
+            { 
+                //skip;
+            }
+            else if (Math.Abs(speed) <= 0.001)
+            {
+                // use first img
+                //var imgfirst = images.First();
+                while(images.Count>1)images.RemoveAt(1);
+            }
+            else
+            {
+                if (speed < 0)
+                {
+                    images.Reverse();
+                }
+                foreach (var image in images)
+                {
+                    image.AnimationDelay = (uint)(image.AnimationDelay / Math.Abs(speed));
+                    if (image.AnimationDelay <2 )
+                    {
+                        image.AnimationDelay = 2;
+                    }
+
+                    image.ColorFuzz = new Percentage(5);
+                }
+            }
+          
+            using (MemoryStream ms = new MemoryStream())
+            {
+                var settings = new QuantizeSettings();
+                settings.Colors = 256;
+                
+                images.Quantize(settings);
+                images.OptimizeTransparency();
+                images.Write(ms);
+                byte[] imageBytes = ms.ToArray();
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
+        }
+
+
 
         /// <summary>
         /// 处理图片做旧，返回base64编码的图像数据
@@ -48,7 +95,7 @@ namespace Kugua
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ProcessImage(MagickImageCollection images, int iterations = 16, int quality = 75, bool dealGreen = true)
+        public static string ImageGreen(MagickImageCollection images, int iterations = 16, int quality = 75, bool dealGreen = true)
         {
             if (images == null) return null;
 
@@ -221,7 +268,7 @@ namespace Kugua
 
 
 
-    public class ImageUtil
+    public class ImageUtil2
     {
         //public static void setGray(Bitmap bm)
         //{

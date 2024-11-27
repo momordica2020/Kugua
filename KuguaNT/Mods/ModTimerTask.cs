@@ -36,9 +36,10 @@ namespace Kugua
             
             
             ModCommands[new Regex(@"^来点(\S+)")] = getSome;
-
-
             ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
+            ModCommands[new Regex(@"^(\S+)倍速", RegexOptions.Singleline)] = setGifSpeed;
+
+
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
             ModCommands[new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
@@ -64,6 +65,8 @@ namespace Kugua
 
             return true;
         }
+
+  
 
         private string checkIP(MessageContext context, string[] param)
         {
@@ -100,6 +103,31 @@ namespace Kugua
             //}
             return "";
         }
+        private string setGifSpeed(MessageContext context, string[] param)
+        {
+            double speed = 0;
+            if(double.TryParse(param[1], out speed))
+            {
+                bool findImg = false;
+                foreach (var item in context.recvMessages)
+                {
+                    //Logger.Log(item.type);
+                    if (item is Image itemImg)
+                    {
+                        var oriImg = Network.DownloadImage(itemImg.url);
+                        var newImgbase64 = ImageUtil.GifSpeed(oriImg, speed);
+                        context.SendBack([
+                            //new At(context.userId, null),
+                            new Image($"base64://{newImgbase64}"),
+                        ]);
+                        findImg = true;
+                    }
+                }
+                if (findImg) return null;
+            }
+            return "";
+        }
+
 
         private string getOldJpg(MessageContext context, string[] param)
         {
@@ -111,7 +139,7 @@ namespace Kugua
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
                     //Logger.Log("? == " + oriImg.Count);
-                    var newImgbase64 = ImageGreenSimulator.ProcessImage(oriImg, 10, 10, true);
+                    var newImgbase64 = ImageUtil.ImageGreen(oriImg, 10, 10, true);
                     //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),
