@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 
 namespace Kugua
 {
-
+    /// <summary>
+    /// 做旧生成器
+    /// </summary>
     public class ImageGreenSimulator
     {
         // Clamp values to be within 0-65535
@@ -38,16 +40,6 @@ namespace Kugua
             return new int[] { Clamp(r), Clamp(g), Clamp(b) };
         }
 
-        // Resize the image to a new width while maintaining aspect ratio
-        private static Bitmap ResizeImage(Bitmap image, int newWidth)
-        {
-            int newHeight = (int)((float)image.Height / image.Width * newWidth);
-            Bitmap resizedImage = new Bitmap(image, new Size(newWidth, newHeight));
-            return resizedImage;
-        }
-
-
-
 
         /// <summary>
         /// 处理图片做旧，返回base64编码的图像数据
@@ -60,48 +52,72 @@ namespace Kugua
         {
             if (images == null) return null;
 
+            images.Coalesce();
+            //int no  = 0;
             foreach (var image in images)
             {
                 //Logger.Log("IMG " + image.Height + "," + image.Width);
                 uint oriW = image.Width;
                 uint oriH = image.Height;
-                uint smallW = (uint)(image.Width * 0.69);
+                uint smallW = (uint)(image.Width * 0.3);
                 uint smallH = (uint)((float)image.Height / image.Width * smallW);
                 image.Resize(smallW, smallH);
-                image.Resize(oriW,oriH);
+                image.Resize(oriW, oriH);
+                //if (no++ < 5) Logger.Log("! " + image.ColorFuzz);
+                image.ColorFuzz = new Percentage(5);
 
-                for (int iter = 0; iter < iterations; iter++)
+                //Bitmap resultImage = new Bitmap((int)(image.Width), (int)(image.Height));
+                if (dealGreen)
                 {
-                    //Bitmap resultImage = new Bitmap((int)(image.Width), (int)(image.Height));
-                    if (dealGreen)
+                    var pixels = image.GetPixels();
+                    foreach (var pixel in pixels)
                     {
-                        var pixels = image.GetPixels();
-                        int no = 0;
-                        foreach(var pixel in pixels)
+                        var pixelColor = pixel.ToColor();
+                        for (int iter = 0; iter < iterations; iter++)
                         {
                             
-                            var pixelColor = pixel.ToColor();
                             var yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
                             // Apply green shift (UV shift)
                             yuv[1] = yuv[1] - 255; // Slight shift to simulate the green effect
-                             // Convert back to RGB and set the pixel
+                                                   // Convert back to RGB and set the pixel
                             int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
-   
-                            pixel.SetChannel(0, (ushort)rgb[0]);//.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
-                            pixel.SetChannel(1, (ushort)rgb[1]);
-                            pixel.SetChannel(2, (ushort)rgb[2]);
-                            // pixels.SetPixel(pixel);
+                            pixelColor.R = (ushort)rgb[0];
+                            pixelColor.G = (ushort)rgb[1];
+                            pixelColor.B = (ushort)rgb[2];
                         }
+                        pixel.SetChannel(0, pixelColor.R);//.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                        pixel.SetChannel(1, pixelColor.G);
+                        pixel.SetChannel(2, pixelColor.B);
+                        // pixels.SetPixel(pixel);
+
                     }
                 }
             }
             using (MemoryStream ms = new MemoryStream())
             {
-                foreach (var image in images)
+                //images.Optimize();
+                //images.OptimizePlus();
+                
+                var settings = new QuantizeSettings();
+                settings.Colors = 256;
+                
+                images.Quantize(settings);
+                images.OptimizeTransparency();
+                for(int i =0;i<iterations;i++)
                 {
-                    //image.Format = MagickFormat.Jpeg;
-                    image.Quality = (uint)quality;
-                    //image.Write(ms);
+                    
+                    using(MemoryStream mss=new MemoryStream())
+                    {
+                        foreach (var image in images)
+                        {
+                            //image.Format = MagickFormat.Jpeg;
+                            image.Quality = (uint)quality;
+                            //image.Write(ms);
+                        }
+                        images.Write(mss);
+                        byte[] imageBytess = mss.ToArray();
+                        images = new MagickImageCollection(imageBytess);
+                    } 
                 }
                 images.Write(ms);
                 byte[] imageBytes = ms.ToArray();
@@ -205,7 +221,7 @@ namespace Kugua
 
 
 
-    public class PicDealer
+    public class ImageUtil
     {
         //public static void setGray(Bitmap bm)
         //{
