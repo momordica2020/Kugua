@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using ImageMagick;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -108,13 +109,15 @@ namespace Kugua
 
             }
         }
-        public static Bitmap DownloadImage(string imageUrl)
+        public static MagickImageCollection DownloadImage(string imageUrl)
         {//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
             HttpClientHandler handler = new HttpClientHandler
             {
                 UseProxy = false,
                 ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // 忽略所有证书错误
             };
+
+
             using (HttpClient client = new HttpClient(handler))
             {
                 try
@@ -127,9 +130,21 @@ namespace Kugua
                         response.EnsureSuccessStatusCode(); // 确保请求成功
 
                         byte[] imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                        //Logger.Log("url=" +imageUrl+ "\r\nByte = " + imageBytes.Length);
                         using (MemoryStream ms = new MemoryStream(imageBytes))
                         {
-                            return new Bitmap(ms);
+
+                            MagickImageCollection images = new MagickImageCollection();
+                            images.Read(ms);  // Read the image stream
+                            //Logger.Log("?-- "+images.Count);
+                            return images;
+                            //if (images.Count > 0)
+                            //{
+                            //    // Return the first frame of the GIF (static or animated)
+                            //    return ConvertMagickImageToBitmap(images[0]);
+                            //}
+                            
+                            //return new Bitmap(ms);
                         }
                     }
                 }

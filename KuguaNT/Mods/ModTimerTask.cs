@@ -40,7 +40,7 @@ namespace Kugua
 
             ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
-            ModCommands[new Regex(@"^说[:|：](.+)", RegexOptions.Singleline)] = say;
+            ModCommands[new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline)] = say;
             ModCommands[new Regex(@"^你什么情况？")] = checkState;
             
             ModCommands[new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)")] = setClock;
@@ -110,8 +110,8 @@ namespace Kugua
                 if(item is Image itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    //Logger.Log("?1");
-                    var newImgbase64 = JPEGreenSimulator.ProcessImage(oriImg, 10, 10, true);
+                    //Logger.Log("? == " + oriImg.Count);
+                    var newImgbase64 = ImageGreenSimulator.ProcessImage(oriImg, 10, 10, true);
                     //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,29 +12,29 @@ using System.Threading.Tasks;
 namespace Kugua
 {
 
-    public class JPEGreenSimulator
+    public class ImageGreenSimulator
     {
-        // Clamp values to be within 0-255
+        // Clamp values to be within 0-65535
         private static int Clamp(int x)
         {
-            return x < 0 ? 0 : (x > 255 ? 255 : x);
+            return x < 0 ? 0 : (x > 65535 ? 65535 : x);
         }
 
         // Convert RGB to YUV
         private static int[] Rgb2Yuv(int r, int g, int b)
         {
             int y = (int)(r * 0.299 + g * 0.587 + b * 0.114);
-            int u = (int)(r * -0.168736 + g * -0.331264 + b * 0.500 + 128);
-            int v = (int)(r * 0.500 + g * -0.418688 + b * -0.081312 + 128);
+            int u = (int)(r * -0.168736 + g * -0.331264 + b * 0.500 + 32768);
+            int v = (int)(r * 0.500 + g * -0.418688 + b * -0.081312 + 32768);
             return new int[] { Clamp(y), Clamp(u), Clamp(v) };
         }
 
         // Convert YUV back to RGB
         private static int[] Yuv2Rgb(int y, int u, int v)
         {
-            int r = (int)(y + 1.4075 * (v - 128));
-            int g = (int)(y - 0.3455 * (u - 128) - 0.7169 * (v - 128));
-            int b = (int)(y + 1.7790 * (u - 128));
+            int r = (int)(y + 1.4075 * (v - 32768));
+            int g = (int)(y - 0.3455 * (u - 32768) - 0.7169 * (v - 32768));
+            int b = (int)(y + 1.7790 * (u - 32768));
             return new int[] { Clamp(r), Clamp(g), Clamp(b) };
         }
 
@@ -47,73 +49,70 @@ namespace Kugua
 
 
 
-
         /// <summary>
         /// 处理图片做旧，返回base64编码的图像数据
         /// </summary>
-        /// <param name="inputImagePath"></param>
+        /// <param name="images"></param>
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ProcessImage(Bitmap image, int iterations = 16, int quality = 75, bool dealGreen = true)
+        public static string ProcessImage(MagickImageCollection images, int iterations = 16, int quality = 75, bool dealGreen = true)
         {
-            if (image == null) return null;
-            // Load the initial image
+            if (images == null) return null;
 
-            // Check if the image dimensions exceed 1000x1000 and resize if necessary
-            //if (image.Width > 200 || image.Height > 200)
+            foreach (var image in images)
             {
-                int oriW = image.Width;
-                int smallW = (int)(image.Width * 0.69);
-                image = ResizeImage(image, smallW);
-                image = ResizeImage(image, oriW); // Resize back to original width
-            }
-            
-            for (int iter = 0; iter < iterations; iter++)
-            {
-                Bitmap resultImage = new Bitmap(image.Width, image.Height);
-                if (dealGreen)
+                //Logger.Log("IMG " + image.Height + "," + image.Width);
+                uint oriW = image.Width;
+                uint oriH = image.Height;
+                uint smallW = (uint)(image.Width * 0.69);
+                uint smallH = (uint)((float)image.Height / image.Width * smallW);
+                image.Resize(smallW, smallH);
+                image.Resize(oriW,oriH);
+
+                for (int iter = 0; iter < iterations; iter++)
                 {
-                    for (int y = 0; y < image.Height; y++)
+                    //Bitmap resultImage = new Bitmap((int)(image.Width), (int)(image.Height));
+                    if (dealGreen)
                     {
-                        for (int x = 0; x < image.Width; x++)
+                        var pixels = image.GetPixels();
+                        int no = 0;
+                        foreach(var pixel in pixels)
                         {
-                            Color pixelColor = image.GetPixel(x, y);
-                            int[] yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
-
+                            
+                            var pixelColor = pixel.ToColor();
+                            var yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
                             // Apply green shift (UV shift)
-                            yuv[1] = yuv[1] - 1; // Slight shift to simulate the green effect
-
-                            // Convert back to RGB and set the pixel
+                            yuv[1] = yuv[1] - 255; // Slight shift to simulate the green effect
+                             // Convert back to RGB and set the pixel
                             int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
-                            resultImage.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+   
+                            pixel.SetChannel(0, (ushort)rgb[0]);//.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                            pixel.SetChannel(1, (ushort)rgb[1]);
+                            pixel.SetChannel(2, (ushort)rgb[2]);
+                            // pixels.SetPixel(pixel);
                         }
                     }
                 }
-                else
-                {
-                    using (Graphics graphics = Graphics.FromImage(resultImage))
-                    {
-                        graphics.DrawImage(image, 0, 0, image.Width, image.Height);
-                    }
-                }
-               // resultImage = LowLevelJpg(resultImage, quality, iterations);
-
-                // After each iteration, update the image to the result of this iteration
-                image = new Bitmap(resultImage);  // Ensure the current image is updated for the next iteration
-
-                // Optionally, we can apply compression or quality adjustments
-                if (iter == iterations - 1)
-                {
-                    return GetBase64Image(resultImage,quality);  // Save the final result
-                }
             }
-
-            return null; 
+            using (MemoryStream ms = new MemoryStream())
+            {
+                foreach (var image in images)
+                {
+                    //image.Format = MagickFormat.Jpeg;
+                    image.Quality = (uint)quality;
+                    //image.Write(ms);
+                }
+                images.Write(ms);
+                byte[] imageBytes = ms.ToArray();
+                //Logger.Log("bytes => " + imageBytes.Length);
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
         }
 
 
-        private static string GetBase64Image(Bitmap image, int quality)
+        public static string GetBase64Image(Bitmap image, int quality)
         {
             byte[] imageBytes = Array.Empty<byte>();
             using (MemoryStream memoryStream = new MemoryStream())

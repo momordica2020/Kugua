@@ -88,6 +88,7 @@ namespace Kugua
                     else
                     {
                         lastlang.Append(c);
+                         
                         //if (lastlang.Length > 6)
                         //{
                         //    // cut
@@ -103,6 +104,7 @@ namespace Kugua
                     if (!string.IsNullOrWhiteSpace(resAll))
                     {
                         context.SendBackPlain(resAll, true);
+                        return true;
                     }
                 }
 

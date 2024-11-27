@@ -66,7 +66,7 @@ namespace Kugua.Integrations.NTBot
  
         /// <summary>
         /// 图片路径格式：
-        /// file:///C:\\Users\Richard\Pictures\1.png
+        /// file://C:\\Users\Richard\Pictures\1.png
         /// http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg
         /// base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==
         /// </summary>
