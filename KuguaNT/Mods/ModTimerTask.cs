@@ -57,8 +57,14 @@ namespace Kugua
             TaskTimer.AutoReset = true;
             TaskTimer.Start();
             TaskTimer.Elapsed += TaskTimer_Elapsed;
-
-            qqwry = new QQWry(Config.Instance.ResourceFullPath("qqwry.dat"));
+            try
+            {
+                qqwry = new QQWry(Config.Instance.ResourceFullPath("qqwry.dat"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
 
             //ipLocation = new IpLocation();
 

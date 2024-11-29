@@ -59,6 +59,7 @@ namespace Kugua
             ModCommands[new Regex(@"^讽刺(.+)", RegexOptions.Singleline)] = handleJoke;
             ModCommands[new Regex(@"^历史上的(\S+)", RegexOptions.Singleline)] = handleHistoryToday;
             ModCommands[new Regex(@"^什么是[∶|:|：|\s](\S+)", RegexOptions.Singleline)] = handleSalad;
+            ModCommands[new Regex(@"^火星文(.+)", RegexOptions.Singleline)] = handleHX;
 
 
 
@@ -202,7 +203,19 @@ namespace Kugua
             return true;
         }
 
-      
+        private string handleHX(MessageContext context, string[] param)
+        {
+            try
+            {
+                return StaticUtil.HanToHx(param[1]);
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e);
+            }
+            return "";
+            
+        }
 
         public void Exit()
         {
