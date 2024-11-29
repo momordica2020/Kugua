@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.JSInterop;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -13,6 +15,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua
 {
+
     /// <summary>
     /// 文本应答的一些功能
     /// </summary>
@@ -34,10 +37,7 @@ namespace Kugua
         List<string> gongshou = new List<string>();
 
         string jokeName = "jokes.txt";
-        List<string> jokes = new List<string>();
-        List<string> jokesEvent = new List<string>();
-        List<string> jokesOrg = new List<string>();
-        List<string> jokesEnemy = new List<string>();
+        
         
 
         string junkf = "spam.txt";
@@ -107,23 +107,25 @@ namespace Kugua
             //}
 
             // joke
-            jokes = new List<string>();
-            jokesOrg = new List<string>();
-            jokesEvent = new List<string>();
-            jokesEnemy = new List<string>();
-            res = LocalStorage.ReadLines($"{PluginPath}/{jokeName}");
             string tmpline = "";
+            bool firstLine = true;
+            res = LocalStorage.ReadLines($"{PluginPath}/{jokeName}");
             foreach (var line in res)
             {
+                if (firstLine)
+                {
+                    var keys = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    Joke.Init(keys);
+                    firstLine = false;
+                    continue;
+                }
+
                 if (line.Trim().StartsWith("#"))
                 {
                     if (!string.IsNullOrEmpty(tmpline))
                     {
                         bool find = false;
-                        if (tmpline.Contains("【部门】")) { jokesOrg.Add(tmpline); find = true; }
-                        if (tmpline.Contains("【事件】")) { jokesEvent.Add(tmpline); find = true; }
-                        if (tmpline.Contains("【敌国】")) { jokesEnemy.Add(tmpline); find = true; }
-                        if (!find) jokes.Add(tmpline);
+                        Joke.AddJoke(tmpline);
                     }
                     tmpline = "";
                     continue;
@@ -312,51 +314,27 @@ namespace Kugua
 
         private string handleJoke(MessageContext context, string[] param)
         {
-            string Jokeres = "";
             try
             {
-                // 笑话输入格式：“事件：A，好人：B，坏人：C，地点：D”
+                // 笑话输入格式：“事件=A，好人=B，坏人=C，坏人2=D，本国=E，敌国=F，地点=G，报纸=H”
                 var items = param[1].Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (items.Length >= 1)
                 {
-                    Dictionary<string, string> pairs = new Dictionary<string, string>();
+                    List<(string, string)> pairs = new List<(string, string)>();
                     foreach (var item in items)
                     {
                         var pair = item.Split(new char[] { ':', '：', '=', ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                        if (pair.Length == 2) pairs[pair[0].Trim()] = pair[1].Trim();
+                        if (pair.Length == 2) pairs.Add((pair[0], pair[1]));
                     }
                     if (pairs.Count > 0)
                     {
                         try
                         {
-                            List<string> usingjokes = new List<string>();
-                            if (pairs.ContainsKey("敌国")) usingjokes.AddRange(jokesEnemy);
-                            if (pairs.ContainsKey("部门")) usingjokes.AddRange(jokesOrg);
-                            if (pairs.ContainsKey("事件")) usingjokes.AddRange(jokesEvent);
-                            if (usingjokes.Count <= 0) usingjokes.AddRange(jokes);
-                            int find = 100;
-                            int index = MyRandom.Next(usingjokes.Count);
-                            do
-                            {
-                                Jokeres = usingjokes[index];
-                                foreach (var pair in pairs)
-                                {
-                                    Jokeres = Jokeres.Replace($"【{pair.Key}】", pair.Value);
-                                }
-                                if (Jokeres.Contains("【"))
-                                {
-                                    index = (index + 1) % usingjokes.Count;
-                                    find -= 1;
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            } while (find >= 0);
+                            var joke = Joke.GetRandomJoke(pairs);
+                            return joke;
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
                         }
 
                     }
@@ -364,7 +342,7 @@ namespace Kugua
             }
             catch { }
 
-            return Jokeres;
+            return "";
         }
 
         private string handleCutString(MessageContext context, string[] param)
