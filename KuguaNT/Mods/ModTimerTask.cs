@@ -207,6 +207,16 @@ namespace Kugua
                     //        });
                     //}
                 }
+
+                Task.Delay(2000).ContinueWith(t =>
+                {
+                    try
+                    {
+                        File.Delete(localPath);
+                    }
+                    catch { }
+                } );
+
                 return null;
 
             }

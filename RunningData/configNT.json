@@ -1,0 +1,79 @@
+{
+  "Version": "1.9.8.4",
+  "LateUpdated": "2024-10-24T15:10:00",
+  "ResourcePath": "RunningData",
+  "Avatar": {
+    "myQQ": "2963959417",
+    "myName": "苦音酱",
+    "askName": "我苦",
+    "answerState": 3,
+    "adminQQ": 287859992,
+    "adminGroup": 0
+  },
+  "Net": {
+    "QQWS": "ws://localhost:9981",
+    "LocalWS": "ws://localhost:8849",
+	"TTSUri": "http://127.0.0.1:9966/tts",
+	"OllamaUri": "http://localhost:11434/api/chat",
+	"OllamaUriG": "http://localhost:11434/api/generate",
+	"OllamaModel": "ollama3c8bs:latest"
+  },
+  "Resources": {
+    "HistoryPath": {
+      "Type": 1,
+      "Path": "History"
+    },
+    "HistoryImagePath": {
+      "Type": 1,
+      "Path": "History/Image"
+    },
+    "FilterNormal": {
+      "Type": 0,
+      "Path": "sstv.data"
+    },
+    "FilterStrict": {
+      "Type": 0,
+      "Path": "sstv2.data"
+    },
+    "Player": {
+      "Type": 0,
+      "Path": "data_player.json"
+    },
+    "Playgroup": {
+      "Type": 0,
+      "Path": "data_playgroup.json"
+    },
+    "Zhouyi": {
+      "Type": 0,
+      "Path": "data_zhouyi.txt"
+    },
+    "Bihua": {
+      "Type": 0,
+      "Path": "data_bihua.txt"
+    },
+    "ModeConfig": {
+      "Type": 0,
+      "Path": "config_mode.txt"
+    },
+    "ModePath": {
+      "Type": 1,
+      "Path": "Mode"
+    },
+    "NLP_MODEL1": {
+      "Type": 0,
+      "Path": "model1.txt"
+    },
+    "Pinyin": {
+      "Type": 0,
+      "Path": "pinyin_unicode.txt"
+    },
+    "RaceUser": {
+      "Type": 0,
+      "Path": "game/race_user.txt"
+    },
+    "RaceHorse": {
+      "Type": 0,
+      "Path": "game/race_horse.txt"
+    }
+  }
+}

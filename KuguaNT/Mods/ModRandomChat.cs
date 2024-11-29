@@ -1,4 +1,5 @@
 ﻿
+using System.Drawing;
 using System.Security.Cryptography;
 
 using System.Text;
@@ -18,29 +19,17 @@ namespace Kugua
         //public static ModRandomChat Instance => instance.Value;
 
 
-        //private ModRandomChat()
-        //{
-
-
-        //}
-
-        public string replacefile = "replacewords.txt";
         string modeIndexName = "_index.txt";
-        //string modePrivateName = "_mode_private.txt";
-        //string modeGroupName = "_mode_group.txt";
-        string defaultAnswerName = "_defaultanswer.txt";
+
         string PluginPath;
 
         Dictionary<string, string> wordReplace = new Dictionary<string, string>();
         Dictionary<string, ModeInfo> modedict = new Dictionary<string, ModeInfo>();
-        List<string> defaultAnswers = new List<string>();
-        //public Dictionary<long, string> privatemode = new Dictionary<long, string>();
-        //public Dictionary<long, string> groupmode = new Dictionary<long, string>();
+       
+
         MD5 md5 = MD5.Create();
 
-        string chaosv = "混沌-名词.txt";
-        string chaosm = "混沌-情绪词.txt";
-        string chaosw = "混沌-小万邦部分.txt";
+        List<string> defaultAnswers = new List<string>();
         List<string[]> chaosWord = new List<string[]>();
         List<string> chaosMotion = new List<string>();
         List<string> chaosXwb = new List<string>();
@@ -48,24 +37,7 @@ namespace Kugua
         List<string> xy_drugs = new List<string>();
         List<string> xy_disease = new List<string>();
         List<string> xy_treatment = new List<string>();
-
-        string yunjief = "云杰说道.txt";
-        List<string> yjsd = new List<string>();
-
-
-
-        string penName = "pen.txt";
         List<string> penlist = new List<string>();
-
-
-
-
-
-
-        string picsave = "picsave.txt";
-        string piclingtang = "lingtang.jpg";
-        List<string> pics = new List<string>();
-
 
 
         public override bool Init(string[] args)
@@ -81,15 +53,10 @@ namespace Kugua
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");
 
                 // pen
-                penlist = LocalStorage.ReadLines($"{PluginPath}/{penName}").ToList();
+                penlist = LocalStorage.ReadLines($"{PluginPath}/pen.txt").ToList();
 
 
-
-
-
-
-
-
+                defaultAnswers = LocalStorage.ReadLines($"{PluginPath}/_defaultanswer.txt").ToList();
 
 
                 //// cangtou
@@ -200,7 +167,7 @@ namespace Kugua
 
                 //}
                 // load modes
-                
+
                 modedict = new Dictionary<string, ModeInfo>();
                 List<string> modelines = LocalStorage.ReadLines($"{PluginPath}/{modeIndexName}").ToList();
                 foreach (var line in modelines)
@@ -232,17 +199,6 @@ namespace Kugua
                 modedict["语音"] = new ModeInfo { name = "语音", config = { } };
                 modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
                 //modedict["西医"] = new ModeInfo { name = "西医", config = { } };
-                // replace
-                wordReplace = new Dictionary<string, string>();
-                var lines = LocalStorage.ReadLines($"{PluginPath}/{replacefile}");
-                foreach (var line in lines)
-                {
-                    var items = line.Split(new char[] { '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (items.Length >= 2)
-                    {
-                        wordReplace[items[1]] = items[0];
-                    }
-                }
 
 
                 //// group mode config
@@ -269,18 +225,16 @@ namespace Kugua
                 //}
 
                 // motions
-                chaosMotion = LocalStorage.ReadLines($"{PluginPath}/{chaosm}").ToList();
+                chaosMotion = LocalStorage.ReadLines($"{PluginPath}/混沌-情绪词.txt").ToList();
                 // verb
-                var wordlines = LocalStorage.ReadLines($"{PluginPath}/{chaosv}").ToList();
+                var wordlines = LocalStorage.ReadLines($"{PluginPath}/混沌-名词.txt").ToList();
                 foreach (var line in wordlines)
                 {
                     chaosWord.Add(line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
                 }
                 // xwb
-                chaosXwb = LocalStorage.ReadLines($"{PluginPath}/{chaosw}").ToList();
+                chaosXwb = LocalStorage.ReadLines($"{PluginPath}/混沌-小万邦部分.txt").ToList();
 
-                // yunjieshuodao
-                yjsd = LocalStorage.ReadLines($"{PluginPath}/{yunjief}").ToList();
 
                 // bencao
                 bencao = LocalStorage.ReadLines($"{PluginPath}/本草.csv").ToList();
@@ -290,14 +244,7 @@ namespace Kugua
                 xy_drugs = LocalStorage.ReadLines($"{PluginPath}/西医西药.txt").ToList();
                 xy_treatment = LocalStorage.ReadLines($"{PluginPath}/西医检查.txt").ToList();
 
-                // default
-                defaultAnswers = LocalStorage.ReadLines($"{PluginPath}/{defaultAnswerName}").ToList();
 
-                // pics
-                pics = LocalStorage.ReadLines($"{PluginPath}/{picsave}").ToList();
-
-
-                //new Thread(workInitModes).Start();
             }
             catch (Exception e)
             {
@@ -381,18 +328,6 @@ namespace Kugua
             GPT.Instance.AIClearMemory(context.groupId, context.userId);
             GPT.Instance.AISaveMemory();
             return $"*以清空AI模式下与你的聊天历史记录，并恢复默认prompt";
-        }
-
-        public override void Exit()
-        {
-            try
-            {
-                LocalStorage.writeLines($"{PluginPath}/{picsave}", pics);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
         }
 
 
@@ -779,8 +714,17 @@ namespace Kugua
 
             string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
             string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
-            var files = Directory.GetFiles(historyPath, "*.txt").ToList();
-            files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
+
+            var files = new List<string>();
+            if (Directory.Exists(historyPath))
+            {
+                files.AddRange(Directory.GetFiles(historyPath, "*.txt"));
+            }
+            if (Directory.Exists(historyPath2))
+            {
+                files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
+
+            }
             int maxtime = 10;
             try
             {

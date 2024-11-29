@@ -58,7 +58,7 @@ namespace Kugua
             ModCommands[new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline)] = handleCutString;
             ModCommands[new Regex(@"^讽刺(.+)", RegexOptions.Singleline)] = handleJoke;
             ModCommands[new Regex(@"^历史上的(\S+)", RegexOptions.Singleline)] = handleHistoryToday;
-
+            ModCommands[new Regex(@"^什么是[∶|:|：|\s](\S+)", RegexOptions.Singleline)] = handleSalad;
 
 
 
