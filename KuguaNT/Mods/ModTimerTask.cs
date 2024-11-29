@@ -38,7 +38,8 @@ namespace Kugua
             ModCommands[new Regex(@"^来点(\S+)")] = getSome;
             ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
             ModCommands[new Regex(@"^(\S+)倍速", RegexOptions.Singleline)] = setGifSpeed;
-
+            ModCommands[new Regex(@"^镜像(.*)", RegexOptions.Singleline)] = setImgMirror;
+            ModCommands[new Regex(@"^旋转(.*)", RegexOptions.Singleline)] = setImgRotate;
 
             ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
             ModCommands[new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline)] = say;
@@ -72,7 +73,58 @@ namespace Kugua
             return true;
         }
 
-  
+        private string setImgRotate(MessageContext context, string[] param)
+        {
+            double ro = 0;
+            if (double.TryParse(param[1], out ro))
+            { }
+            bool findImg = false;
+            foreach (var item in context.recvMessages)
+            {
+                //Logger.Log(item.type);
+                if (item is Image itemImg)
+                {
+                    var oriImg = Network.DownloadImage(itemImg.url);
+                    var newImgbase64 = ImageUtil.ImgRotate(oriImg, ro);
+                    context.SendBack([
+                        //new At(context.userId, null),
+                        new Image($"base64://{newImgbase64}"),
+                    ]);
+                    findImg = true;
+                        
+                }
+            }
+            if (findImg) return null;
+            return "";
+        }
+
+        private string setImgMirror(MessageContext context, string[] param)
+        {
+            double degree = 1;
+            if (double.TryParse(param[1], out degree))
+            {
+                
+            }
+            
+            bool findImg = false;
+            foreach (var item in context.recvMessages)
+            {
+                //Logger.Log(item.type);
+                if (item is Image itemImg)
+                {
+                    var oriImg = Network.DownloadImage(itemImg.url);
+                    var newImgbase64 = ImageUtil.ImgMirror(oriImg, degree);
+                    context.SendBack([
+                        //new At(context.userId, null),
+                        new Image($"base64://{newImgbase64}"),
+                    ]);
+                    findImg = true;
+                }
+            }
+            if (findImg) return null;
+            
+            return "";
+        }
 
         private string checkIP(MessageContext context, string[] param)
         {

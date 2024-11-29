@@ -1,6 +1,7 @@
 ﻿using ImageMagick;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Printing;
@@ -39,6 +40,89 @@ namespace Kugua
             int b = (int)(y + 1.7790 * (u - 32768));
             return new int[] { Clamp(r), Clamp(g), Clamp(b) };
         }
+
+
+        public static string ImgRotate(MagickImageCollection images, double rotate)
+        {
+            if (images == null) return null;
+
+            foreach (var image in images)
+            {
+                image.Rotate(rotate);
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                images.Write(ms);
+                byte[] imageBytes = ms.ToArray();
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
+        }
+
+        public static string ImgMirror(MagickImageCollection images, double degree)
+        {
+            if (images == null) return null;
+            var outputGif = new MagickImageCollection();
+            images.Coalesce();
+            foreach (var image in images)
+            {
+                // 获取图片宽高
+                uint width = image.Width;
+                uint height = image.Height;
+                int pos =  (int)(degree);
+                
+                // 裁剪右半部分
+                MagickGeometry rightHalfGeometry = new MagickGeometry((int)(width / 2), 0, width / 2, height);
+                using (var cropped = image.Clone())
+                {
+                    var outputImage = (MagickImage)image.Clone();
+                    switch (pos)
+                    {
+                        case 1:
+                            cropped.Crop(new MagickGeometry(0, 0, width / 2, height)); // 裁切左半部分
+                            cropped.Flop(); // 水平翻转
+                            outputImage.Composite(cropped, (int)width / 2, 0, CompositeOperator.Over); // 覆盖到右侧
+                            break;
+
+                        case 2:
+                            cropped.Crop(new MagickGeometry((int)width / 2, 0, width / 2, height)); // 裁切右半部分
+                            cropped.Flop(); // 水平翻转
+                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Over); // 覆盖到左侧
+                            break;
+
+                        case 3:
+                            cropped.Crop(new MagickGeometry(0, 0, width, height / 2)); // 裁切上半部分
+                            cropped.Flip(); // 垂直翻转
+                            outputImage.Composite(cropped, 0, (int)height / 2, CompositeOperator.Over); // 覆盖到下半部分
+                            break;
+
+                        case 4:
+                            cropped.Crop(new MagickGeometry(0, (int)height / 2, width, height / 2)); // 裁切下半部分
+                            cropped.Flip(); // 垂直翻转
+                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Over); // 覆盖到上半部分
+                            break;
+                        default: break;
+                    }
+                    outputImage.ColorFuzz = new Percentage(5);
+                    outputGif.Add(outputImage);
+                }
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                var settings = new QuantizeSettings();
+                settings.Colors = 256;
+
+                outputGif.Quantize(settings);
+                outputGif.OptimizeTransparency();
+                outputGif.Write(ms);
+                byte[] imageBytes = ms.ToArray();
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
+        }
+
 
         public static string GifSpeed(MagickImageCollection images, double speed)
         {
