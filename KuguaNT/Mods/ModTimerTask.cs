@@ -76,8 +76,8 @@ namespace Kugua
         private string setImgRotate(MessageContext context, string[] param)
         {
             double ro = 0;
-            if (double.TryParse(param[1], out ro))
-            { }
+            if (!double.TryParse(param[1], out ro))
+            { ro = 0; }
             bool findImg = false;
             foreach (var item in context.recvMessages)
             {
@@ -101,9 +101,9 @@ namespace Kugua
         private string setImgMirror(MessageContext context, string[] param)
         {
             double degree = 1;
-            if (double.TryParse(param[1], out degree))
+            if (!double.TryParse(param[1], out degree))
             {
-                
+                degree = 2;
             }
             
             bool findImg = false;

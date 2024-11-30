@@ -82,25 +82,29 @@ namespace Kugua
                         case 1:
                             cropped.Crop(new MagickGeometry(0, 0, width / 2, height)); // 裁切左半部分
                             cropped.Flop(); // 水平翻转
-                            outputImage.Composite(cropped, (int)width / 2, 0, CompositeOperator.Over); // 覆盖到右侧
+                       
+                            outputImage.Composite(cropped, (int)width / 2, 0, CompositeOperator.Src); // 覆盖到右侧
                             break;
 
                         case 2:
                             cropped.Crop(new MagickGeometry((int)width / 2, 0, width / 2, height)); // 裁切右半部分
-                            cropped.Flop(); // 水平翻转
-                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Over); // 覆盖到左侧
+                            cropped.Flop();
+                        
+                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Src); // 覆盖到左侧
                             break;
 
                         case 3:
                             cropped.Crop(new MagickGeometry(0, 0, width, height / 2)); // 裁切上半部分
                             cropped.Flip(); // 垂直翻转
-                            outputImage.Composite(cropped, 0, (int)height / 2, CompositeOperator.Over); // 覆盖到下半部分
+               
+                            outputImage.Composite(cropped, 0, (int)height / 2, CompositeOperator.Src); // 覆盖到下半部分
                             break;
 
                         case 4:
                             cropped.Crop(new MagickGeometry(0, (int)height / 2, width, height / 2)); // 裁切下半部分
                             cropped.Flip(); // 垂直翻转
-                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Over); // 覆盖到上半部分
+      
+                            outputImage.Composite(cropped, 0, 0, CompositeOperator.Src); // 覆盖到上半部分
                             break;
                         default: break;
                     }
