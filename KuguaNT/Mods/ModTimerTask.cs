@@ -31,27 +31,27 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands[new Regex(@"^帮我撤回(\d{1,2})?条?")] = handleRecall;
-            ModCommands[new Regex(@"^刷新列表")] = refreshList;
-            
-            
-            ModCommands[new Regex(@"^来点(\S+)")] = getSome;
-            ModCommands[new Regex(@"做旧",RegexOptions.Singleline)] = getOldJpg;
-            ModCommands[new Regex(@"^(\S+)倍速", RegexOptions.Singleline)] = setGifSpeed;
-            ModCommands[new Regex(@"^镜像(.*)", RegexOptions.Singleline)] = setImgMirror;
-            ModCommands[new Regex(@"^旋转(.*)", RegexOptions.Singleline)] = setImgRotate;
+            ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(\d{1,2})?条?"), handleRecall));
+            ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
-            ModCommands[new Regex(@"^点歌(.+)")] = getMusic;
-            ModCommands[new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline)] = say;
-            ModCommands[new Regex(@"^你什么情况？")] = checkState;
-            
-            ModCommands[new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)")] = setClock;
 
-            ModCommands[new Regex(@"^闹钟(列表|信息|状态)\b+")] = checkClock;
+            ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
+            ModCommands.Add(new ModCommand(new Regex(@"做旧",RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)倍速", RegexOptions.Singleline), setGifSpeed));
+            ModCommands.Add(new ModCommand(new Regex(@"^镜像(.*)", RegexOptions.Singleline), setImgMirror));
+            ModCommands.Add(new ModCommand(new Regex(@"^旋转(.*)", RegexOptions.Singleline), setImgRotate));
 
-            ModCommands[new Regex(@"^查IP(.+)")] = checkIP;
+            ModCommands.Add(new ModCommand(new Regex(@"^点歌(.+)"), getMusic));
+            ModCommands.Add(new ModCommand(new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline), say));
+            ModCommands.Add(new ModCommand(new Regex(@"^你什么情况？"), checkState));
 
-            ModCommands[new Regex(@"^(删除闹钟|别[叫喊][了我]?)")] = removeClock;
+            ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)"), setClock));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+"), checkClock));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^(删除闹钟|别[叫喊][了我]?)"), removeClock));
 
 
             TaskTimer = new(1000 * 10);
@@ -207,7 +207,14 @@ namespace Kugua
                 }
             }
             if (findImg) return null;
-            else return "";
+            else
+            {
+                lock (WaitingCmdsLock)
+                {
+                    WaitingCmds[$"{context.groupId}_{context.userId}"] = (context, new ModCommand(null, getOldJpg, false, true));
+                }
+                return null;
+            }
             
         }
         MusicDownloader musicDownloader = new MusicDownloader();

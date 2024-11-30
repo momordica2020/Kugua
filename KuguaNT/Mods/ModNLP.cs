@@ -33,7 +33,7 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex(@"^谐音(.+)", RegexOptions.Singleline)] = handleXieyin;
+                ModCommands.Add(new ModCommand(new Regex(@"^谐音(.+)", RegexOptions.Singleline), handleXieyin));
 
 
 

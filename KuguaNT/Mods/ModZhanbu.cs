@@ -20,7 +20,7 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex("^占卜(.*)", RegexOptions.Singleline)] = 解读卦象;
+                ModCommands.Add(new ModCommand(new Regex("^占卜(.*)", RegexOptions.Singleline), 解读卦象));
 
 
                 var lines = LocalStorage.ReadResourceLines("Zhouyi");

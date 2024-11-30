@@ -476,7 +476,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             bool talked = false;
             foreach(var mod in Mods)
             {
-                var succeed = await mod.HandleFriendMessage(context);
+                var succeed = await mod.HandleMessages(context);
                 if (succeed)
                 {
                     talked = true;
@@ -564,7 +564,7 @@ _OnUnknownEvent	string	接收到后端传送未知指令
             var sendNum = 0;
             foreach (var mod in Mods)
             {
-                var succeed = await mod.HandleGroupMessage(context);
+                var succeed = await mod.HandleMessages(context);
                 if (succeed)
                 {
                     sendNum++;

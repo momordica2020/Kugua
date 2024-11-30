@@ -29,17 +29,17 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands[new Regex(@"^签到$")] = DailyAttendance;
+            ModCommands.Add(new ModCommand(new Regex(@"^签到$"),DailyAttendance));
 
-            ModCommands[new Regex(@"^发币(.+)")] = AddBotMoney;
-            ModCommands[new Regex(@"^给(.+)补贴(.+)")] = Grant;
-            //ModCommands[new Regex(@"^捐(.+)")] = Donate;
-            //ModCommands[new Regex(@"^供养(.+)")] = Donate2;
-            ModCommands[new Regex(@"^(富人榜|富豪榜)")] = showRichest;
+            ModCommands.Add(new ModCommand(new Regex(@"^发币(.+)"), AddBotMoney));
+            ModCommands.Add(new ModCommand(new Regex(@"^给(.+)补贴(.+)"), Grant));
+            //ModCommands.Add(new ModCommand(new Regex(@"^捐(.+)"),Donate));
+            //ModCommands.Add(new ModCommand(new Regex(@"^供养(.+)"), Donate2));
+            ModCommands.Add(new ModCommand(new Regex(@"^(富人榜|富豪榜)"), showRichest));
 
-            ModCommands[new Regex(@"^(穷人榜)")] = showPoorest;
+            ModCommands.Add(new ModCommand(new Regex(@"^(穷人榜)"), showPoorest));
 
-            ModCommands[new Regex(@"^给(.+)转(.+)")] = PostMoney;
+            ModCommands.Add(new ModCommand(new Regex(@"^给(.+)转(.+)"), PostMoney));
 
 
 

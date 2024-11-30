@@ -63,13 +63,13 @@ namespace Kugua
 
 
 
-                    ModCommands[new Regex(@"^赛马(介绍|玩法)$")] = getIntroduction;
-                    ModCommands[new Regex(@"^个人信息$")] = getUserGameInfo;
-                    ModCommands[new Regex(@"^赛马$")] = playGame;
-                    ModCommands[new Regex(@"^胜率榜$")] = showBigWinner;
-                    ModCommands[new Regex(@"^败率榜$")] = showBigLoser;
-                    ModCommands[new Regex(@"^赌狗榜$")] = showMostPlayTime;
-                    ModCommands[new Regex(@"^^(\d+)\s*号(.+)")] = AddBet;
+                    ModCommands.Add(new ModCommand(new Regex(@"^赛马(介绍|玩法)$"), getIntroduction));
+                    ModCommands.Add(new ModCommand(new Regex(@"^个人信息$"), getUserGameInfo));
+                    ModCommands.Add(new ModCommand(new Regex(@"^赛马$"), playGame));
+                    ModCommands.Add(new ModCommand(new Regex(@"^胜率榜$"), showBigWinner));
+                    ModCommands.Add(new ModCommand(new Regex(@"^败率榜$"), showBigLoser));
+                    ModCommands.Add(new ModCommand(new Regex(@"^赌狗榜$"),showMostPlayTime));
+                    ModCommands.Add(new ModCommand(new Regex(@"^^(\d+)\s*号(.+)"), AddBet));
                 }
                 catch (Exception ex)
                 {

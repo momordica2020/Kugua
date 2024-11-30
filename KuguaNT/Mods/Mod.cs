@@ -11,13 +11,85 @@ using System.Threading.Tasks;
 
 namespace Kugua
 {
+    /// <summary>
+    /// 所触发操作的指令。可以用regex匹配文本，也可以用image匹配图片等，反正参数都放入string[]里传
+    /// </summary>
+    public class ModCommand
+    {
+        public Regex regex;
+        public HandleCommandEvent handle;
+        public bool useImage = false;
+        public bool needAsk = true;
 
+        public ModCommand(Regex _regex, HandleCommandEvent _handle, bool _needAsk = true, bool _useImage =false)
+        {
+            regex = _regex;
+            handle = _handle;
+            needAsk = _needAsk;
+            useImage = _useImage;
+        }
+
+        public bool Handle(MessageContext context)
+        {
+            if (needAsk && !context.isAskme) return false;
+            List<string> param = new List<string>();
+            if (regex != null)
+            {
+                string message = context.recvMessages.ToTextString().Trim();
+                var m = regex.Match(message);
+                if (m.Success)
+                {
+                    param.AddRange(m.Groups.Values.Select(e => e.Value.Trim()).ToList());
+                }
+               
+            }
+            if(useImage)
+            {
+                foreach(var  item in context.recvMessages)
+                {
+                    if(item is Image img)
+                    {
+                        param.Add(img.url);
+                    }
+                }
+            }
+            if (param.Count > 0)
+            {
+                string res = handle(context, param.ToArray());
+
+                if (res == null) { return true; } // 用null 表明中断后续其他模块对该信息的响应
+                else if (string.IsNullOrWhiteSpace(res)) { return false; }
+                else
+                {
+                    //var sendMessage = new List<Message>();
+                    //if (context.isGroup) sendMessage.Add(new At(context.userId));
+                    //sendMessage.Add(new Text(res));
+
+                    context.SendBackPlain(res, context.isGroup);
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+           
+        }
+
+    }
 
 
     public delegate string HandleCommandEvent(MessageContext context, string[] param);
     public abstract class Mod
     {
-        protected Dictionary<Regex, HandleCommandEvent> ModCommands = new Dictionary<Regex, HandleCommandEvent>();
+        /// <summary>
+        /// 等待新参数的指令。默认每个 群-人 只能有一条待参指令
+        /// </summary>
+        protected Dictionary<string, (MessageContext ctx, ModCommand cmd)> WaitingCmds = new Dictionary<string, (MessageContext ctx, ModCommand cmd)>();
+        protected object WaitingCmdsLock = new object();
+
+        protected List<ModCommand> ModCommands = new List<ModCommand> ();
         public NTBot clientQQ;
         public LocalClient clientLocal;
 
@@ -54,59 +126,51 @@ namespace Kugua
 
         }
 
-        public async Task<bool> HandleFriendMessage(MessageContext context)
-        {
-            var c = await HandleMessages(context);
-            return c;
-        }
+        //public async Task<bool> HandleFriendMessage(MessageContext context)
+        //{
+        //    var c = await HandleMessages(context);
+        //    return c;
+        //}
 
-        public async Task<bool> HandleGroupMessage(MessageContext context)
-        {
-            var c = await HandleMessages(context);
-            return c;
-        }
+        //public async Task<bool> HandleGroupMessage(MessageContext context)
+        //{
+        //    var c = await HandleMessages(context);
+        //    return c;
+        //}
 
-        private async Task<bool> HandleMessages(MessageContext context)
+        public async Task<bool> HandleMessages(MessageContext context)
         {
             try
             {
                 if (context.recvMessages == null) return false;
-                string message = context.recvMessages.ToTextString().Trim();
+
+
+                //string message = context.recvMessages.ToTextString().Trim();
+
                 //if (string.IsNullOrWhiteSpace(message)) return false;
-
-                if (context.isAskme)
+                
+                // 处理模块中正在等待回应的指令
+                lock (WaitingCmdsLock)
                 {
-                    //Logger.Log("!" + message);
-                    foreach (var cmd in ModCommands)
+                    string uid = $"{context.groupId}_{context.userId}";
+                    if (WaitingCmds.TryGetValue(uid, out var val))
                     {
-                        var m = cmd.Key.Match(message);
-                        if (m.Success)
+                        context.recvMessages.AddRange(val.ctx.recvMessages);
+                        if (val.cmd.Handle(context))
                         {
-                            List<string> ps = new List<string>();
-                            for (int i = 0; i < m.Groups.Count; i++)
-                            {
-                                ps.Add(m.Groups[i].Value.Trim());
-                            }
-                            string res = cmd.Value(context, ps.ToArray());
-
-                            if (res == null)
-                            {
-                                // 用null 表明中断后续其他模块对该信息的响应
-                                return true;
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(res))
-                            {
-                                var sendMessage = new List<Message>();
-                                if (context.isGroup) sendMessage.Add(new At(context.userId));
-                                sendMessage.Add(new Text(res));
-
-                                context.SendBack(sendMessage.ToArray());
-                                return true;
-                            }
+                            WaitingCmds.Remove(uid);
+                            return true;
                         }
                     }
                 }
+
+                // 逐个指令处理响应
+                foreach (var cmd in ModCommands)
+                {
+                    if(cmd.Handle(context))return true;
+                }
+
+                
                 
 
                 // 后续处理本模块的继承里，其他的用户自定义的消息处理机制

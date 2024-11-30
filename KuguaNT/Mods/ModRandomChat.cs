@@ -44,10 +44,10 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex(@"^模式列表")] = printModeList;
-                ModCommands[new Regex(@"^(清空|清除|删除)记忆")] = clearMemory;
-                ModCommands[new Regex(@"^prompt=(.*)", RegexOptions.Singleline)] = setPrompt;
-                ModCommands[new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase)] = selectMode;
+                ModCommands.Add(new ModCommand(new Regex(@"^模式列表"), printModeList));
+                ModCommands.Add(new ModCommand(new Regex(@"^(清空|清除|删除)记忆"), clearMemory));
+                ModCommands.Add(new ModCommand(new Regex(@"^prompt=(.*)", RegexOptions.Singleline), setPrompt));
+                ModCommands.Add(new ModCommand(new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase), selectMode));
 
 
                 string PluginPath = Config.Instance.ResourceFullPath("ModePath");

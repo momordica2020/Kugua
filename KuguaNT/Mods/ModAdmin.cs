@@ -21,16 +21,16 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands[new Regex(@"^帮助$")]= getWelcomeString;
-            ModCommands[new Regex(@"^(拉黑|屏蔽)(\d+)")] = handleBanned;
-            ModCommands[new Regex(@"^解封(\d+)")] = handleUnBanned;
-            ModCommands[new Regex(@"^设置\+(\S+)")] = handleAddTag;
-            ModCommands[new Regex(@"^设置\-(\S+)")] = handleRemoveTag;
-            ModCommands[new Regex(@"^设置清空(\s*)")] = handleClearTag;
-            ModCommands[new Regex(@"^状态$")] = handleShowState;
-            ModCommands[new Regex(@"^(存档|保存)$")] = handleSave;
+            ModCommands.Add(new ModCommand(new Regex(@"^帮助$"), getWelcomeString));
+            ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned));
+            ModCommands.Add(new ModCommand(new Regex(@"^解封(\d+)"), handleUnBanned));
+            ModCommands.Add(new ModCommand(new Regex(@"^设置\+(\S+)"), handleAddTag));
+            ModCommands.Add(new ModCommand(new Regex(@"^设置\-(\S+)"), handleRemoveTag));
+            ModCommands.Add(new ModCommand(new Regex(@"^设置清空(\s*)"), handleClearTag));
+            ModCommands.Add(new ModCommand(new Regex(@"^状态$"),handleShowState));
+            ModCommands.Add(new ModCommand(new Regex(@"^(存档|保存)$"), handleSave));
 
-            ModCommands[new Regex(@"^连接本地$")] = handleLinkLocal;
+            ModCommands.Add(new ModCommand(new Regex(@"^连接本地$"), handleLinkLocal));
 
             return true;
         }

@@ -41,7 +41,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^(.+)押(.+)")] = StartGame;
+                ModCommands.Add(new ModCommand(new Regex(@"^(.+)押(.+)"), StartGame));
 
             }
             catch (Exception ex)

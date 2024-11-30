@@ -21,7 +21,7 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex(@"^译(\d+)次(.+)", RegexOptions.Singleline)] = getRandTrans;
+                ModCommands.Add(new ModCommand(new Regex(@"^译(\d+)次(.+)", RegexOptions.Singleline), getRandTrans));
             }
             catch (Exception e)
             {

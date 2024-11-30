@@ -37,7 +37,7 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex(@"^数字论证(.+)", RegexOptions.Singleline)] = GetProof;
+                ModCommands.Add(new ModCommand(new Regex(@"^数字论证(.+)", RegexOptions.Singleline), GetProof));
 
 
                 bhdict = new Dictionary<string, int>();

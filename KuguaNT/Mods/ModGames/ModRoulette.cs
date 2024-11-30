@@ -36,11 +36,11 @@ namespace Kugua
         {
             try
             {
-                ModCommands[new Regex(@"^\s*轮盘介绍\s*")] = IntroduceGame;
-                ModCommands[new Regex(@"^\s*轮盘(.+)")] = StartGame;
-                //ModCommands[new Regex(@"^\s*加入\s*(\d+)")] = JoinGame;
-                ModCommands[new Regex(@"^\s*射我")] = ShootMe;
-                ModCommands[new Regex(@"^\s*射他")] = ShootHim;
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘介绍\s*"), IntroduceGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘(.+)"), StartGame));
+                //ModCommands.Add(new ModCommand(new Regex(@"^\s*加入\s*(\d+)"),JoinGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim));
 
 
 

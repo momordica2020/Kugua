@@ -45,7 +45,7 @@ namespace Kugua
 
 
 
-                ModCommands[new Regex(@"^老虎(.+)?")] = StartGame;
+                ModCommands.Add(new ModCommand(new Regex(@"^老虎(.+)?"),StartGame));
 
             }
             catch (Exception ex)
