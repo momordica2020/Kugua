@@ -45,21 +45,23 @@ namespace Kugua
             }
             if(useImage)
             {
+                int imgNum = 0;
                 foreach(var  item in context.recvMessages)
                 {
                     if(item is Image img)
                     {
-                        param.Add(img.url);
+                        imgNum++;
+                        //param.Add(img.url);
                     }
                 }
+                if(imgNum>0) param.Add(imgNum.ToString());
             }
             if (param.Count > 0)
             {
                 string res = handle(context, param.ToArray());
 
                 if (res == null) { return true; } // 用null 表明中断后续其他模块对该信息的响应
-                else if (string.IsNullOrWhiteSpace(res)) { return false; }
-                else
+                else if (!string.IsNullOrWhiteSpace(res))
                 {
                     //var sendMessage = new List<Message>();
                     //if (context.isGroup) sendMessage.Add(new At(context.userId));
@@ -67,14 +69,9 @@ namespace Kugua
 
                     context.SendBackPlain(res, context.isGroup);
                     return true;
-                }
+                }                        
             }
-            else
-            {
-                return false;
-            }
-
-           
+            return false;
         }
 
     }
@@ -87,7 +84,7 @@ namespace Kugua
         /// 等待新参数的指令。默认每个 群-人 只能有一条待参指令
         /// </summary>
         protected Dictionary<string, (MessageContext ctx, ModCommand cmd)> WaitingCmds = new Dictionary<string, (MessageContext ctx, ModCommand cmd)>();
-        protected object WaitingCmdsLock = new object();
+        object WaitingCmdsLock = new object();
 
         protected List<ModCommand> ModCommands = new List<ModCommand> ();
         public NTBot clientQQ;
@@ -138,6 +135,20 @@ namespace Kugua
         //    return c;
         //}
 
+
+        /// <summary>
+        /// 添加一条等待下次触发的临时指令
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="cmd"></param>
+        public void WaitNext(MessageContext ctx, ModCommand cmd)
+        {
+            lock (WaitingCmdsLock)
+            {
+                WaitingCmds[$"{ctx.groupId}_{ctx.userId}"] = (ctx, cmd);
+            }
+        }
+
         public async Task<bool> HandleMessages(MessageContext context)
         {
             try
@@ -148,21 +159,33 @@ namespace Kugua
                 //string message = context.recvMessages.ToTextString().Trim();
 
                 //if (string.IsNullOrWhiteSpace(message)) return false;
-                
+
                 // 处理模块中正在等待回应的指令
-                lock (WaitingCmdsLock)
+                
+                string uid = $"{context.groupId}_{context.userId}";
+                bool isWaiting = false;
+                (MessageContext ctx, ModCommand cmd) val;
+                lock (WaitingCmdsLock){  isWaiting = WaitingCmds.TryGetValue(uid, out val);  }
+                if (isWaiting)
                 {
-                    string uid = $"{context.groupId}_{context.userId}";
-                    if (WaitingCmds.TryGetValue(uid, out var val))
+                    if (context.isAskme)
                     {
-                        context.recvMessages.AddRange(val.ctx.recvMessages);
-                        if (val.cmd.Handle(context))
+                        // new ask!
+                        lock (WaitingCmdsLock) {  WaitingCmds.Remove(uid);  }
+                    }
+                    else
+                    {
+                        //context.recvMessages.AddRange(val.ctx.recvMessages);
+                        val.ctx.recvMessages.AddRange(context.recvMessages);
+                        if (val.cmd.Handle(val.ctx))
                         {
-                            WaitingCmds.Remove(uid);
+                           // 只删自己，意思是如果handle时增加了新的waitingCmd，则保留
+                            lock (WaitingCmdsLock) { if (WaitingCmds.ContainsValue(val)) WaitingCmds.Remove(uid);  }
                             return true;
                         }
                     }
                 }
+                
 
                 // 逐个指令处理响应
                 foreach (var cmd in ModCommands)

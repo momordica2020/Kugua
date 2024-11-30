@@ -183,7 +183,7 @@ namespace Kugua
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ImageGreen(MagickImageCollection images, int iterations = 16, int quality = 75, bool dealGreen = true)
+        public static string ImageGreen(MagickImageCollection images, int iterations = 16, double quality = 0.75, bool dealGreen = true)
         {
             if (images == null) return null;
 
@@ -194,7 +194,7 @@ namespace Kugua
                 //Logger.Log("IMG " + image.Height + "," + image.Width);
                 uint oriW = image.Width;
                 uint oriH = image.Height;
-                uint smallW = (uint)(image.Width * 0.3);
+                uint smallW = (uint)(image.Width * quality);
                 uint smallH = (uint)((float)image.Height / image.Width * smallW);
                 image.Resize(smallW, smallH);
                 image.Resize(oriW, oriH);

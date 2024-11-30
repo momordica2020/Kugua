@@ -36,22 +36,34 @@ namespace Kugua
 
 
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
-            ModCommands.Add(new ModCommand(new Regex(@"做旧",RegexOptions.Singleline), getOldJpg));
-            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)倍速", RegexOptions.Singleline), setGifSpeed));
-            ModCommands.Add(new ModCommand(new Regex(@"^镜像(.*)", RegexOptions.Singleline), setImgMirror));
-            ModCommands.Add(new ModCommand(new Regex(@"^旋转(.*)", RegexOptions.Singleline), setImgRotate));
 
+            ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
+
+            // img
+            ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)",RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
+            ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
+            ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
+
+
+
+            // speak
             ModCommands.Add(new ModCommand(new Regex(@"^点歌(.+)"), getMusic));
             ModCommands.Add(new ModCommand(new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline), say));
             ModCommands.Add(new ModCommand(new Regex(@"^你什么情况？"), checkState));
 
+
+
+
+            // clocks
             ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)"), setClock));
-
             ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+"), checkClock));
-
-            ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
-
             ModCommands.Add(new ModCommand(new Regex(@"^(删除闹钟|别[叫喊][了我]?)"), removeClock));
+
+
+            
+
+            
 
 
             TaskTimer = new(1000 * 10);
@@ -94,8 +106,8 @@ namespace Kugua
                         
                 }
             }
-            if (findImg) return null;
-            return "";
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
+            return null;
         }
 
         private string setImgMirror(MessageContext context, string[] param)
@@ -121,9 +133,8 @@ namespace Kugua
                     findImg = true;
                 }
             }
-            if (findImg) return null;
-            
-            return "";
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
+            return null;
         }
 
         private string checkIP(MessageContext context, string[] param)
@@ -164,7 +175,8 @@ namespace Kugua
         private string setGifSpeed(MessageContext context, string[] param)
         {
             double speed = 0;
-            if(double.TryParse(param[1], out speed))
+            //Logger.Log("? == " + string.Join(",", param));
+            if (double.TryParse(param[1], out speed))
             {
                 bool findImg = false;
                 foreach (var item in context.recvMessages)
@@ -181,23 +193,35 @@ namespace Kugua
                         findImg = true;
                     }
                 }
-                if (findImg) return null;
+                if (!findImg) WaitNext(context, new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
+                return null;
             }
+           
+
             return "";
         }
 
 
         private string getOldJpg(MessageContext context, string[] param)
         {
-            bool findImg = false;
-            foreach(var item in context.recvMessages)
+            bool findImg = false; 
+            double quality = 0.5;
+            if (param.Length >= 2)
+            {
+                double.TryParse(param[1], out quality);
+                if (quality <= 0.1) quality = 0.1;
+                if (quality >= 0.9) quality = 0.9;
+            }
+
+
+            foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if(item is Image itemImg)
+                if (item is Image itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
                     //Logger.Log("? == " + oriImg.Count);
-                    var newImgbase64 = ImageUtil.ImageGreen(oriImg, 10, 10, true);
+                    var newImgbase64 = ImageUtil.ImageGreen(oriImg, 10, quality, true);
                     //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),
@@ -206,15 +230,10 @@ namespace Kugua
                     findImg = true;
                 }
             }
-            if (findImg) return null;
-            else
-            {
-                lock (WaitingCmdsLock)
-                {
-                    WaitingCmds[$"{context.groupId}_{context.userId}"] = (context, new ModCommand(null, getOldJpg, false, true));
-                }
-                return null;
-            }
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            return null;
+            
             
         }
         MusicDownloader musicDownloader = new MusicDownloader();
