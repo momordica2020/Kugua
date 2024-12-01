@@ -183,8 +183,9 @@ namespace Kugua
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ImageGreen(MagickImageCollection images, int iterations = 16, double quality = 0.75, bool dealGreen = true)
+        public static string ImageGreen(MagickImageCollection images, int iterations = 16, double quality = 0.75)
         {
+            Logger.Log($"{iterations},{quality}");
             if (images == null) return null;
 
             images.Coalesce();
@@ -194,39 +195,42 @@ namespace Kugua
                 //Logger.Log("IMG " + image.Height + "," + image.Width);
                 uint oriW = image.Width;
                 uint oriH = image.Height;
-                uint smallW = (uint)(image.Width * quality);
-                uint smallH = (uint)((float)image.Height / image.Width * smallW);
-                image.Resize(smallW, smallH);
-                image.Resize(oriW, oriH);
+                if (quality < 0.5)
+                {
+                    uint smallW = (uint)(oriW * Math.Min(1, quality * 2));
+                    uint smallH = (uint)((double)oriH / image.Width * smallW);
+                    //Logger.Log($"{oriW},{oriH} => {smallW},{smallH}");
+                    image.Resize(smallW, smallH);
+                    image.Resize(oriW, oriH);
+                }
+                
                 //if (no++ < 5) Logger.Log("! " + image.ColorFuzz);
                 image.ColorFuzz = new Percentage(5);
 
                 //Bitmap resultImage = new Bitmap((int)(image.Width), (int)(image.Height));
-                if (dealGreen)
+                var pixels = image.GetPixels();
+                foreach (var pixel in pixels)
                 {
-                    var pixels = image.GetPixels();
-                    foreach (var pixel in pixels)
+                    var pixelColor = pixel.ToColor();
+                    for (int iter = 0; iter < iterations; iter++)
                     {
-                        var pixelColor = pixel.ToColor();
-                        for (int iter = 0; iter < iterations; iter++)
-                        {
                             
-                            var yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
-                            // Apply green shift (UV shift)
-                            yuv[1] = yuv[1] - 255; // Slight shift to simulate the green effect
-                                                   // Convert back to RGB and set the pixel
-                            int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
-                            pixelColor.R = (ushort)rgb[0];
-                            pixelColor.G = (ushort)rgb[1];
-                            pixelColor.B = (ushort)rgb[2];
-                        }
-                        pixel.SetChannel(0, pixelColor.R);//.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
-                        pixel.SetChannel(1, pixelColor.G);
-                        pixel.SetChannel(2, pixelColor.B);
-                        // pixels.SetPixel(pixel);
-
+                        var yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
+                        // Apply green shift (UV shift)
+                        yuv[1] = yuv[1] - 255; // Slight shift to simulate the green effect
+                                                // Convert back to RGB and set the pixel
+                        int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
+                        pixelColor.R = (ushort)rgb[0];
+                        pixelColor.G = (ushort)rgb[1];
+                        pixelColor.B = (ushort)rgb[2];
                     }
+                    pixel.SetChannel(0, pixelColor.R);//.SetPixel(x, y, Color.FromArgb(rgb[0], rgb[1], rgb[2]));
+                    pixel.SetChannel(1, pixelColor.G);
+                    pixel.SetChannel(2, pixelColor.B);
+                    // pixels.SetPixel(pixel);
+
                 }
+                
             }
             using (MemoryStream ms = new MemoryStream())
             {
@@ -246,7 +250,7 @@ namespace Kugua
                         foreach (var image in images)
                         {
                             //image.Format = MagickFormat.Jpeg;
-                            image.Quality = (uint)quality;
+                            image.Quality = (uint)(quality*90);
                             //image.Write(ms);
                         }
                         images.Write(mss);

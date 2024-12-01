@@ -153,6 +153,85 @@ namespace Kugua
 
             return input; // 如果不匹配格式，返回原字符串
         }
+
+
+        /// <summary>
+        /// 判断一个字符是否是 emoji
+        /// </summary>
+        /// <param name="codePoint"></param>
+        /// <returns></returns>
+        public static bool IsEmojiCodePoint(int codePoint)
+        {
+            // 一些常见 emoji 的 Unicode 范围
+            return (codePoint >= 0x1F600 && codePoint <= 0x1F64F)  // 表情符号
+                || (codePoint >= 0x1F300 && codePoint <= 0x1F5FF)  // 符号和图像
+                || (codePoint >= 0x1F680 && codePoint <= 0x1F6FF)  // 交通符号
+                || (codePoint >= 0x1F700 && codePoint <= 0x1F77F)  // 占卜符号
+                || (codePoint >= 0x1F780 && codePoint <= 0x1F7FF)  // 地理符号
+                || (codePoint >= 0x1F800 && codePoint <= 0x1F8FF)  // 中古字母
+                || (codePoint >= 0x1F900 && codePoint <= 0x1F9FF)  // 表情符号补充
+                || (codePoint >= 0x1FA00 && codePoint <= 0x1FA6F); // 新增的表情符号
+        }
+        public static List<string> ExtractEmojis(string input)
+        {
+            List<string> emojiList = new List<string>();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (char.IsHighSurrogate(input[i]) && i + 1 < input.Length && char.IsLowSurrogate(input[i + 1]))
+                {
+                    // 处理 emoji 的代理对
+                    int codePoint = char.ConvertToUtf32(input, i);
+                    if (IsEmojiCodePoint(codePoint))
+                    {
+                        // 处理为代理对格式 "uXXXX-uXXXX"
+                        int highSurrogate = (int)input[i];
+                        int lowSurrogate = (int)input[i + 1];
+                        int allS = char.ConvertToUtf32(input, i);
+                        emojiList.Add($"u{allS:x4}");
+                    }
+                    i++; // 跳过低代理字符
+                }
+                else if (!char.IsSurrogate(input[i]))
+                {
+                    // 处理非代理对的单个字符
+                    int codePoint = char.ConvertToUtf32(input, i);
+                    if (IsEmojiCodePoint(codePoint))
+                    {
+                        emojiList.Add($"u{codePoint:x4}");
+                    }
+                }
+            }
+
+            return emojiList;
+        }
+
+        public static string UnicodePointsToEmoji(string unicodePoints)
+        {
+            // 将输入的 code points 用 '-' 分割
+            string[] parts = unicodePoints.Split('-');
+            StringBuilder emojiBuilder = new StringBuilder();
+
+            foreach (string part in parts)
+            {
+                var p = part.Trim();
+                if (p.StartsWith('u')) p = p.Substring(1);
+                if (p.StartsWith('U')) p = p.Substring(1);
+                if (p.StartsWith('+')) p = p.Substring(1);
+                
+                try
+                {// 将每个部分从 16 进制转为整型
+                    int codePoint = Convert.ToInt32(p, 16);
+                    emojiBuilder.Append(char.ConvertFromUtf32(codePoint));
+                }catch(Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+                
+            }
+
+            return emojiBuilder.ToString();
+        }
         #endregion
 
         /// <summary>
