@@ -403,7 +403,24 @@ namespace Kugua.Integrations.NTBot
                                             if (eo.sub_type == "poke")
                                             {
                                                 Logger.Log($"[群戳一戳][{eo.group_id}]{eo.user_id}戳了戳{eo.target_id}");
-                                            }else if(eo.sub_type == "lucky_king")
+                                                if(eo.target_id == Config.Instance.BotQQ)
+                                                {
+                                                    var seo = new group_message_event
+                                                    {
+                                                        message_id = "",
+                                                        group_id = eo.group_id,
+                                                        user_id = eo.user_id,
+                                                        sender = new message_sender
+                                                        {
+                                                            user_id = eo.user_id,
+                                                            nickname = eo.user_id,
+                                                        }
+                                                    };
+                                                seo.message = new List<Message>() { new At(eo.target_id) };
+                                                    OnGroupMessageReceive?.Invoke(seo);
+                                                }
+                                            }
+                                            else if(eo.sub_type == "lucky_king")
                                             {
                                                 Logger.Log($"[群红包运气王][{eo.group_id}]{eo.user_id}所发的红包被领光，{eo.target_id}成为运气王");
                                             }
