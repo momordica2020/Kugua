@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.Json.Nodes;
 using WebSocket4Net;
+using static System.Net.WebRequestMethods;
 
 namespace Kugua.Integrations.NTBot
 {
@@ -87,7 +88,13 @@ namespace Kugua.Integrations.NTBot
 
 
 
-
+        public async void SendPoke(string groupId, string userId)
+        {
+            string uri = Config.Instance.App.Net.QQHTTP + (string.IsNullOrWhiteSpace(groupId)?"/friend_poke":"/group_poke");
+            //Logger.Log(uri);
+            string res = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new SendPoke { group_id=groupId, user_id=userId }));
+            //Logger.Log(res);
+        }
 
         public async Task<string> Send(SenderData sender)
         {
@@ -115,7 +122,7 @@ namespace Kugua.Integrations.NTBot
                         Logger.Log(" - Trying Reconnect Socket -");
                         ws.Open();
                     }
-
+                    Logger.Log(jsonStr, LogType.Mirai);
                     ws?.Send(jsonStr);
 
 
@@ -146,7 +153,7 @@ namespace Kugua.Integrations.NTBot
 
             
 
-
+            
             return messageId;
         }
 
@@ -222,7 +229,7 @@ namespace Kugua.Integrations.NTBot
                             case "video": msgs.Add(JsonConvert.DeserializeObject<Video>(mj["data"].ToString())); break;
                             case "rps": msgs.Add(JsonConvert.DeserializeObject<Rps>(mj["data"].ToString())); break;
                             case "dice": msgs.Add(JsonConvert.DeserializeObject<Dice>(mj["data"].ToString())); break;
-                            case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(mj["data"].ToString())); break;
+                            //case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(mj["data"].ToString())); break;
                             case "poke": msgs.Add(JsonConvert.DeserializeObject<Poke>(mj["data"].ToString())); break;
                             case "anonymous": msgs.Add(JsonConvert.DeserializeObject<AnonymousMesssage>(mj["data"].ToString())); break;
                             case "share": msgs.Add(JsonConvert.DeserializeObject<Share>(mj["data"].ToString())); break;
@@ -259,7 +266,7 @@ namespace Kugua.Integrations.NTBot
                     // reply!
                     var reply = JsonConvert.DeserializeObject<SenderReplyAPI>(json);
                     //Logger.Log(jo.ToString());
-                    if (reply != null)
+                    if (reply != null && reply.echo!=null)
                     {
                         if (sessions.ContainsKey(reply.echo))
                         {
@@ -270,11 +277,13 @@ namespace Kugua.Integrations.NTBot
                                 case "send_group_msg":
                                     {
                                         var oo = JsonConvert.DeserializeObject<send_msg_reply>(jo["data"].ToString());
+                                        if (oo != null &&  oo.message_id != null)
+                                        {
                                             lock (SessionLock)
                                             {
                                                 session_messageid[reply.echo] = oo.message_id.ToString();
                                             }
-                                            
+                                        } 
                                         //Logger.Log("SEND SESSION  " + oo.message_id);
                                         break;
                                     }

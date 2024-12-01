@@ -5,6 +5,11 @@ using System.Security.Cryptography;
 
 namespace Kugua.Integrations.NTBot
 {
+    public class SendPoke
+    {
+        public string group_id;
+        public string user_id;
+    }
     public class SenderAPI
     {
         public string action;
@@ -93,11 +98,11 @@ namespace Kugua.Integrations.NTBot
 
     public class delete_msg : SenderData
     {
-        public string message_id;
+        public int message_id;
         
         public delete_msg(string msg_id)
         {
-            message_id = msg_id;
+            message_id = int.Parse(msg_id);
         }
     }
 

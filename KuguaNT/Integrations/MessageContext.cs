@@ -128,14 +128,18 @@ namespace Kugua
                         if (isGroup)
                         {
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
-                            return client.Send(new send_group_msg(groupId, pmsg)).Result;
+                            var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
+                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
+                            return messageId;
                             
                         }
                         else
                         {
                             Config.Instance.UserInfo(userId).UseTimes += 1;
-                            return client.Send(new send_private_msg(userId, pmsg)).Result;
-                            
+                            var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
+                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
+                            return messageId;
+
                         }
                     }
                 }

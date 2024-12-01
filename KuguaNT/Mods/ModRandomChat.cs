@@ -280,7 +280,7 @@ namespace Kugua
                     {
                         // 隐藏模式，且没有相应权限就不启动
                         if (
-                            (context.isGroup && !GroupHasAdminAuthority(context.groupId))
+                            (context.isGroup && !Config.Instance.GroupHasAdminAuthority(context.groupId))
 
                             //||(!isGroup && !UserHasAdminAuthority(groupId))
                             )
@@ -554,25 +554,25 @@ namespace Kugua
         //    user.SetTag(tagName);
         //}
 
-        bool UserHasAdminAuthority(string userId)
-        {
-            if (string.IsNullOrWhiteSpace(userId)) return false;
-            if (userId == Config.Instance.App.Avatar.adminQQ) return true;
-            var user = Config.Instance.UserInfo(userId);
-            if (user.Is("管理员")) return true;
-            if (user.Type == PlayerType.Admin) return true;
-            return false;
-        }
+        //bool UserHasAdminAuthority(string userId)
+        //{
+        //    if (string.IsNullOrWhiteSpace(userId)) return false;
+        //    if (userId == Config.Instance.App.Avatar.adminQQ) return true;
+        //    var user = Config.Instance.UserInfo(userId);
+        //    if (user.Is("管理员")) return true;
+        //    if (user.Type == PlayerType.Admin) return true;
+        //    return false;
+        //}
 
-        bool GroupHasAdminAuthority(string groupId)
-        {
-            if (string.IsNullOrWhiteSpace(groupId)) return false;
-            if (groupId == Config.Instance.App.Avatar.adminGroup) return true;
-            var group = Config.Instance.GroupInfo(groupId);
-            if (group.Is("测试")) return true;
-            if (group.Type == PlaygroupType.Test) return true;
-            return false;
-        }
+        //bool GroupHasAdminAuthority(string groupId)
+        //{
+        //    if (string.IsNullOrWhiteSpace(groupId)) return false;
+        //    if (groupId == Config.Instance.App.Avatar.adminGroup) return true;
+        //    var group = Config.Instance.GroupInfo(groupId);
+        //    if (group.Is("测试")) return true;
+        //    if (group.Type == PlaygroupType.Test) return true;
+        //    return false;
+        //}
 
 
 
@@ -746,9 +746,12 @@ namespace Kugua
                             var items = lines[begin + i].Trim().Split('\t');
                             if (items.Length >= 3)
                             {
+                                if (items[1] == Config.Instance.BotQQ) continue;
                                 if (targetuser.Length > 0 && targetuser != items[1]) continue;
                                 targetuser = items[1];
                                 string msg = items[2].Trim();
+
+                                
 
                                 // 过滤CQ代码
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
@@ -765,12 +768,16 @@ namespace Kugua
                                     }
 
                                 }
-                                
+                                // 过滤呼唤词
+                                if (msg.StartsWith(Config.Instance.BotName)) msg = msg.Substring(Config.Instance.BotName.Length);
+                                if (msg.StartsWith("苦瓜")) msg = msg.Substring(2);
+                                if (msg.StartsWith("小电酱")) msg = msg.Substring(3);
+                                if (msg.StartsWith("小崽子")) msg = msg.Substring(3);
 
                                 // 过严格过滤器
                                 if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
   
-                                // 过滤emoji
+                                // 转换emoji
                                 msg = StaticUtil.ConvertEmoji(msg);
                                 if (!string.IsNullOrWhiteSpace(msg))
                                 {

@@ -97,7 +97,7 @@ namespace Kugua
     public class NetConfigs
     {
         public string QQWS { get; set; }
-
+        public string QQHTTP {  get; set; }
         public string LocalWS { get; set; }
 
 

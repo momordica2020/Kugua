@@ -115,10 +115,10 @@ namespace Kugua
         {
             try
             {
-                bool isGroup = string.IsNullOrWhiteSpace(group);
+                bool isGroup = !string.IsNullOrWhiteSpace(group);
                 string uid = isGroup ? group : user;
                 string key = isGroup ? $"G{group}" : $"P{user}";
-                //Logger.Log($"==={key},{sourceId},{user},{msg}");
+                //Logger.Log($"=SAVE={key},{sourceId},{user},{msg}");
                 if (!history.ContainsKey(key)) history[key] = new MessageHistoryGroup(path, uid, isGroup);
                 history[key].addMessage(sourceId, user, msg);
 
@@ -130,26 +130,38 @@ namespace Kugua
             }
         }
 
+
+        /// <summary>
+        /// 搜索历史记录
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="groupId"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
         public MessageHistory[] findMessage(string userId, string groupId, string keyWord = "")
         {
             List<MessageHistory> results = new List<MessageHistory>();
 
             try
             {
-                //Logger.Log($"=?={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
-                if (history.TryGetValue($"G{groupId}", out MessageHistoryGroup g))
+                //Logger.Log($"=FIND={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
+                if (history.TryGetValue(string.IsNullOrWhiteSpace(groupId)?$"P{userId}":$"G{groupId}", out MessageHistoryGroup g))
                 {
-                    var lines = g.history.ToArray();
+                    
+                    //var lines = g.history.ToArray();
                     //return lines;
 
-                    foreach (var line in lines)
+                    foreach (var line in g.history)
                     {
+                        //Logger.Log($"=FIND={line.messageId},{line.userid},{line.message}");
+
                         if (line.userid == userId)
                         {
-                            if (line.message.Contains(keyWord)) results.Add(line);
+                            if (string.IsNullOrWhiteSpace(keyWord) || line.message.Contains(keyWord)) results.Add(line);
                         }
                     }
                 }
+                
             }
             catch (Exception ex)
             {

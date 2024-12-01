@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Newtonsoft.Json;
+using NvAPIWrapper.Native.GPU;
 
 namespace Kugua.Integrations.NTBot
 {
@@ -21,7 +22,7 @@ namespace Kugua.Integrations.NTBot
                 data is Video ? "video" :
                 data is  Rps? "rps" :
                 data is Dice ? "dice" :
-                data is Shake ? "shake" :
+                //data is Shake ? "shake" :
                 data is Poke ? "poke" :
                 data is AnonymousMesssage ? "anonymous" :
                 data is Share ? "share" :
@@ -223,17 +224,18 @@ namespace Kugua.Integrations.NTBot
 
     }
 
-    /// <summary>
-    /// 窗口抖动
-    /// </summary>
-    public class Shake : Message
-    {
-        public Shake()
-        {
+    ///// <summary>
+    ///// 窗口抖动
+    ///// </summary>
+    //public class Shake : Message
+    //{
+    //    //public object type = null;
+    //    public Shake()
+    //    {
+            
+    //    }
 
-        }
-
-    }
+    //}
 
     /// <summary>
     /// 戳一戳

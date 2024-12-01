@@ -200,7 +200,7 @@ namespace Kugua.Integrations.VTubeStudio
                             case "video": msgs.Add(JsonConvert.DeserializeObject<Video>(mj["data"].ToString())); break;
                             case "rps": msgs.Add(JsonConvert.DeserializeObject<Rps>(mj["data"].ToString())); break;
                             case "dice": msgs.Add(JsonConvert.DeserializeObject<Dice>(mj["data"].ToString())); break;
-                            case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(mj["data"].ToString())); break;
+                            //case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(mj["data"].ToString())); break;
                             case "poke": msgs.Add(JsonConvert.DeserializeObject<Poke>(mj["data"].ToString())); break;
                             case "anonymous": msgs.Add(JsonConvert.DeserializeObject<AnonymousMesssage>(mj["data"].ToString())); break;
                             case "share": msgs.Add(JsonConvert.DeserializeObject<Share>(mj["data"].ToString())); break;

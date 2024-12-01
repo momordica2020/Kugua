@@ -31,7 +31,8 @@ namespace Kugua
 
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(\d{1,2})?条?"), handleRecall));
+            ModCommands.Add(new ModCommand(new Regex(@"^撤回(.*)"), handleRecall));
+            ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
             ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
 
@@ -84,6 +85,8 @@ namespace Kugua
 
             return true;
         }
+
+      
 
         private string setImgRotate(MessageContext context, string[] param)
         {
@@ -588,38 +591,50 @@ namespace Kugua
             //}
             return "";
         }
-
+        private string sendPoke(MessageContext context, string[] param)
+        {
+            context.client?.SendPoke(context.groupId, context.userId);
+            //context.SendBack([new Poke { type="1", id="-1"}]);
+            return null;
+        }
         private string handleRecall(MessageContext context, string[] param)
         {
-            if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
+            int num = 1;
+            if (param.Length >= 2)
             {
-                int quantity = 1;
-                if (!string.IsNullOrWhiteSpace(param[1]))
-                {
-                    quantity = int.Parse(param[1]);
-                }
-                var historys = HistoryManager.Instance.findMessage(context.userId, context.groupId);
-                for (int i = 0; i < Math.Min(historys.Length, quantity); i++)
-                {
-                    Logger.Log($"?{historys[i].messageId}");
-
-                    //if (clientMirai != null)
-                    //{
-                    //    new GroupMessage(context.groupId, [
-                    //        new Quote(historys[i].messageId,context.groupId,context.userId,context.groupId,
-                    //            [new Plain(historys[i].message)])]
-                    //        ).Send(clientMirai);
-                    //    new Recall(historys[i].messageId).Send(clientMirai);
-                    //}
-                }
-                return null;
-                //new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                //new At(userId, ""),
-                //    new Plain($"?")
-                //]).Send(client);
-                //return true;
+                int.TryParse(param[1], out num);
             }
-            return "";
+            if (num <= 0) num = 1;
+            if (num >= 10) num = 10;
+            var historys = HistoryManager.Instance.findMessage(Config.Instance.BotQQ, context.groupId);
+            for (int i = 0; i < Math.Min(historys.Length, num); i++)
+            {
+                int hindex = historys.Length - i - 1;
+                if (hindex < 0) break;
+                string msgid = historys[hindex].messageId;
+                if (string.IsNullOrEmpty(msgid))
+                {
+                    num++;
+                }
+                else
+                {
+                    Logger.Log($"?{msgid}");
+                    context.client?.Send(new delete_msg(msgid));
+                    historys[hindex].messageId = string.Empty;
+                }
+                
+
+                //if (clientMirai != null)
+                //{
+                //    new GroupMessage(context.groupId, [
+                //        new Quote(historys[i].messageId,context.groupId,context.userId,context.groupId,
+                //            [new Plain(historys[i].message)])]
+                //        ).Send(clientMirai);
+                //    new Recall(historys[i].messageId).Send(clientMirai);
+                //}
+            }
+            return null;
+
         }
 
         private void TaskTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
