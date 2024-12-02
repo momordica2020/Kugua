@@ -523,7 +523,7 @@ namespace Kugua
                 }
                 else if (something == "emoji")
                 {
-                    files = Directory.GetFiles(Config.Instance.ResourceFullPath("/imgemoji/"), "*.png");
+                    files = Directory.GetFiles(Config.Instance.ResourceFullPath("/emojimix/"), "*.png");
                     string fname = files[MyRandom.Next(files.Length)];
                     var f = Path.GetFileNameWithoutExtension(fname).Replace("-u200d","").Replace("-ufe0f","").Split("_");
                     if (f.Length == 2)
@@ -814,7 +814,6 @@ namespace Kugua
                     var elist =StaticUtil.ExtractEmojis(message);
                     if (elist.Count >= 2)
                     {
-                        
                         string emojiA = elist[0];
                         string emojiB = elist[1];
                         List<string> filename = new List<string>{
@@ -831,7 +830,7 @@ namespace Kugua
                         };
                         foreach (var f in filename)
                         {
-                            var fff = Config.Instance.ResourceFullPath($"imgemoji/{f}");
+                            var fff = Config.Instance.ResourceFullPath($"emojimix/{f}");
                             if (File.Exists(fff))
                             {
                                 context.SendBack([
@@ -841,12 +840,29 @@ namespace Kugua
                                 return true;
                             }
                         }
-
+                    }else if (elist.Count ==1)
+                    {
+                        string emojiA = elist[0];
+                        var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"),$"*{emojiA}*.png");
+                        
+                        if(fff.Length > 0)
+                        {
+                            var getf = fff[MyRandom.Next(fff.Length)];
+                            if (File.Exists(getf))
+                            {
+                                var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f","").Replace("-u200d", "");
+                                context.SendBack([
+                                    new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
+                                    new Image($"file://{getf}"),
+                                 ]);
+                                return true;
+                            }
+                        }
                     }
-                        
-                        //string baseURL = "https://www.gstatic.com/android/keyboard/emojikitchen/20231128";
-                        
-                        
+
+                    //string baseURL = "https://www.gstatic.com/android/keyboard/emojikitchen/20231128";
+
+
 
 
 

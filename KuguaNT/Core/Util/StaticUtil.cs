@@ -523,7 +523,16 @@ namespace Kugua
                 || (codePoint >= 0x1F780 && codePoint <= 0x1F7FF)  // 地理符号
                 || (codePoint >= 0x1F800 && codePoint <= 0x1F8FF)  // 中古字母
                 || (codePoint >= 0x1F900 && codePoint <= 0x1F9FF)  // 表情符号补充
-                || (codePoint >= 0x1FA00 && codePoint <= 0x1FA6F); // 新增的表情符号
+                || (codePoint >= 0x1FA00 && codePoint <= 0x1FA6F)  // 新增的表情符号
+                || (codePoint >= 0x1F000 && codePoint <= 0x1F02F)  // 象棋和棋盘符号
+                || (codePoint >= 0x1F030 && codePoint <= 0x1F09F)  // 麻将符号
+                || (codePoint >= 0x1F0A0 && codePoint <= 0x1F0FF)  // 扑克牌符号
+                || (codePoint >= 0x1F100 && codePoint <= 0x1F1FF)  // 字母和数字符号
+                || (codePoint >= 0x1F200 && codePoint <= 0x1F251)  // 封闭式字符
+                || (codePoint >= 0x2600 && codePoint <= 0x26FF)    // Miscellaneous Symbols
+                || (codePoint >= 0x2700 && codePoint <= 0x27BF)    // Dingbats
+                || (codePoint >= 0x2B50 && codePoint <= 0x2B59)   // 箭头符号
+                ;
         }
         public static List<string> ExtractEmojis(string input)
         {
@@ -562,6 +571,7 @@ namespace Kugua
         public static string UnicodePointsToEmoji(string unicodePoints)
         {
             // 将输入的 code points 用 '-' 分割
+            unicodePoints = unicodePoints.Replace("-ufe0f", "").Replace("-u200d", "");
             string[] parts = unicodePoints.Split('-');
             StringBuilder emojiBuilder = new StringBuilder();
 
@@ -574,6 +584,7 @@ namespace Kugua
                 
                 try
                 {// 将每个部分从 16 进制转为整型
+                    //Logger.Log(p);
                     int codePoint = Convert.ToInt32(p, 16);
                     emojiBuilder.Append(char.ConvertFromUtf32(codePoint));
                 }catch(Exception ex)
