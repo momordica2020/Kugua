@@ -40,7 +40,6 @@ namespace Kugua
         
         
 
-        string junkf = "spam.txt";
         List<List<string>> junks = new List<List<string>>();
 
         string symbolf = "symboltemplate.txt";
@@ -58,7 +57,7 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline), handleCutString));
             ModCommands.Add(new ModCommand(new Regex(@"^讽刺(.+)", RegexOptions.Singleline), handleJoke));
             ModCommands.Add(new ModCommand(new Regex(@"^历史上的(\S+)", RegexOptions.Singleline), handleHistoryToday));
-            ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s](\S+)", RegexOptions.Singleline), handleSalad));
+            ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
             ModCommands.Add(new ModCommand(new Regex(@"^火星文(.+)", RegexOptions.Singleline), handleHX));
 
 
@@ -157,31 +156,29 @@ namespace Kugua
 
 
             //// junk
-            //if (File.Exists($"{PluginPath}/{junkf}"))
-            //{
-            //    lines = File.ReadAllLines($"{PluginPath}/{junkf}", Encoding.UTF8);
+            ///
+            lines = LocalStorage.Read($"{PluginPath}/spam.txt").Split('\n');
 
-            //    List<string> nowline = new List<string>();
-            //    foreach (var line in lines)
-            //    {
-            //        if (string.IsNullOrWhiteSpace(line))
-            //        {
-            //            if (nowline.Count > 0)
-            //            {
-            //                junks.Add(nowline);
-            //                nowline = new List<string>();
-            //            }
-            //        }
-            //        else
-            //        {
-            //            nowline.Add(line.Trim());
-            //        }
-            //    }
-            //    if (nowline.Count > 0)
-            //    {
-            //        junks.Add(nowline);
-            //    }
-            //}
+            List<string> nowline = new List<string>();
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    if (nowline.Count > 0)
+                    {
+                        junks.Add(nowline);
+                        nowline = new List<string>();
+                    }
+                }
+                else
+                {
+                    nowline.Add(line.Trim());
+                }
+            }
+            if (nowline.Count > 0)
+            {
+                junks.Add(nowline);
+            }
 
 
             //// symbols
@@ -435,12 +432,8 @@ namespace Kugua
             string WordSaladres = "";
             try
             {
-
                 string WordSaladresKey = param[1];
                 if (string.IsNullOrWhiteSpace(WordSaladresKey)) return "";
-
-
-                WordSaladresKey = WordSaladresKey.Trim();
                 foreach (var para in junks)
                 {
                     if (para.Count > 0)
@@ -460,7 +453,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Log(ex);
             }
             
             return WordSaladres;

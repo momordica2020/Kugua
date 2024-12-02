@@ -305,9 +305,9 @@ namespace Kugua
         public static string GetLanguage(string langCode)
         {
             langCode = langCode.Trim();
+            if(langCode.EndsWith("语"))langCode=langCode.Substring(langCode.Length - 2);
             if (Language.TryGetValue(langCode, out var language)) return language;
-            if (Language.TryGetValue(langCode + "语", out var language2)) return language2;
-            if (Language.TryGetValue(langCode + "文", out var language3)) return language3;
+            if (Language.TryGetValue(langCode + "文", out var language2)) return language2;
             return langCode;
         }
 
@@ -411,7 +411,6 @@ namespace Kugua
             { "塞内卡文", "see" },
             { "塞尔维亚文", "sr" },
             { "夏威夷文", "haw" },
-            { "多种语系", "mul" },
             { "奥里亚文", "or" },
             { "威尔士文", "cy" },
             { "孟加拉文", "bn" },
