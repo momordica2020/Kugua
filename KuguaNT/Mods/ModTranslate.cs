@@ -30,6 +30,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// 单语言翻译/多语言翻译（译N次）
+        /// 译英 你好啊/译英译日译中 共是风，还是法律的。/译N次 你们别骂我了
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string getRandTrans(MessageContext context, string[] param)
         {
             try

@@ -232,6 +232,45 @@ namespace Kugua
             }
             
         }
+
+        /// <summary>
+        /// 模块介绍信息
+        /// </summary>
+        /// <returns></returns>
+        public string ModsDesc()
+        {
+            StringBuilder res = new StringBuilder();
+            res.AppendLine($"模块指令介绍 : ({Mods.Count}个模块)");
+            foreach (var mod in Mods)
+            {
+                res.AppendLine($"{mod.GetType().Name}模块：");
+                res.AppendLine($"{mod.GetCommandDescriptions()}");
+            }
+            return res.ToString();
+        }
+        public string SelfCheckInfo()
+        {
+            StringBuilder res = new StringBuilder();
+            string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            res.AppendLine($"现在是{DateTime.Now.ToString()}");
+            res.AppendLine($"运行路径：{filePath}");
+            res.AppendLine($"代码最后修改日期：{fileInfo.LastWriteTime.ToString()}");
+            
+            var codes = StaticUtil.GetCodeLineNum();
+            res.AppendLine($"源码有{codes.Count}个文件({codes.Sum(s=>s.Item2)}行)");
+            foreach (var code in codes)
+            {
+                if(code.Item2>100)  res.AppendLine($"({Path.GetFileName(code.Item1)}) - {code.Item2} lines");
+            }
+
+
+            return res.ToString();
+        }
+
+
+
         public void Stop()
         {
             try

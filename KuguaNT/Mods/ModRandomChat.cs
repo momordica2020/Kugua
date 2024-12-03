@@ -263,6 +263,13 @@ namespace Kugua
             return $"*以更新AI模式的prompt，并重置了记忆！开始对话吧";
         }
 
+        /// <summary>
+        /// 切换到某个模式
+        /// 小万邦模式on
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string selectMode(MessageContext context, string[] param)
         {
             try
@@ -323,6 +330,7 @@ namespace Kugua
             }
             return "";
         }
+
 
         private string clearMemory(MessageContext context, string[] param)
         {
@@ -578,7 +586,13 @@ namespace Kugua
 
 
 
-
+        /// <summary>
+        /// 查看bot支持的闲聊模式
+        /// 模式列表
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string printModeList(MessageContext context, string[] param)
         {
             StringBuilder sb = new StringBuilder();

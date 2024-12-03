@@ -88,7 +88,13 @@ namespace Kugua
             return "没有轮盘游戏记录";
         }
 
-
+        /// <summary>
+        /// 恶魔轮盘游戏介绍’
+        /// 轮盘介绍
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string IntroduceGame(MessageContext context, string[] param)
         {
             var res = $"恶魔轮盘pvp游戏介绍：\r\n";
@@ -101,6 +107,14 @@ namespace Kugua
             return res ;
         }
 
+
+        /// <summary>
+        /// 在本群开始一局轮盘
+        /// 轮盘N
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string StartGame(MessageContext context, string[] param)
         {
             try
@@ -128,7 +142,13 @@ namespace Kugua
         }
 
 
-  
+        /// <summary>
+        /// 射对方
+        /// 射他
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string ShootHim(MessageContext context, string[] param)
         {
             if (info.ContainsKey(context.groupId))
@@ -142,6 +162,14 @@ namespace Kugua
             return null;
         }
 
+
+        /// <summary>
+        /// 射自己
+        /// 射我
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string ShootMe(MessageContext context, string[] param)
         {
             if (info.ContainsKey(context.groupId))

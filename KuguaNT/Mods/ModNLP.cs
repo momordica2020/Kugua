@@ -68,6 +68,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// 首字母谐音
+        /// 谐音awsl/谐音哈哈
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleXieyin(MessageContext context, string[] param)
         {
             string target = param[1];

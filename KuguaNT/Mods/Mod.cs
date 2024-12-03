@@ -3,9 +3,11 @@ using Kugua.Integrations.NTBot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 
 
@@ -72,6 +74,35 @@ namespace Kugua
                 }                        
             }
             return false;
+        }
+
+        public override string ToString()
+        {
+            MethodInfo method = handle.Method;
+            string xmlFilePath = $"{Directory.GetCurrentDirectory()}/KuguaNT.xml";  // 确保路径正确
+            string desc = method.Name;
+            if (File.Exists(xmlFilePath))
+            {
+                XElement xmlDoc = XElement.Load(xmlFilePath);
+                string xmlName = $".{method.Name}(Kugua.MessageContext,System.String[])";
+                //Logger.Log(xmlName);
+                var summaryElement = xmlDoc.Descendants("member")
+                                    .FirstOrDefault(m =>  m.Attribute("name").Value.Contains(xmlName));
+                if (summaryElement != null)
+                {
+                    // 获取函数的 <summary> 信息
+                    desc = summaryElement.Elements("summary").FirstOrDefault()?.Value.Trim();
+                    var desclines = desc.Split('\n',StringSplitOptions.TrimEntries);
+                    if (desclines.Length > 1)
+                    {
+                        var cmd = desclines.Last();
+                        desc = desc.Substring(0, desc.Length - cmd.Length).Trim();
+                        return $"{desc}  格式：{cmd}";
+                    }
+                }
+            }
+            //return $"{desc} 匹配格式: {regex?.ToString()}";//,{(useImage ? "发图" : "发文字")}";
+            return "";
         }
 
     }
@@ -214,8 +245,25 @@ namespace Kugua
             return false;
         }
 
+        /// <summary>
+        /// 获取全部指令描述信息
+        /// </summary>
+        /// <returns></returns>
+        public string GetCommandDescriptions()
+        {
+            StringBuilder res=new StringBuilder();
+            int i = 1;
+            foreach (var cmd in ModCommands)
+            {
+                var cmdDesc = cmd.ToString();
+                if (!string.IsNullOrWhiteSpace(cmdDesc))
+                {
+                    res.AppendLine($"{i++} : {cmdDesc}");
+                }
+            }
 
-
+            return  res.ToString();
+        }
 
 
 

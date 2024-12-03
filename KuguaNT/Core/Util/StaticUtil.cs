@@ -668,6 +668,30 @@ namespace Kugua
             return fileInfo.LastWriteTime;
         }
 
+        /// <summary>
+        /// 获取本地所有代码行数
+        /// </summary>
+        /// <returns></returns>
+        public static List<(string,int)> GetCodeLineNum()
+        {
+            var res = new List<(string,int)>();
+            // string projectDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+            string projectDirectory = @"D:\Projects\momordica2020\Kugua\KuguaNT";
+            
+            string[] csFiles = Directory.GetFiles(projectDirectory, "*.cs", SearchOption.AllDirectories);
+
+            int totalLines = 0;
+
+            foreach (var file in csFiles)
+            {
+                int linesInFile = File.ReadAllLines(file).Length;
+                res.Add((file, linesInFile));
+                totalLines += linesInFile;
+            }
+            res.Sort((x, y) => string.Compare(x.Item1, y.Item1));
+            return res;
+        }
+
 
         #region 洗牌算法们
 

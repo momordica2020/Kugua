@@ -64,7 +64,8 @@ namespace Kugua
 
 
         /// <summary>
-        /// 取得卦象
+        /// 让bot替你摇一卦，后面可加缘由也可不加
+        /// 占卜/占卜今日运势
         /// </summary>
         /// <returns></returns>
         public string 解读卦象(MessageContext context, string[] param)

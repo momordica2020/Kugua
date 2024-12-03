@@ -99,6 +99,8 @@ namespace Kugua
                 }
                 bool firstFrame = true;
                 if (msgStrings.Count <= 0) msgStrings.Add("");
+
+                List<string> msgIds = new List<string>();
                 foreach(var s in msgStrings)
                 {
                     var pmsg = new List<MessageInfo>();
@@ -130,7 +132,7 @@ namespace Kugua
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
-                            return messageId;
+                            msgIds.Add( messageId);
                             
                         }
                         else
@@ -138,11 +140,12 @@ namespace Kugua
                             Config.Instance.UserInfo(userId).UseTimes += 1;
                             var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
-                            return messageId;
+                            msgIds.Add(messageId);
 
                         }
                     }
                 }
+                if (msgIds.Count > 0) return msgIds.Last();
 
                 
             }

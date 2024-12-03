@@ -197,7 +197,7 @@ namespace Kugua
                 uint oriH = image.Height;
                 if (quality < 0.5)
                 {
-                    uint smallW = (uint)(oriW * Math.Min(1, quality * 2));
+                    uint smallW = (uint)(oriW * Math.Min(1, quality * 1.5));
                     uint smallH = (uint)((double)oriH / image.Width * smallW);
                     //Logger.Log($"{oriW},{oriH} => {smallW},{smallH}");
                     image.Resize(smallW, smallH);

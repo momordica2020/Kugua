@@ -83,7 +83,13 @@ namespace Kugua
             return "没有老虎游戏记录";
         }
 
-
+        /// <summary>
+        /// 玩🎰
+        /// 老虎1000
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string StartGame(MessageContext context, string[] param)
         {
             BigInteger money = 1;

@@ -33,7 +33,7 @@ namespace Kugua
         {
             ModCommands.Add(new ModCommand(new Regex(@"^撤回(.*)"), handleRecall));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
-            ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
+            //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
 
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
@@ -87,6 +87,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// emoji合成（直接发一到两个emoji给bot即可触发）/查看gif版的emoji（很好的gif，爱来自TG）
+        /// 😀😀/😀/动😀
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string getMoveEmoji(MessageContext context, string[] param)
         {
             var elist = StaticUtil.ExtractEmojis(param[1]);
@@ -111,6 +118,13 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 图片顺时针旋转n度
+        /// 旋转90[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string setImgRotate(MessageContext context, string[] param)
         {
             double ro = 0;
@@ -136,12 +150,20 @@ namespace Kugua
             return null;
         }
 
+
+        /// <summary>
+        /// 图像镜像化（1、2、3、4保留不同的部分）
+        /// 镜像1[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string setImgMirror(MessageContext context, string[] param)
         {
             double degree = 1;
             if (!double.TryParse(param[1], out degree))
             {
-                degree = 2;
+                degree = 1;
             }
             
             bool findImg = false;
@@ -163,6 +185,13 @@ namespace Kugua
             return null;
         }
 
+        /// <summary>
+        /// 输入ip地址查属地
+        /// 查IP 192.168.1.1
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string checkIP(MessageContext context, string[] param)
         {
             var ipstr = param[1].Trim();
@@ -198,6 +227,15 @@ namespace Kugua
             //}
             return "";
         }
+
+
+        /// <summary>
+        /// gif图修改播放速率。负数为倒放
+        /// 3倍速[图片]/-0.5倍速[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string setGifSpeed(MessageContext context, string[] param)
         {
             double speed = 0;
@@ -228,6 +266,13 @@ namespace Kugua
         }
 
 
+        /// <summary>
+        /// 图像包浆做旧
+        /// 做旧[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string getOldJpg(MessageContext context, string[] param)
         {
             bool findImg = false; 
@@ -235,8 +280,8 @@ namespace Kugua
             if (param.Length >= 2)
             {
                 double.TryParse(param[1], out quality);
-                if (quality <= 0.1) quality = 0.75;
-                if (quality >= 0.95) quality = 0.95;
+                if (quality < 0.1) quality = 0.75;
+                if (quality > 0.95) quality = 0.95;
             }
 
 
@@ -263,6 +308,14 @@ namespace Kugua
             
         }
         MusicDownloader musicDownloader = new MusicDownloader();
+
+        /// <summary>
+        /// 点歌（爱来自QQ音乐），搜到多首歌曲会唱第一首
+        /// 点歌 初音未来的消失
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string getMusic(MessageContext context, string[] param)
         {
             try
@@ -360,6 +413,13 @@ namespace Kugua
             //if(!string.IsNullOrWhiteSpace(mname))
         }
 
+        /// <summary>
+        /// 关闭⏰
+        /// 别叫我了/删除闹钟
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string removeClock(MessageContext context, string[] param)
         {
             int haveTask = TaskRemove(context.userId, context.groupId);
@@ -372,6 +432,13 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 看看有无⏰
+        /// 闹钟列表
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string checkClock(MessageContext context, string[] param)
         {
             string res = "";
@@ -417,6 +484,13 @@ namespace Kugua
             return result;
         }
 
+        /// <summary>
+        /// 设置⏰
+        /// 17点30叫我吃饭
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string setClock(MessageContext context, string[] param)
         {
             string hourString = param[1];
@@ -439,6 +513,7 @@ namespace Kugua
 
             return $"帮你设了{alertTime.ToString("d号H点m分")}{alertMsg}的闹钟";
         }
+
 
         private string checkState(MessageContext context, string[] param)
         {
@@ -480,6 +555,13 @@ namespace Kugua
             return null;
         }
 
+        /// <summary>
+        /// 在线棒读
+        /// 说：你好我好，大家好
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string say(MessageContext context, string[] param)
         {
             string speakSentence = param[1];
@@ -513,6 +595,15 @@ namespace Kugua
             { "头条","jinritoutiao" },
            };
         }
+
+
+        /// <summary>
+        /// 让bot来点什么
+        /// 来点狐狸/小猫/非主流/猫姬/车万/emoji/头条/抖音/贴吧/b站/知乎/……)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string getSome(MessageContext context, string[] param)
         {
             try
@@ -615,25 +706,47 @@ namespace Kugua
             return "";
         }
 
+        ///// <summary>
+        ///// bot自刷新好友和群列表（暂不可用）
+        ///// </summary>
+        ///// <param name="context"></param>
+        ///// <param name="param"></param>
+        ///// <returns></returns>
+        //private string refreshList(MessageContext context, string[] param)
+        //{
+        //    //if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
+        //    //{
+        //    //    Logger.Log($"更新好友列表和群列表...");
+        //    //    RefreshFriendList();
+        //    //    Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
 
-        private string refreshList(MessageContext context, string[] param)
-        {
-            //if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
-            //{
-            //    Logger.Log($"更新好友列表和群列表...");
-            //    RefreshFriendList();
-            //    Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
+        //    //    return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
+        //    //}
+        //    return "";
+        //}
 
-            //    return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
-            //}
-            return "";
-        }
+        /// <summary>
+        /// 让bot拍拍你
+        /// 拍拍/贴贴
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string sendPoke(MessageContext context, string[] param)
         {
             context.client?.SendPoke(context.groupId, context.userId);
             //context.SendBack([new Poke { type="1", id="-1"}]);
             return null;
         }
+
+
+        /// <summary>
+        /// 让bot撤回最后n条消息
+        /// 撤回/撤回N
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleRecall(MessageContext context, string[] param)
         {
             int num = 1;

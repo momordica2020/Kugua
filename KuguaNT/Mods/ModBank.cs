@@ -57,12 +57,7 @@ namespace Kugua
             
         //}
 
-        /// <summary>
-        /// 苦银个人补贴
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
+
         private string Grant(MessageContext context, string[] param)
         {
             if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
@@ -84,7 +79,15 @@ namespace Kugua
                 return "？";
             }
         }
+        
 
+        /// <summary>
+        /// 转账
+        /// 给123456789转1000
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string PostMoney(MessageContext context, string[] param)
         {
             try
@@ -117,12 +120,7 @@ namespace Kugua
             return "";
         }
 
-        /// <summary>
-        /// bot增加存款
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
+
         public string AddBotMoney(MessageContext context, string[] param)
         {
             if (Config.Instance.UserHasAdminAuthority(context.userId))
@@ -169,6 +167,7 @@ namespace Kugua
 
         /// <summary>
         /// 每日签到，领取低保
+        /// 签到
         /// </summary>
         /// <param name="group"></param>
         /// <param name="userqq"></param>
@@ -298,6 +297,7 @@ namespace Kugua
 
         /// <summary>
         /// 富人榜
+        /// 富人榜/富豪榜
         /// </summary>
         /// <returns></returns>
         public string showRichest(MessageContext context, string[] param)
@@ -329,6 +329,7 @@ namespace Kugua
 
 
         /// <summary>
+        /// 穷人榜
         /// 穷人榜
         /// </summary>
         /// <returns></returns>

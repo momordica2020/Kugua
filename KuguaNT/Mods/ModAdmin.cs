@@ -35,6 +35,7 @@ namespace Kugua
             return true;
         }
 
+
         private string handleLinkLocal(MessageContext context, string[] param)
         {
             BotHost.Instance.LinkLocal();
@@ -47,25 +48,30 @@ namespace Kugua
 
         /// <summary>
         /// bot的欢迎文本
+        /// 帮助
         /// </summary>
         /// <returns></returns>
         private string getWelcomeString(MessageContext context, string[] param)
         {
-            return "" +
-                $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
-                "以下是群常用功能。\r\n" +
-                "~状态查看：“状态”\r\n" +
-                "~模式更换：“模式列表”、“xx模式on”\r\n" +
-                "~掷骰子：“rd 成功率”“r3d10 攻击力”\r\n" +
-                //"~多语翻译：“汉译法译俄 xxxx”\r\n" +
-                //"~天气预报：“北京明天天气”\r\n" +
-                //"B站live搜索：“绘画区谁在播”“虚拟区有多少B限”“xxx在播吗”\r\n" +
-                "~赛马：“赛马介绍”“签到”“个人信息”\r\n" +
-                "~生成攻受文：“A攻B受”\r\n" +
-                "~生成笑话：“讽刺 本国=A国，好人=甲，坏人=乙，事件=xx”\r\n" +
-                "~生成随机汉字：“随机5*4”\r\n" +
-                "~周易占卜：“占卜 xxx”\r\n";
+            return 
+                $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" 
+                + BotHost.Instance.ModsDesc();
+            //return "" +
+            //    $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
+            //    "以下是群常用功能。\r\n" +
+            //    "~状态查看：“状态”\r\n" +
+            //    "~模式更换：“模式列表”、“xx模式on”\r\n" +
+            //    "~掷骰子：“rd 成功率”“r3d10 攻击力”\r\n" +
+            //    //"~多语翻译：“汉译法译俄 xxxx”\r\n" +
+            //    //"~天气预报：“北京明天天气”\r\n" +
+            //    //"B站live搜索：“绘画区谁在播”“虚拟区有多少B限”“xxx在播吗”\r\n" +
+            //    "~赛马：“赛马介绍”“签到”“个人信息”\r\n" +
+            //    "~生成攻受文：“A攻B受”\r\n" +
+            //    "~生成笑话：“讽刺 本国=A国，好人=甲，坏人=乙，事件=xx”\r\n" +
+            //    "~生成随机汉字：“随机5*4”\r\n" +
+            //    "~周易占卜：“占卜 xxx”\r\n";
         }
+
 
         private string handleSave(MessageContext context, string[] param)
         {
@@ -82,34 +88,43 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 返回bot的工作状态信息
+        /// 状态
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleShowState(MessageContext context, string[] param)
         {
-            string rmsg = "";
+            StringBuilder rmsg = new StringBuilder();
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(context.groupId);
             if (Config.Instance.GroupHasAdminAuthority(context.groupId) || Config.Instance.UserHasAdminAuthority(context.userId)) //临时：只有测试群可查详细信息
             {
                 DateTime startTime = Config.Instance.StartTime;
-                rmsg += $"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）\n";
-                rmsg += $"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)\n";
-                rmsg += $"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)\n";
-                rmsg += $"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}\n";
-                rmsg += $"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户\n";
-                rmsg += $"在群里被乐{Config.Instance.UseTimeGroup}次\n";
-                rmsg += $"在私聊被乐{Config.Instance.UseTimePrivate}次\n";
-                rmsg += $"报错{Config.Instance.ErrorTime}次\n";
-                rmsg += $"机主是{Config.Instance.App.Avatar.adminQQ}\n";
+                rmsg.AppendLine($"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）");
+                rmsg.AppendLine($"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)");
+                rmsg.AppendLine($"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)");
+                rmsg.AppendLine($"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}");
+                rmsg.AppendLine($"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户");
+                rmsg.AppendLine($"在群里被乐{Config.Instance.UseTimeGroup}次");
+                rmsg.AppendLine($"在私聊被乐{Config.Instance.UseTimePrivate}次");
+                rmsg.AppendLine($"报错{Config.Instance.ErrorTime}次");
+                rmsg.AppendLine($"机主是{Config.Instance.App.Avatar.adminQQ}");
+
+                rmsg.AppendLine("自检信息：" + BotHost.Instance.SelfCheckInfo());
             }
             if (context.isGroup)
             {
-                rmsg += $"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}\n";
+                rmsg.AppendLine($"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}");
             }
             else
             {
                 //私聊查状态
-                rmsg += $"在私聊的标签是：{(user.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", user.Tags))}\r\n";
+                rmsg.AppendLine($"在私聊的标签是：{(user.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", user.Tags))}");
             }
-            return rmsg;
+            return rmsg.ToString();
         }
 
 
@@ -172,6 +187,7 @@ namespace Kugua
             }
         }
 
+
         private string handleRemoveTag(MessageContext context, string[] param)
         {
             string message = param[1];
@@ -194,6 +210,8 @@ namespace Kugua
                 return $"私聊已移除tag：{message}";
             }
         }
+
+
         private string handleClearTag(MessageContext context, string[] param)
         {
             string message = param[1];

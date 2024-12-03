@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Kugua
 {
     /// <summary>
-    /// 随机掷骰子
+    /// 掷骰模块
     /// </summary>
     public class ModDice : Mod
     {
@@ -22,6 +22,11 @@ namespace Kugua
             return true;
         }
 
+
+        /// <summary>
+        /// 随机掷骰子，可加缘由，可调整骰子个数r和面数d
+        /// rd/rd50猝死概率/r3d6扔三个骰
+        /// </summary>
         private string handleDice(MessageContext context, string[] param)
         {
             int dicenum = 1;

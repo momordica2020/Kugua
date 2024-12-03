@@ -79,6 +79,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// 赛马下注
+        /// N号M
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string AddBet(MessageContext context, string[] param)
         {
             int roadnum = 0;
@@ -100,6 +107,13 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 启动新一局赛马
+        /// 赛马
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string playGame(MessageContext context, string[] param)
         {
             int num = 5;
@@ -157,7 +171,13 @@ namespace Kugua
 
 
 
-
+        /// <summary>
+        /// 胜率榜
+        /// 胜率榜
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string showBigWinner(MessageContext context, string[] param)
         {
             try
@@ -202,6 +222,13 @@ namespace Kugua
             //save();
         }
 
+        /// <summary>
+        /// 败率榜
+        /// 败率榜
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string showBigLoser(MessageContext context, string[] param)
         {
             try
@@ -255,6 +282,7 @@ namespace Kugua
 
         /// <summary>
         /// 赌狗榜
+        /// 赌狗榜
         /// </summary>
         public string showMostPlayTime(MessageContext context, string[] param)
         {
@@ -293,7 +321,8 @@ namespace Kugua
         }
 
         /// <summary>
-        /// 个人游戏记录
+        /// 个人游戏记录信息
+        /// 个人信息
         /// </summary>
         /// <param name="userqq"></param>
         /// <returns></returns>
@@ -324,7 +353,13 @@ namespace Kugua
             return "没有赛马游戏记录";
         }
 
-
+        /// <summary>
+        /// 介绍赛马游戏规则
+        /// 赛马介绍
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string getIntroduction(MessageContext context, string[] param)
         {
             return $"赛🐎游戏介绍：\r\n" +

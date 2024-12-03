@@ -200,6 +200,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// 文本转煋文
+        /// 火星文 错的不是我，是世界！
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleHX(MessageContext context, string[] param)
         {
             try
@@ -267,6 +274,13 @@ namespace Kugua
             return checkDate;
         }
 
+        /// <summary>
+        /// 历史上的哪天？
+        /// 历史上的今天/历史上的昨天/历史上的3月1日
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleHistoryToday(MessageContext context, string[] param)
         {
             string date = param[1].Trim();
@@ -322,11 +336,18 @@ namespace Kugua
         }
 
 
+        /// <summary>
+        /// zz笑话生成器，输入格式：“事件=A，好人=B，坏人=C，坏人2=D，本国=E，敌国=F”也可以不全填
+        /// 讽刺 好人=bot，坏人=我，事件=乐bot
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleJoke(MessageContext context, string[] param)
         {
             try
             {
-                // 笑话输入格式：“事件=A，好人=B，坏人=C，坏人2=D，本国=E，敌国=F，地点=G，报纸=H”
+                // 笑话输入格式：“事件=A，好人=B，坏人=C，坏人2=D，本国=E，敌国=F”
                 var items = param[1].Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (items.Length >= 1)
                 {
@@ -355,6 +376,13 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 打乱字符串，N切M次表示循环操作M次，每次把原文分成N段再重排序
+        /// 3切123456/2切3次abcdefg
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleCutString(MessageContext context, string[] param)
         {
             string sTarget = param[3];
@@ -378,6 +406,13 @@ namespace Kugua
             return target;
         }
 
+        /// <summary>
+        /// 来点随机汉字
+        /// 随机20/随机4*5
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleRandomString(MessageContext context, string[] param)
         {
             int rows = 1;
@@ -394,6 +429,13 @@ namespace Kugua
             return GenerateRandomStringHans(rows, columns);
         }
 
+        /// <summary>
+        /// 根据模板生成攻受文
+        /// A攻B受
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleGongshou(MessageContext context, string[] param)
         {
             string gong = param[1];
@@ -415,11 +457,26 @@ namespace Kugua
             return result;
         }
 
+        /// <summary>
+        /// 乱序字符串
+        /// 乱序12345
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleShuffle(MessageContext context, string[] param)
         {
             return StaticUtil.ShuffleString(param[1]);
         }
 
+
+        /// <summary>
+        /// 反转字符串
+        /// 反转12345
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleReverse(MessageContext context, string[] param)
         {
             char[] charArray = param[1].ToCharArray();
@@ -427,6 +484,13 @@ namespace Kugua
             return new string(charArray);
         }
 
+        /// <summary>
+        /// 垃圾文生成器
+        /// 什么是：赛马
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handleSalad(MessageContext context, string[] param)
         {
             string WordSaladres = "";

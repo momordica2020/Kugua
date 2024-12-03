@@ -55,6 +55,13 @@ namespace Kugua
             return true;
         }
 
+        /// <summary>
+        /// homo特有的数字论证
+        /// 数字论证犬走椛/数字论证12dora
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string GetProof(MessageContext context, string[] param)
         {
             var message = param[1].Trim();
@@ -62,27 +69,62 @@ namespace Kugua
             bool succeed = false;
             if (long.TryParse(message, out trynum))
             {
+                // 纯数字
                 succeed = getProof(trynum);
                 if (succeed)
                 {
                     return finalproof;
                 }
             }
-
-
-            succeed = getProofEngIndex(message);
-            if (succeed)
+            else
             {
-                return finalproof;
+                const string numb = "0123456789零一二三四五六七八九";
+                const string engc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                const string symb = "\t\r\n []【】！@#￥%…&*（）+=-—_!@#$%^&*()|/\\。、，？?“”\"',";
+                bool eng = false;
+                bool chn = false;
+                var tmp = new List<(char c , int v)>(); 
+                foreach(var c in message)
+                {
+                    long sum = 0;
+                    if (symb.Contains(c)) continue;
+                    if(numb.Contains(c))
+                    {
+                        tmp.Add((c, numb.IndexOf(c) % 10 ));
+                        eng = true;
+                        continue;
+                    }
+                    if (engc.Contains(c))
+                    {
+                        tmp.Add((c, engc.IndexOf(c) % 26 + 1));
+                        eng = true;
+                        continue;
+                    }
+                    if(bhdict.TryGetValue(c.ToString(), out var cv))
+                    {
+                        tmp.Add((c, cv));
+                        chn = true;
+                        continue;
+                    }
+                }
+
+                if (tmp.Count > 0)
+                {
+                    var trysum = tmp.Sum(a=>a.v);
+                    succeed = getProof(trysum);
+                    if (succeed)
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("换算成");
+                        if (eng) sb.Append($"字母序号 ");
+                        if (chn) sb.Append($"笔画数");
+                        sb.Append("，");
+
+                        sb.Append($"{message} = {string.Join(" + ",tmp.Select(t=>t.v))} = {finalproof}");
+                        return sb.ToString();
+                    }
+                }
             }
-
-
-            succeed = getProofBh(message);
-            if (succeed)
-            {
-                return finalproof;
-            }
-
 
             if (string.IsNullOrWhiteSpace(finalproof))
             {
@@ -91,85 +133,6 @@ namespace Kugua
             return "";
         }
 
-
-
-
-
-
-
-        /// <summary>
-        /// 获取汉字笔画数
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public int getbh(string word)
-        {
-            if (bhdict.ContainsKey(word)) return bhdict[word];
-            return -1;
-        }
-
-        /// <summary>
-        /// 英文字母序列的数字论证
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public bool getProofEngIndex(string str)
-        {
-            string eng = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            List<int> bhs = new List<int>();
-            foreach (var word in str)
-            {
-                if ("\t\r\n []【】！@#￥%…&*（）+=-—_!@#$%^&*()|/\\。、，？?“”\"',".Contains(word)) continue;
-                int index = eng.IndexOf(word) % 26 + 1;
-                if (index <= 0)
-                {
-                    // not find!
-                    return false;
-                }
-                bhs.Add(index);
-            }
-            string desc1 = $"{str} 的字母序号 {string.Join("+", bhs)} = {bhs.Sum()} = ";
-            //desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}\r\n";
-
-            bool proofsuccess = getProof(bhs.Sum());
-            if (proofsuccess)
-            {
-                finalproof = desc1 + finalproof;
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 汉字笔画的数字论证
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public bool getProofBh(string str)
-        {
-            List<int> bhs = new List<int>();
-            foreach (var word in str)
-            {
-                if ("\t\r\n []【】！@#￥%…&*（）+=-—_!@#$%^&*()|/\\。、，？?“”\"',".Contains(word)) continue;
-                int bh = getbh(word.ToString());
-                if (bh < 0)
-                {
-                    // not find!
-                    return false;
-                }
-                bhs.Add(bh);
-            }
-            string desc1 = $"{str} 的笔划数 {string.Join("+", bhs)} = {bhs.Sum()} = ";
-            //desc1 += $"{string.Join("+", bhs)} = {bhs.Sum()}";
-
-            bool proofsuccess = getProof(bhs.Sum());
-            if (proofsuccess)
-            {
-                finalproof = desc1 + finalproof;
-                return true;
-            }
-            return false;
-        }
 
         
 
@@ -208,7 +171,7 @@ namespace Kugua
             if (res.Count > 0)
             {
                 // have strong.
-                finalproof = $"{desired} = {res.First()}\r\nQ.E.D";
+                finalproof = $"{res[MyRandom.Next(res.Count)]}\r\nQ.E.D";
                 return true;
             }
             else

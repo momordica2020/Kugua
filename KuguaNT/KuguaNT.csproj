@@ -8,6 +8,7 @@
     <UserSecretsId>6a21a186-a57b-4f15-aa7d-539bb646168b</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
     <BaseOutputPath>D:\Projects\momordica2020\Kugua\output</BaseOutputPath>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -80,7 +80,13 @@ namespace Kugua
         }
 
 
-
+        /// <summary>
+        /// 掷骰子游戏（大小单双123456）
+        /// 100押大/20000押6
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string StartGame(MessageContext context, string[] param)
         {
             BigInteger money = 1;
