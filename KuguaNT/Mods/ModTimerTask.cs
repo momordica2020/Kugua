@@ -37,6 +37,7 @@ namespace Kugua
 
 
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
+            ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
 
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
 
@@ -86,7 +87,29 @@ namespace Kugua
             return true;
         }
 
-      
+        private string getMoveEmoji(MessageContext context, string[] param)
+        {
+            var elist = StaticUtil.ExtractEmojis(param[1]);
+            if (elist.Count > 0)
+            {
+                List<Message> msgs = new List<Message>();
+                foreach (var emoji in elist) 
+                {
+                    var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojitg/"), $"*{emoji.Replace("u", "")}*.gif");
+                    if (fff.Length > 0)
+                    {
+                        msgs.Add(new Image($"file://{fff[MyRandom.Next(fff.Length)]}"));
+                    }
+                
+                }
+                if (msgs.Count > 0)
+                {
+                    _ = context.SendBack(msgs.ToArray());
+                    return null;
+                }
+            }
+            return "";
+        }
 
         private string setImgRotate(MessageContext context, string[] param)
         {
@@ -772,6 +795,7 @@ namespace Kugua
         {
             if (context.recvMessages == null || context.recvMessages.Count<=0) return false;
 
+
             if (context.isPrivate)
             {
                 foreach (var msg in context.recvMessages)
@@ -801,125 +825,63 @@ namespace Kugua
                         return true;
                     }
                 }
-                return false;
             }
             else if (context.isGroup)
             {
-                var message = context.recvMessages.ToTextString();
-                var group = Config.Instance.GroupInfo(context.groupId);
-                var user = Config.Instance.UserInfo(context.userId);
+                //if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
+                //{
+                //    List<string> imgPaths = new List<string>();
+                //    string cmd = context.recvMessages.ToTextString();
+                //    foreach (var item in context.recvMessages)
+                //    {
+                //        if (item is Image image)
+                //        {
+                //            //Logger.Log("img!");
+                //            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
+                //            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+                //            //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
+                //            //WebLinker.DownloadImageAsync(image.url, imgPath);
+                //            var base64data = await Network.ConvertImageUrlToBase64(image.url);
+                //            imgPaths.Add(base64data);
+                //        }
+                //    }
+                //    //Logger.Log($"{imgPaths.Count}");
+                //    if (imgPaths.Count > 0)
+                //    {
+                //        GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
+                //        return true;
+                //    }
 
-                if (context.isAskme)
-                {
-                    var elist =StaticUtil.ExtractEmojis(message);
-                    if (elist.Count >= 2)
-                    {
-                        string emojiA = elist[0];
-                        string emojiB = elist[1];
-                        List<string> filename = new List<string>{
-                            $"{emojiA}_{emojiB}.png" ,
-                            $"{emojiA}-ufe0f_{emojiB}.png" ,
-                            $"{emojiA}_{emojiB}-ufe0f.png" ,
-                            $"{emojiA}-u200d_{emojiB}.png" ,
-                            $"{emojiA}_{emojiB}-u200d.png" ,
-                            $"{emojiB}_{emojiA}.png" ,
-                            $"{emojiB}-ufe0f_{emojiA}.png" ,
-                            $"{emojiB}_{emojiA}-ufe0f.png" ,
-                            $"{emojiB}-u200d_{emojiA}.png" ,
-                            $"{emojiB}_{emojiA}-u200d.png" ,
-                        };
-                        foreach (var f in filename)
-                        {
-                            var fff = Config.Instance.ResourceFullPath($"emojimix/{f}");
-                            if (File.Exists(fff))
-                            {
-                                context.SendBack([
-                                    new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
-                                    new Image($"file://{fff}"),
-                                ]);
-                                return true;
-                            }
-                        }
-                    }else if (elist.Count ==1)
-                    {
-                        string emojiA = elist[0];
-                        var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"),$"*{emojiA}*.png");
-                        
-                        if(fff.Length > 0)
-                        {
-                            var getf = fff[MyRandom.Next(fff.Length)];
-                            if (File.Exists(getf))
-                            {
-                                var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f","").Replace("-u200d", "");
-                                context.SendBack([
-                                    new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
-                                    new Image($"file://{getf}"),
-                                 ]);
-                                return true;
-                            }
-                        }
-                    }
+                //}
 
-                    //string baseURL = "https://www.gstatic.com/android/keyboard/emojikitchen/20231128";
+
+                //// 
+                //foreach (var msg in context.recvMessages)
+                //{
+
+                //    if (msg is Text plain)
+                //    {
+                //        if (plain.text == "发语音")
+                //        {
+                //            //string inputwav = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\1106-173028_9.4s-seedseed_1694_restored_emb-covert.pt-temp0.11-top_p0.05-top_k15-len28-86146-0-0.wav";
+                //            //string inputpcm = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.pcm";
+                //            //string outputSilk = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.silk";
+                //            //string mp3file = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.mp3";
+                //            //string amrfile = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.amr";
+                //            ////SilkSharp.Encoder encoder = new();
+                //            ////encoder.EncodeAsync(inputpcm, outputSilk);
+                //            //new GroupMessage(s.group.id, [
+                //            //    new Voice(null,null,amrfile)
+                //            //    ]).Send(client);
+
+                //            //return true;
+                //        }
+                //    }
 
 
 
-
-
-                    //if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
-                    //{
-                    //    List<string> imgPaths = new List<string>();
-                    //    string cmd = context.recvMessages.ToTextString();
-                    //    foreach (var item in context.recvMessages)
-                    //    {
-                    //        if (item is Image image)
-                    //        {
-                    //            //Logger.Log("img!");
-                    //            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
-                    //            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
-                    //            //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
-                    //            //WebLinker.DownloadImageAsync(image.url, imgPath);
-                    //            var base64data = await Network.ConvertImageUrlToBase64(image.url);
-                    //            imgPaths.Add(base64data);
-                    //        }
-                    //    }
-                    //    //Logger.Log($"{imgPaths.Count}");
-                    //    if (imgPaths.Count > 0)
-                    //    {
-                    //        GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
-                    //        return true;
-                    //    }
-
-                    //}
-
-
-                    //// 
-                    //foreach (var msg in context.recvMessages)
-                    //{
-
-                    //    if (msg is Text plain)
-                    //    {
-                    //        if (plain.text == "发语音")
-                    //        {
-                    //            //string inputwav = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\1106-173028_9.4s-seedseed_1694_restored_emb-covert.pt-temp0.11-top_p0.05-top_k15-len28-86146-0-0.wav";
-                    //            //string inputpcm = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.pcm";
-                    //            //string outputSilk = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.silk";
-                    //            //string mp3file = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.mp3";
-                    //            //string amrfile = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.amr";
-                    //            ////SilkSharp.Encoder encoder = new();
-                    //            ////encoder.EncodeAsync(inputpcm, outputSilk);
-                    //            //new GroupMessage(s.group.id, [
-                    //            //    new Voice(null,null,amrfile)
-                    //            //    ]).Send(client);
-
-                    //            //return true;
-                    //        }
-                    //    }
-
-
-
-                    //}
-                }
+                //}
+                
 
 
                 //string logstr = "";
@@ -963,11 +925,75 @@ namespace Kugua
                     //}
                 }
 
-                return false;
+                //return false;
             }
 
-            return false;
 
+
+
+
+
+
+
+
+
+
+
+            if (context.isAskme)
+            {
+                // emoji deal
+                //var group = Config.Instance.GroupInfo(context.groupId);
+                //var user = Config.Instance.UserInfo(context.userId);
+
+                var message = context.recvMessages.ToTextString();
+                var elist = StaticUtil.ExtractEmojis(message);
+                return DealEmojiMix(context,elist);
+            }
+
+                return false;
+
+        }
+
+
+        bool DealEmojiMix(MessageContext context, List<string> emojiList)
+        {
+            if (emojiList.Count >= 2)
+            {
+                string emojiA = emojiList[0];
+                string emojiB = emojiList[1];
+                var fres = new List<string>();
+                fres.AddRange(Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"{emojiA}*{emojiB}*.png"));
+                fres.AddRange(Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"{emojiB}*{emojiA}*.png"));
+                if (fres.Count > 0)
+                {
+                    if (fres.Count > 1) Logger.Log($"{fres.Count} => {emojiA}*{emojiB}*.png");
+                    _ = context.SendBack([
+                        new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
+                        new Image($"file://{fres.First()}"),
+                    ]);
+                    return true;
+                }
+            }
+            else if (emojiList.Count == 1)
+            {
+                string emojiA = emojiList[0];
+                var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"*{emojiA}*.png");
+
+                if (fff.Length > 0)
+                {
+                    var getf = fff[MyRandom.Next(fff.Length)];
+                    if (File.Exists(getf))
+                    {
+                        var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f", "").Replace("-u200d", "");
+                        _ = context.SendBack([
+                            new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
+                            new Image($"file://{getf}"),
+                        ]);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
 

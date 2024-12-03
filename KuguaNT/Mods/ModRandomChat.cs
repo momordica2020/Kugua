@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Kugua.Integrations.NTBot;
+using Microsoft.VisualBasic;
 using SuperSocket.ClientEngine;
 
 
@@ -756,6 +757,13 @@ namespace Kugua
                                 // 过滤CQ代码
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
 
+                                // json 直接发
+                                if (msg.Contains("{\"app\""))
+                                {
+                                    _ = context.SendBack([new JsonData { data=msg }]);
+                                    continue;
+                                }
+
                                 // xml直接发
                                 if (msg.Contains("xml"))
                                 {
@@ -763,7 +771,7 @@ namespace Kugua
                                     if (mth.Success)
                                     {
                                         string xmlstr = mth.Groups[0].Value;
-                                        context.SendBack([new XmlData { data = xmlstr }]);
+                                        _ = context.SendBack([new XmlData { data = xmlstr }]);
                                         continue;
                                     }
 

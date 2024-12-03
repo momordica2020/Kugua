@@ -596,6 +596,24 @@ namespace Kugua
 
             return emojiBuilder.ToString();
         }
+
+        public static string emojiChange(string emoji)
+        {
+            string res = emoji;
+
+            var changeList = new Dictionary<string, string>
+            {
+                { "🐅" , "🐯" },
+                { "" , "🐯" },
+            };
+
+            if(changeList.TryGetValue(emoji, out res))
+            {
+                return res;
+            }
+
+            return res;
+        }
         #endregion
 
         /// <summary>
