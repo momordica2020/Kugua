@@ -148,15 +148,78 @@ namespace Kugua
                 {
                     images.Reverse();
                 }
+                // 初步的动画长度（以延迟总和表示）
+                uint originalDelaySum = 0;
                 foreach (var image in images)
                 {
-                    image.AnimationDelay = (uint)(image.AnimationDelay / Math.Abs(speed));
-                    if (image.AnimationDelay <2 )
+                    originalDelaySum += image.AnimationDelay;
+                }
+
+                // 计算加速后 GIF 的目标总时长
+                uint targetDelaySum = (uint)(originalDelaySum / Math.Abs(speed));
+
+                // 判断每帧的 delay 是否有小于 2 的情况
+                bool needsFrameRemoval = false;
+                foreach (var image in images)
+                {
+                    if (image.AnimationDelay / Math.Abs(speed) < 2)
                     {
-                        image.AnimationDelay = 2;
+                        needsFrameRemoval = true;
+                        break;
+                    }
+                }
+
+                if (needsFrameRemoval)
+                {
+                    int targetFrameCount = (int)(images.Count / Math.Abs(speed));
+                    // 计算实际应该保留多少帧
+                    targetFrameCount = Math.Max(2, targetFrameCount); // 至少保留 2 帧
+                    // 抽帧处理：按加速比率删除帧
+                    List<MagickImage> newImages = new List<MagickImage>();
+                    int step = (int)Math.Ceiling((double)images.Count / targetFrameCount);
+
+                    for (int i = 0; i < images.Count; i += step)
+                    {
+                        newImages.Add(new MagickImage(images[i]));
                     }
 
-                    image.ColorFuzz = new Percentage(5);
+                    // 更新 images 为新的帧列表
+                    while (images.Count > 0) images.RemoveAt(0);
+                    images.AddRange(newImages);
+                    
+
+                    // 计算新的 delay，使得总的动画长度符合加速后的比例
+                    uint newDelaySum = targetDelaySum;
+                    uint totalNewDelay = 0;
+                    foreach (var image in images)
+                    {
+                        // 计算每帧的新的 delay，使总动画时长符合目标
+                        uint newDelay = (uint)(newDelaySum / images.Count);
+
+                        image.AnimationDelay = newDelay;
+                        if (image.AnimationDelay < 2)
+                        {
+                            image.AnimationDelay = 2;
+                        }
+                        totalNewDelay += newDelay;
+                    }
+                }
+                else
+                {
+                    // 加速比率较低，直接调整每帧的 AnimationDelay
+                    foreach (var image in images)
+                    {
+                        // 按照 speed 调整动画延迟
+                        image.AnimationDelay = (uint)(image.AnimationDelay / Math.Abs(speed));
+
+                        // 保证最小延迟为 2
+                        if (image.AnimationDelay < 2)
+                        {
+                            image.AnimationDelay = 2;
+                        }
+
+                        image.ColorFuzz = new Percentage(5);  // 保持颜色模糊度
+                    }
                 }
             }
           
