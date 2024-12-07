@@ -32,6 +32,7 @@ namespace Kugua
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^撤回(.*)"), handleRecall));
+            ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(.*)"), handleRecall2));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
@@ -47,7 +48,7 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
             ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
-
+            ModCommands.Add(new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
 
 
             // speak
@@ -186,6 +187,43 @@ namespace Kugua
                 }
             }
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
+            return null;
+        }
+
+        /// <summary>
+        /// 图片去除背景
+        /// 抠图[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setRemoveBackground(MessageContext context, string[] param)
+        {
+            double ro = 0;
+            if (!double.TryParse(param[1], out ro))
+            { ro = 0; }
+            bool findImg = false;
+            foreach (var item in context.recvMessages)
+            {
+                //Logger.Log(item.type);
+                if (item is Image itemImg)
+                {
+                    var oriImg = Network.DownloadImage(itemImg.url);
+                    var newImgbase64 = ImageUtil.RemoveBackground(oriImg);
+                    if (string.IsNullOrWhiteSpace(newImgbase64))
+                    {
+                        // fail
+                        return "";
+                    }
+                    context.SendBack([
+                        //new At(context.userId, null),
+                        new Image($"base64://{newImgbase64}"),
+                    ]);
+                    findImg = true;
+
+                }
+            }
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
             return null;
         }
 
@@ -399,7 +437,7 @@ namespace Kugua
                 if (!string.IsNullOrWhiteSpace(localPath) && System.IO.File.Exists(localPath))
                 {
                     context.SendBack(new Message[] {
-                                new Record($"file://{localPath}",0)
+                                new Record($"file://{localPath}")
                             });
                     //var amrb64 = StaticUtil.Mp32AmrBase64(localPath);
                     //if (!string.IsNullOrWhiteSpace(amrb64))
@@ -674,6 +712,16 @@ namespace Kugua
                 {
                     files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgth", "*.*");
                 }
+                else if (something == "相声")
+                {
+                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/xiangsheng", "*.*");
+                    string fname = files[MyRandom.Next(files.Length)];
+                    var fdesc = fname.Split('-')[1].Trim();
+                    context.SendBackPlain($"▶ {fdesc}",true);
+                    context.SendBack([
+                        new Record($"file://{fname}"),
+                        ]);
+                }
                 else if (something == "emoji")
                 {
                     files = Directory.GetFiles(Config.Instance.ResourceFullPath("/emojimix/"), "*.png");
@@ -821,6 +869,44 @@ namespace Kugua
                 //        ).Send(clientMirai);
                 //    new Recall(historys[i].messageId).Send(clientMirai);
                 //}
+            }
+            return null;
+
+        }
+
+
+        /// <summary>
+        /// 帮你撤回消息。但bot必须有管理员权限。
+        /// 帮我撤回/帮我撤回N
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleRecall2(MessageContext context, string[] param)
+        {
+            int num = 1;
+            if (param.Length >= 2)
+            {
+                int.TryParse(param[1], out num);
+            }
+            if (num <= 0) num = 1;
+            if (num >= 10) num = 10;
+            var historys = HistoryManager.Instance.findMessage(context.userId, context.groupId);
+            for (int i = 0; i < Math.Min(historys.Length, num); i++)
+            {
+                int hindex = historys.Length - i - 1;
+                if (hindex < 0) break;
+                string msgid = historys[hindex].messageId;
+                if (string.IsNullOrEmpty(msgid))
+                {
+                    num++;
+                }
+                else
+                {
+                    Logger.Log($"?{msgid}");
+                    context.client?.Send(new delete_msg(msgid));
+                    historys[hindex].messageId = string.Empty;
+                }
             }
             return null;
 

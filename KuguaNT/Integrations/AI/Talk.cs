@@ -115,7 +115,7 @@ namespace Kugua
                 //Logger.Log($"=> {amrFile}");
                 //var resInc = StaticUtil.WavInc(res);
                 Message[] msg = [
-                        new Record($"file://{res}",0)
+                        new Record($"file://{res}")
                ];
                 context.SendBack(msg);
                 Thread.Sleep(3000);

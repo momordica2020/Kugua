@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZhipuApi.Modules;
 
 namespace Kugua
 {
@@ -417,6 +418,78 @@ namespace Kugua
         }
 
         // Helper function to get encoder info for the desired format (JPEG)
+
+
+
+        public static byte[] RemoveBackground(byte[] imageBytes)
+        {
+            using (HttpClient client = new HttpClient())
+            using (var content = new MultipartFormDataContent())
+            {
+                content.Add(new ByteArrayContent(imageBytes), "file", "f1");
+
+                HttpResponseMessage response = client.PostAsync("http://localhost:7799/api/remove", content).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    byte[] resultImageBytes = response.Content.ReadAsByteArrayAsync().Result;
+                    return resultImageBytes;
+                    //var ms = new MemoryStream(resultImageBytes);
+                    //MagickImage magickImage = new MagickImage(ms);
+                    //return magickImage;
+
+                }
+                else
+                {
+                    Logger.Log("Error removing background: " + response.ReasonPhrase);
+                    return null;
+                }
+            }
+        }
+
+        public static string RemoveBackground(MagickImageCollection images)
+        {
+            try
+            {
+                //MagickImageCollection m2 = new MagickImageCollection();
+                //while (m2.Count > 0) m2.RemoveAt(0);
+                int num = images.Count;
+                images.Coalesce();
+
+                for (int i = 0; i < num; i++)
+                {
+                    var resb = RemoveBackground(images[i].ToByteArray());
+                    var img = new MagickImage(resb);
+                    img.GifDisposeMethod = GifDisposeMethod.Background;
+                    // img.Transparent(new MagickColor(0, 0, 0,0));
+                    //if(i!=0) img.Alpha(AlphaOption.Copy);
+                    images.Add(img);
+                }
+                for (int i = 0; i < num; i++)
+                {
+                    images.RemoveAt(0);
+                }
+                images.OptimizeTransparency();
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    var settings = new QuantizeSettings();
+                    settings.Colors = 256;
+                     
+                    images.Quantize(settings);
+                    images.OptimizeTransparency();
+                    images.Write(ms,MagickFormat.Gif);
+                    byte[] imageBytes = ms.ToArray();
+                    string base64String = Convert.ToBase64String(imageBytes);
+                    return base64String;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
 
     }
 

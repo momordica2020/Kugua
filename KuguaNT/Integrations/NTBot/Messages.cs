@@ -131,11 +131,11 @@ namespace Kugua.Integrations.NTBot
             
         }
 
-        public Record(string file, int magic = 0)
-        {
-            this.file = file;
-            this.magic = magic;
-        }
+        //public Record(string file, int magic = 0)
+        //{
+        //    this.file = file;
+        //    this.magic = magic;
+        //}
         public Record(string file, int magic = 0, int cache = 1, int proxy = 0, int timeout = 3)
         {
             this.file = file;
