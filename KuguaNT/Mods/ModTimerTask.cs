@@ -136,6 +136,7 @@ namespace Kugua
 
                 desc += GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
                 context.SendBackPlain(desc);
+                if (desc.Contains("ERROR")) return null;
             }
             else if(string.IsNullOrWhiteSpace(desc))
             {

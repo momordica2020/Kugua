@@ -132,10 +132,12 @@ namespace Kugua
             {
                 if (resp?.error != null)
                 {
+                    Logger.Log($"ERROR({resp.error["code"]}):{resp.error["message"]}");
+                    return $"ERROR({resp.error["code"]}):{resp.error["message"]}";
                     foreach (var err in resp.error)
                     {
-                        Logger.Log($"ERROR:({err.Key}){err.Value}");
-                        return $"ERROR{err.Key}:{err.Value}";
+                        
+                       
                     }
 
                 }
@@ -187,10 +189,7 @@ namespace Kugua
             {
                 if (resp?.error != null)
                 {
-                    foreach (var err in resp.error)
-                    {
-                        Logger.Log($"ERROR:({err.Key}){err.Value}");
-                    }
+                    Logger.Log($"ERROR({resp.error["code"]}):{resp.error["message"]}");
 
                 }
                 msgs.RemoveAt(msgs.Count - 1);
@@ -220,12 +219,8 @@ namespace Kugua
             {
                 if (resp?.error != null)
                 {
-                    foreach (var err in resp.error)
-                    {
-                        Logger.Log($"ERROR:({err.Key}){err.Value}");
-                        context.SendBackPlain($"ERROR{err.Key}:{err.Value}");
-                    }
-
+                    Logger.Log($"ERROR({resp.error["code"]}):{resp.error["message"]}");
+                    context.SendBackPlain($"ERROR({resp.error["code"]}):{resp.error["message"]}");
                 }
                 //msgs.RemoveAt(msgs.Count - 1);
             }
