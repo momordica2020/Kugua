@@ -160,26 +160,35 @@ namespace Kugua
         // 从网络图片 URL 转换为 Base64 编码字符串
         public static async Task<string> ConvertImageUrlToBase64(string imageUrl)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                UseProxy = false,
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // 忽略所有证书错误
+            };
 
 
-            using (HttpClient client = new HttpClient(handlerWithProxy))
+            using (HttpClient client = new HttpClient(handler))
             {
                 try
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", defaultHeaderAgentString);
 
-                    // 下载图片为字节数组
-                    byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
-                    // 转换为 Base64 编码字符串
-                    return Convert.ToBase64String(imageBytes);
+                    // 获取图片的响应
+                    using (HttpResponseMessage response = client.GetAsync(imageUrl).Result)
+                    {
+                        response.EnsureSuccessStatusCode(); // 确保请求成功
+
+                        byte[] imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                        return Convert.ToBase64String(imageBytes);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"错误: {ex.Message}");
-                    return string.Empty; // 返回空字符串表示出错
+                    Logger.Log(ex);
                 }
+
             }
+            return null;
         }
 
 

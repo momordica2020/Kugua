@@ -37,4 +37,10 @@
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="ZhipuApi">
+      <HintPath>..\..\..\zhipuai-sdk-csharp-v4\bin\Debug\net8.0\ZhipuApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
 ﻿
+using ImageMagick;
 using Kugua.Integrations.NTBot;
 
 
@@ -26,11 +27,57 @@ namespace Kugua
             }
         }
 
+        public bool isImage
+        {
+            get
+            {
+                if (recvMessages?.Count > 0)
+                {
+                    foreach (var msg in recvMessages)
+                    {
+                        if (msg is Image) return true;
+                    }
+                }
+                return false;
+            }
+        }
+
         public bool isAskme;
 
         public NTBot client { get; set; }
 
         public List<Message> recvMessages;
+
+        public string PNG1Base64
+        {
+            get
+            {
+                if(recvMessages?.Count > 0 && isImage)
+                {
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is Image img)
+                        {
+                            var currentFrame = Network.DownloadImage(img.url).First();
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                // 将帧转换为 PNG 格式并写入 MemoryStream
+                                currentFrame.Format = MagickFormat.Png; // 显式设置输出格式为 PNG
+                                currentFrame.Write(ms);
+                                var imageBytes = ms.ToArray();
+                                var imgBase64 = Convert.ToBase64String(imageBytes);
+                                return imgBase64;
+                            }
+
+
+                        }
+                    }
+                }
+               
+
+                return null;
+            }
+        }
 
         public async Task<string> SendBackPlain(string message, bool isAt = false)
         {

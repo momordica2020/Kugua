@@ -45,7 +45,7 @@ namespace Kugua
 
 
 
-                ModCommands.Add(new ModCommand(new Regex(@"^老虎(.+)?"),StartGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^老虎(.+)?"),StartSlotGame));
 
             }
             catch (Exception ex)
@@ -90,7 +90,7 @@ namespace Kugua
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private string StartGame(MessageContext context, string[] param)
+        private string StartSlotGame(MessageContext context, string[] param)
         {
             BigInteger money = 1;
             if (param.Length < 2) money = 1;

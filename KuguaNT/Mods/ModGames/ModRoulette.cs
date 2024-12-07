@@ -36,8 +36,8 @@ namespace Kugua
         {
             try
             {
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘介绍\s*"), IntroduceGame));
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘(.+)"), StartGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘介绍\s*"), IntroduceRouletteGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘(.+)"), StartRouletteGame));
                 //ModCommands.Add(new ModCommand(new Regex(@"^\s*加入\s*(\d+)"),JoinGame));
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe));
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim));
@@ -95,7 +95,7 @@ namespace Kugua
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private string IntroduceGame(MessageContext context, string[] param)
+        private string IntroduceRouletteGame(MessageContext context, string[] param)
         {
             var res = $"恶魔轮盘pvp游戏介绍：\r\n";
             res += $"2人参与后自动启动，回合制轮流操作，谁存活到底获得双方投币之和*1.5\r\n";
@@ -115,7 +115,7 @@ namespace Kugua
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private string StartGame(MessageContext context, string[] param)
+        private string StartRouletteGame(MessageContext context, string[] param)
         {
             try
             {

@@ -65,7 +65,7 @@ namespace Kugua
 
                     ModCommands.Add(new ModCommand(new Regex(@"^赛马(介绍|玩法)$"), getIntroduction));
                     ModCommands.Add(new ModCommand(new Regex(@"^个人信息$"), getUserGameInfo));
-                    ModCommands.Add(new ModCommand(new Regex(@"^赛马$"), playGame));
+                    ModCommands.Add(new ModCommand(new Regex(@"^赛马$"), playHorseGame));
                     ModCommands.Add(new ModCommand(new Regex(@"^胜率榜$"), showBigWinner));
                     ModCommands.Add(new ModCommand(new Regex(@"^败率榜$"), showBigLoser));
                     ModCommands.Add(new ModCommand(new Regex(@"^赌狗榜$"),showMostPlayTime));
@@ -114,7 +114,7 @@ namespace Kugua
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private string playGame(MessageContext context, string[] param)
+        private string playHorseGame(MessageContext context, string[] param)
         {
             int num = 5;
             int len = 100;

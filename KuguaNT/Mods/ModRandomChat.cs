@@ -48,6 +48,10 @@ namespace Kugua
                 ModCommands.Add(new ModCommand(new Regex(@"^模式列表"), printModeList));
                 ModCommands.Add(new ModCommand(new Regex(@"^(清空|清除|删除)记忆"), clearMemory));
                 ModCommands.Add(new ModCommand(new Regex(@"^prompt=(.*)", RegexOptions.Singleline), setPrompt));
+                
+
+
+
                 ModCommands.Add(new ModCommand(new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase), selectMode));
 
 
@@ -256,6 +260,16 @@ namespace Kugua
             return true;
         }
 
+
+
+
+        /// <summary>
+        /// 设置AI的预设文本
+        /// prompt=你是一个猫娘
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string setPrompt(MessageContext context, string[] param)
         {
             string prompt = param[1].Trim();
@@ -332,6 +346,13 @@ namespace Kugua
         }
 
 
+        /// <summary>
+        /// 清空AI的历史记忆并重置prompt
+        /// 清空记忆/删除记忆/清除记忆
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string clearMemory(MessageContext context, string[] param)
         {
             GPT.Instance.AIClearMemory(context.groupId, context.userId);
@@ -421,8 +442,9 @@ namespace Kugua
                     case "正常":
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        //GPT.Instance.AIReply(context);
-                        //break;
+                        var res = GPT.Instance.ZPChat(context);
+                        if(!string.IsNullOrWhiteSpace(res)) context.SendBackPlain(res, true);
+                        break;
                     
                     case "小万邦":
                         answer.Add(getGong());

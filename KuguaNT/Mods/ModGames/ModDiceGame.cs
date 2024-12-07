@@ -41,7 +41,7 @@ namespace Kugua
 
 
 
-                ModCommands.Add(new ModCommand(new Regex(@"^(.+)押(.+)"), StartGame));
+                ModCommands.Add(new ModCommand(new Regex(@"^(.+)押(.+)"), StartDiceGame));
 
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace Kugua
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private string StartGame(MessageContext context, string[] param)
+        private string StartDiceGame(MessageContext context, string[] param)
         {
             BigInteger money = 1;
             money = StaticUtil.ConvertToBigInteger(param[1]);

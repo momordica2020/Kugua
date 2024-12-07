@@ -38,6 +38,7 @@ namespace Kugua
 
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
+            ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
 
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
 
@@ -117,6 +118,43 @@ namespace Kugua
             }
             return "";
         }
+
+
+        /// <summary>
+        /// AI生成图片
+        /// 生图 一个小女孩在下雨天奔跑
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string genImg(MessageContext context, string[] param)
+        {
+            var desc = param[1];
+            if (context.isImage)
+            {
+                // 以图生图
+
+                desc += GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
+                context.SendBackPlain(desc);
+            }
+            else if(string.IsNullOrWhiteSpace(desc))
+            {
+                WaitNext(context, new ModCommand(new Regex(@"生图(.*)", RegexOptions.Singleline), genImg));
+                return null;
+            }
+
+
+            if(!string.IsNullOrWhiteSpace(desc))
+            {
+
+                GPT.Instance.ZPImage(context, desc);
+                return null;
+            }
+
+            return "";
+        }
+
+
 
         /// <summary>
         /// 图片顺时针旋转n度

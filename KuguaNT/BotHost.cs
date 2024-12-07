@@ -260,10 +260,10 @@ namespace Kugua
             
             var codes = StaticUtil.GetCodeLineNum();
             res.AppendLine($"源码有{codes.Count}个文件({codes.Sum(s=>s.Item2)}行)");
-            foreach (var code in codes)
-            {
-                if(code.Item2>100)  res.AppendLine($"({Path.GetFileName(code.Item1)}) - {code.Item2} lines");
-            }
+            //foreach (var code in codes)
+            //{
+            //    if(code.Item2>100)  res.AppendLine($"({Path.GetFileName(code.Item1)}) - {code.Item2} lines");
+            //}
 
 
             return res.ToString();
