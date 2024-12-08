@@ -461,6 +461,7 @@ namespace Kugua
                     var resb = RemoveBackground(images[i].ToByteArray());
                     var img = new MagickImage(resb);
                     img.GifDisposeMethod = GifDisposeMethod.Background;
+                    img.AnimationDelay = images[i].AnimationDelay;
                     // img.Transparent(new MagickColor(0, 0, 0,0));
                     //if(i!=0) img.Alpha(AlphaOption.Copy);
                     images.Add(img);
