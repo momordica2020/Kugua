@@ -248,7 +248,7 @@ namespace Kugua
 
 
 
-
+                
                 if (!ChatMessageList.ContainsKey(chatId))
                     ChatMessageList[chatId] = new List<dynamic> { new { role = "system", content = GetDefaultPrompt() } };
                 ChatMessageContext[chatId] = context;

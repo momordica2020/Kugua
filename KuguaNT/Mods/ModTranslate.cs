@@ -53,7 +53,7 @@ namespace Kugua
                 {
                     langs.Add(ll[MyRandom.Next(ll.Count)].Value);
                     res += $"译{ll[MyRandom.Next(ll.Count)].Key}";
-                    if (res.EndsWith("文") || res.EndsWith("语")) res = res.Remove(res.Length - 1);
+                    if (res.EndsWith("文")) res = res.Remove(res.Length - 1);
                 }
                 langs.Add("zh-CN");
                 res += "译中)\n";
@@ -68,6 +68,71 @@ namespace Kugua
             return "";
         }
 
+
+        bool HasLanguage(string name)
+        {
+            return (
+                 !string.IsNullOrWhiteSpace(name) &&
+                 (  GoogleTranslate.Language.ContainsKey(name)
+                 || GoogleTranslate.Language.ContainsKey(name + "文")
+                 || GoogleTranslate.Language.ContainsKey(name.Replace("语", ""))
+                 || GoogleTranslate.Language.ContainsKey(name.Replace('语','文')))
+            );
+        }
+
+        /// <summary>
+        /// 将输入文本中的译文指令切出来，返回待译语言列表和后续待翻译内容
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private (string text, List<string> langs) CutLanguages(string input)
+        {
+            List<string> langs = new List<string>();
+            string lastlang = "";
+            int i = 0;
+            for (; i < input.Length; i++)
+            {
+                if ("译 ；:，,\r\n".Contains(input[i]))
+                {
+                    //input = input.Substring(i).Trim();
+                    if (lastlang.Length > 0)
+                    {
+                        if (HasLanguage(lastlang))
+                        {
+                            langs.Add(new string(lastlang));
+                            lastlang = "";
+                        }
+                        else
+                        {    
+                            break;
+                        }                     
+                    }
+                }
+                else
+                {
+                    lastlang +=input[i];
+                }
+
+            }
+            int lastmax = 0;
+            if (lastlang.Length > 0)
+            {
+                for (int j = lastlang.Length; j > 0; j--)
+                {
+                    if (HasLanguage(lastlang.Substring(0, j)))
+                    {
+                        langs.Add(lastlang.Substring(0, j));
+                        lastmax = j;
+                        break;
+                    }
+                }
+            }
+            input = input.Substring(i - lastlang.Length + lastmax);
+            //Logger.Log(string.Join(", ", langs));
+            return (input, langs);
+
+        }
+
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
             try
@@ -75,39 +140,10 @@ namespace Kugua
                 // 翻译
                 var input = context.recvMessages.ToTextString();
                 if (!context.isAskme || !input.Contains('译')) return false;
-                List<string> langs = new List<string>();
-                StringBuilder lastlang = new StringBuilder();
-                for (int i = 0; i < input.Length; i++)
+                (string text, List<string> langs) = CutLanguages(input);
+                if (langs.Count > 0 && !string.IsNullOrWhiteSpace(text))
                 {
-                    var c = input[i];
-                    if (new char[] { ' ', ':', ',' }.Contains(c))
-                    {
-                        input = input.Substring(i).Trim();
-                        if (lastlang.Length > 0) langs.Add(lastlang.ToString());
-                        break;
-                    }
-                    else if (c == '译')
-                    {
-                        if (lastlang.Length <= 0) lastlang = new StringBuilder("auto");
-                        langs.Add(lastlang.ToString());
-                        lastlang = new StringBuilder();
-                    }
-                    else
-                    {
-                        lastlang.Append(c);
-                         
-                        //if (lastlang.Length > 6)
-                        //{
-                        //    // cut
-                        //    input = input.Substring(i).Trim();
-                        //    if (lastlang.Length > 0) langs.Add(lastlang.ToString());
-                        //    break;
-                        //}
-                    }
-                }
-                if (langs.Count >= 1 && input.Length>0)
-                {
-                    var resAll = getMultiTrans(input,langs);
+                    var resAll = getMultiTrans(text, langs);
                     if (!string.IsNullOrWhiteSpace(resAll))
                     {
                         context.SendBackPlain(resAll, true);
@@ -131,7 +167,7 @@ namespace Kugua
                 var ggt = GoogleTranslate.Get;
                 string[] res = input.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                for (int i = 1; i < langs.Count(); i++)
+                for (int i = 0; i < langs.Count(); i++)
                 {
                     for (int j = 0; j < res.Length; j++)
                     {
