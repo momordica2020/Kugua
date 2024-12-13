@@ -79,16 +79,16 @@ namespace Kugua
             }
         }
 
-        public async Task<string> SendBackPlain(string message, bool isAt = false)
+        public async Task<string> SendBackPlain(string message, bool isAt = false, bool isFilter=false)
         {
             if (isGroup)
             {
-                if (isAt) return SendBack([new At(userId), new Text(message)]).Result;
-                else return SendBack([new Text(message)]).Result;
+                if (isAt) return SendBack([new At(userId), new Text(message)], isFilter).Result;
+                else return SendBack([new Text(message)], isFilter).Result;
             }
             else
             {
-                return SendBack([new Text(message)]).Result;
+                return SendBack([new Text(message)], isFilter).Result;
             }
         }
 
@@ -111,7 +111,7 @@ namespace Kugua
 
             return 0;
         }
-        public async Task<string> SendBack(Message[] _sendMessages)
+        public async Task<string> SendBack(Message[] _sendMessages, bool isFilter = false)
         {
             if (_sendMessages != null)
             {
@@ -127,7 +127,11 @@ namespace Kugua
                     if (item is Text itemPlain)
                     {
                         // filtered
-                        itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
+                        if (isFilter)
+                        {
+                            itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
+                        }
+                        
                         
 
                         int index = 0;

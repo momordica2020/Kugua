@@ -332,6 +332,13 @@ namespace Kugua
                 Logger.Log(ex);
             }
 
+            // 使用这里发送，加个过滤
+            if(!string.IsNullOrWhiteSpace(res))
+            {
+                context.SendBackPlain(res,true,true);
+                res = null;
+            }
+            
             return res;
         }
 

@@ -738,6 +738,8 @@ namespace Kugua
                 }
                 else if (NewsInfo.platform.ContainsKey(something))
                 {
+                    // 来点新闻系列
+                    int newsLen = 25;
                     List<NewsInfo> news = new List<NewsInfo>();
                     string plat = NewsInfo.platform[something];
                    var jstr = Network.Get($"https://orz.ai/dailynews/?platform={plat}");
@@ -763,7 +765,7 @@ namespace Kugua
                         {
                             var nlist = news.Select(e=>e.title).ToArray();
                             StaticUtil.FisherYates(nlist);
-                            for(int i=0; i < Math.Min(10, news.Count); i++)
+                            for(int i=0; i < Math.Min(newsLen, news.Count); i++)
                             {
                                 if (!string.IsNullOrWhiteSpace(nlist[i])) res += $"- {nlist[i]}\r\n";
                             }

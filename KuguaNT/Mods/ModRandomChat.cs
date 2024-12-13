@@ -394,12 +394,12 @@ namespace Kugua
             {
                 if(handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
                 {
-                    if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true);
+                    if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true, true);
                     else
                     {
                         foreach (var s in chatResult)
                         {
-                            context.SendBackPlain(s);
+                            context.SendBackPlain(s, true);
                         }
                     }
                     
@@ -443,7 +443,15 @@ namespace Kugua
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         var res = GPT.Instance.ZPChat(context);
-                        if(!string.IsNullOrWhiteSpace(res)) context.SendBackPlain(res, true);
+                        if(!string.IsNullOrWhiteSpace(res))
+                        {
+                            context.SendBackPlain(res, true, true);
+                        }
+                        else
+                        {
+                            // next wait for image input
+                            WaitNext(context, new ModCommand(null, descImage, false, true));
+                        }
                         break;
                     
                     case "小万邦":
@@ -495,6 +503,25 @@ namespace Kugua
 
             results = answer.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
             return results.Count() > 0;
+        }
+
+        private string descImage(MessageContext context, string[] param)
+        {
+            string res = "";
+
+            if (context.isImage)
+            {
+                res = GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "详细描述此图，并解释其深层含义和意图");
+            }
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                return res;
+            }
+            else
+            {
+                return null;
+            }
+            
         }
 
         private ModeInfo getUserMode(Player player)

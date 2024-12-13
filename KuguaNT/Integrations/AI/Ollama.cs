@@ -392,7 +392,7 @@ namespace Kugua
                 res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
 
                 if (string.IsNullOrWhiteSpace(res)) return;
-                context.SendBackPlain(res, true);
+                context.SendBackPlain(res, true, true);
 
             }
             catch (Exception ex)
