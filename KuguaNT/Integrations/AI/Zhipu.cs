@@ -30,8 +30,15 @@ namespace Kugua
     /// </summary>
     public partial class GPT
     {
-        const string apikey = "f2517ff9b5aaab14138d95b14810a779.FoEa7zFIfqn2VfAb";
-        ClientV4 clientV4;
+        string[] ApiKey = [
+            ""
+            
+            ];
+        List<ClientV4> clients=new List<ClientV4>();
+        int clientVindex = 0;
+        int clientCindex = 0;
+        int clientIindex = 1;
+
 
         static async Task<T?> InvokeInstanceMethodAsync<T>(string chatid, object instance, string methodName, string parameters = null)
         {
@@ -107,12 +114,18 @@ namespace Kugua
         }
 
 
+        /// <summary>
+        /// 描述图片内容
+        /// </summary>
+        /// <param name="msgs"></param>
+        /// <returns></returns>
         private string ZPHandleV(List<MessageItem> msgs)
         {
             string res = "";
-            var resp = clientV4.chat.Completion(
+            var client = clients[clientVindex];
+            var resp = client.chat.Completion(
                 new TextRequestBase()
-                    .SetModel("glm-4v")//"glm-4")
+                    .SetModel("glm-4v")
                     .SetMessages(msgs.ToArray())
                     .SetTemperature(0.5)
                     .SetTopP(0.7)
@@ -146,9 +159,17 @@ namespace Kugua
             return res;
 
         }
+
+
+        /// <summary>
+        /// 文本对话
+        /// </summary>
+        /// <param name="chatid"></param>
+        /// <param name="msgs"></param>
         private void ZPSend(string chatid, List<MessageItem> msgs)
         {
-            var resp = clientV4.chat.Completion(
+            var client = clients[clientCindex];
+            var resp = client.chat.Completion(
                 new TextRequestBase()
                     .SetModel("glm-4")//"glm-4")
                     .SetMessages(msgs.ToArray())
@@ -196,9 +217,16 @@ namespace Kugua
             }
         }
 
+
+        /// <summary>
+        /// 生图
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="desc"></param>
         public void ZPImage(MessageContext context, string desc)
         {
-            var resp = clientV4.images.Generation(
+            var client = clients[clientIindex];
+            var resp = client.images.Generation(
                 new ImageRequestBase()
                     .SetModel("cogview-3-plus")//"glm-4")
                     .SetPrompt(desc.Trim())

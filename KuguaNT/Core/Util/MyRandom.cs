@@ -75,6 +75,10 @@ namespace Kugua
             return Next(0, maxValue);
         }
 
+        public static int Next(IEnumerable<object> items)
+        {
+            return items == null ? 0 : Next(0, items.Count());
+        }
 
 
         /// <summary>

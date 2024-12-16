@@ -39,7 +39,10 @@ namespace Kugua
             AILoadMemory();
 
             // Zhipu
-            clientV4 = new ClientV4(apikey);
+            foreach(var key in ApiKey)
+            {
+                clients.Add(new ClientV4(key));
+            }
 
         }
 
