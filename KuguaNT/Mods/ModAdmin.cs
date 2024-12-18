@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kugua.Integrations.NTBot;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -30,10 +31,31 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^状态$"),handleShowState));
             ModCommands.Add(new ModCommand(new Regex(@"^(存档|保存)$"), handleSave));
 
+            ModCommands.Add(new ModCommand(new Regex(@"^撤回(.*)"), handleRecall));
+            ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(.*)"), handleRecall2));
+            ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
+            //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
+
             ModCommands.Add(new ModCommand(new Regex(@"^连接本地$"), handleLinkLocal));
 
             return true;
         }
+
+        //public override Task<bool> HandleMessagesDIY(MessageContext context)
+        //{
+        //    if(context.recvMessages != null)
+        //    {
+        //        foreach (var msg in context.recvMessages)
+        //        {
+        //            if (msg is Poke)
+        //            {
+        //                context.client?.SendPoke(context.groupId, context.userId);
+        //            }
+        //        }
+        //    }
+
+        //    return base.HandleMessagesDIY(context);
+        //}
 
 
         private string handleLinkLocal(MessageContext context, string[] param)
@@ -248,10 +270,203 @@ namespace Kugua
                 }
             }
         }
-       
 
 
-        
+        /// <summary>
+        /// 让bot拍拍你
+        /// 拍拍/贴贴
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string sendPoke(MessageContext context, string[] param)
+        {
+            context.client?.SendPoke(context.groupId, context.userId);
+            //context.SendBack([new Poke { type="1", id="-1"}]);
+            return null;
+        }
+
+
+
+
+        /// <summary>
+        /// 让bot撤回最后n条消息
+        /// 撤回/撤回N
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleRecall(MessageContext context, string[] param)
+        {
+            int num = 1;
+            if (param.Length >= 2)
+            {
+                int.TryParse(param[1], out num);
+            }
+            if (num <= 0) num = 1;
+            if (num >= 10) num = 10;
+            var historys = HistoryManager.Instance.findMessage(Config.Instance.BotQQ, context.groupId);
+            for (int i = 0; i < Math.Min(historys.Length, num); i++)
+            {
+                int hindex = historys.Length - i - 1;
+                if (hindex < 0) break;
+                string msgid = historys[hindex].messageId;
+                if (string.IsNullOrEmpty(msgid))
+                {
+                    num++;
+                }
+                else
+                {
+                    Logger.Log($"?{msgid}");
+                    context.client?.Send(new delete_msg(msgid));
+                    historys[hindex].messageId = string.Empty;
+                }
+
+
+                //if (clientMirai != null)
+                //{
+                //    new GroupMessage(context.groupId, [
+                //        new Quote(historys[i].messageId,context.groupId,context.userId,context.groupId,
+                //            [new Plain(historys[i].message)])]
+                //        ).Send(clientMirai);
+                //    new Recall(historys[i].messageId).Send(clientMirai);
+                //}
+            }
+            return null;
+
+        }
+
+
+        /// <summary>
+        /// 帮你撤回消息。但bot必须有管理员权限。
+        /// 帮我撤回/帮我撤回N
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleRecall2(MessageContext context, string[] param)
+        {
+            int num = 1;
+            if (param.Length >= 2)
+            {
+                int.TryParse(param[1], out num);
+            }
+            if (num <= 0) num = 1;
+            if (num >= 10) num = 10;
+            var historys = HistoryManager.Instance.findMessage(context.userId, context.groupId);
+            for (int i = 0; i < Math.Min(historys.Length, num); i++)
+            {
+                int hindex = historys.Length - i - 1;
+                if (hindex < 0) break;
+                string msgid = historys[hindex].messageId;
+                if (string.IsNullOrEmpty(msgid))
+                {
+                    num++;
+                }
+                else
+                {
+                    Logger.Log($"?{msgid}");
+                    context.client?.Send(new delete_msg(msgid));
+                    historys[hindex].messageId = string.Empty;
+                }
+            }
+            return null;
+
+        }
+
+
+
+        ///// <summary>
+        ///// 刷新好友列表并更新配置文件
+        ///// </summary>
+        //public void RefreshFriendList()
+        //{
+        //    try
+        //    {
+        //        //if (clientMirai != null)
+        //        //{
+        //        //    var fp = new FriendList().Send(clientMirai);
+        //        //    Config.Instance.qqfriends.Clear();
+        //        //    if (fp == null)
+        //        //    {
+        //        //        Logger.Log($"不会吧不会吧不会没有好友吧");
+
+        //        //    }
+        //        //    else
+        //        //    {
+        //        //        foreach (var f in fp)
+        //        //        {
+        //        //            var friend = Config.Instance.UserInfo(f.id);
+        //        //            friend.Name = f.nickname;
+        //        //            //friend.Mark = f.remark;
+        //        //            friend.Tags.Add("好友");
+        //        //            //friend.Type = PlayerType.Normal;
+        //        //            Config.Instance.qqfriends.Add(f.id, f);
+        //        //        }
+        //        //    }
+
+
+
+
+        //        //    var gp = new GroupList().Send(clientMirai);
+        //        //    Config.Instance.qqgroups.Clear();
+        //        //    Config.Instance.qqgroupMembers.Clear();
+        //        //    if (gp == null)
+        //        //    {
+        //        //        Logger.Log($"不会吧不会吧不会没有群吧");
+
+        //        //    }
+        //        //    else
+        //        //    {
+        //        //        foreach (var g in gp)
+        //        //        {
+        //        //            var group = Config.Instance.GroupInfo(g.id);
+        //        //            group.Name = g.name;
+        //        //            var groupMembers = g.GetMemberList(clientMirai);
+        //        //            if (groupMembers == null)
+        //        //            {
+        //        //                Logger.Log($"不会吧不会吧不会{g.id}是鬼群吧");
+        //        //                continue;
+        //        //            }
+        //        //            Config.Instance.qqgroups.Add(g.id, g);
+        //        //            Config.Instance.qqgroupMembers.Add(g.id, groupMembers);
+        //        //            foreach (var gf in groupMembers)
+        //        //            {
+        //        //                var member = Config.Instance.UserInfo(gf.id);
+        //        //                member.Mark = gf.memberName;    //群昵称？
+        //        //            }
+        //        //        }
+        //        //    }
+
+        //        //}
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Log(ex);
+        //    }
+
+        //}
+
+        ///// <summary>
+        ///// bot自刷新好友和群列表（暂不可用）
+        ///// </summary>
+        ///// <param name="context"></param>
+        ///// <param name="param"></param>
+        ///// <returns></returns>
+        //private string refreshList(MessageContext context, string[] param)
+        //{
+        //    //if (context.isGroup && Config.Instance.UserHasAdminAuthority(context.userId))
+        //    //{
+        //    //    Logger.Log($"更新好友列表和群列表...");
+        //    //    RefreshFriendList();
+        //    //    Logger.Log($"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...");
+
+        //    //    return $"更新完毕，找到{Config.Instance.qqfriends.Count}个好友，{Config.Instance.qqgroups.Count}个群...";
+        //    //}
+        //    return "";
+        //}
+
+
 
 
 

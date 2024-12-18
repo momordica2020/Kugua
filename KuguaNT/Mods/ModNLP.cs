@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Kugua
 {
+    /// <summary>
+    /// 自然语言相关模型
+    /// </summary>
     internal class ModNLP : Mod
     {
         ViterbiModel model;

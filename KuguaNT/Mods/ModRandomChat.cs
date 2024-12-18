@@ -775,23 +775,23 @@ namespace Kugua
         public static IEnumerable<string> getHistoryReact(MessageContext context, bool sendXML_Json = true)
         {
             List<string> result = new List<string>();
-
-            string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
-            string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
-
-            var files = new List<string>();
-            if (Directory.Exists(historyPath))
-            {
-                files.AddRange(Directory.GetFiles(historyPath, "*.txt"));
-            }
-            if (Directory.Exists(historyPath2))
-            {
-                files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
-
-            }
-            int maxtime = 10;
             try
             {
+                string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
+                string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
+
+                var files = new List<string>();
+                if (Directory.Exists(historyPath))
+                {
+                    files.AddRange(Directory.GetFiles(historyPath, "*.txt"));
+                }
+                if (Directory.Exists(historyPath2))
+                {
+                    files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
+
+                }
+                int maxtime = 10;
+
                 if (files.Count <= 0) return result;
                 while (maxtime-- > 0)
                 {
@@ -815,7 +815,7 @@ namespace Kugua
                                 targetuser = items[1];
                                 string msg = items[2].Trim();
 
-                                
+
 
                                 // 过滤CQ代码
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
@@ -823,7 +823,7 @@ namespace Kugua
                                 // json 直接发
                                 if (sendXML_Json && msg.Contains("{\"app\""))
                                 {
-                                    _ = context.SendBack([new JsonData { data=msg }]);
+                                    _ = context.SendBack([new JsonData { data = msg }]);
                                     continue;
                                 }
 
@@ -847,7 +847,7 @@ namespace Kugua
 
                                 // 过严格过滤器
                                 if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
-  
+
                                 // 转换emoji
                                 msg = StaticUtil.ConvertEmoji(msg);
                                 if (!string.IsNullOrWhiteSpace(msg))
@@ -855,7 +855,7 @@ namespace Kugua
                                     result.Add(msg);
                                     find = true;
                                 }
-                                
+
                             }
                         }
                         catch (Exception e)

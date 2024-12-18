@@ -10,6 +10,9 @@ using System.Numerics;
 
 namespace Kugua
 {
+    /// <summary>
+    /// 老虎机模块
+    /// </summary>
     public class ModSlotMachine : Mod
     {
         public Dictionary<string, byte[]> emojis = new Dictionary<string, byte[]>();

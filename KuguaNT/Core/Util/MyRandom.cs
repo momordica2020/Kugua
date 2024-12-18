@@ -9,7 +9,35 @@ namespace Kugua
 {
     class MyRandom
     {
-        private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create(); // 静态实例
+        private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
+
+
+        public static uint getNextUInt()
+        {
+            byte[] randomNumber = new byte[4];
+            _rng.GetBytes(randomNumber);
+            return BitConverter.ToUInt32(randomNumber, 0);
+        }
+        //public static int getNextInt()
+        //{
+        //    return (int)getNextUInt();
+        //}
+        public static ulong getNextULong()
+        {
+            // 使用 byte 数组存储随机字节
+            byte[] randomNumber = new byte[8];
+            _rng.GetBytes(randomNumber);
+            return BitConverter.ToUInt64(randomNumber, 0);
+        }
+
+        //public static long getNextLong()
+        //{
+        //    return (long)getNextULong();
+        //}
+
+
+
+
         //
         /// <summary>
         ///  生成范围在 min 和 max 之间的（高随机度的）随机整数
@@ -32,18 +60,9 @@ namespace Kugua
                     maxValue = tmp;
                 }
 
-                // 计算生成的随机范围
                 int range = maxValue - minValue;
 
-                // 使用 byte 数组存储随机字节
-                byte[] randomNumber = new byte[4]; // 4 字节可以表示一个 32 位整数
-                _rng.GetBytes(randomNumber); // 填充随机字节
-
-                // 将字节转换为无符号整数
-                uint uintRandomNumber = BitConverter.ToUInt32(randomNumber, 0);
-
-                // 返回范围内的随机整数
-                return (int)(uintRandomNumber % (uint)range) + minValue; // 使用模运算限制范围并偏移
+                return (int)(getNextUInt() % (uint)range) + minValue;
             }
             catch (Exception ex)
             {
@@ -53,6 +72,39 @@ namespace Kugua
 
 
         }
+
+
+
+
+        public static long Next(long minValue, long maxValue)
+        {
+            try
+            {
+                if (minValue < long.MinValue) minValue = long.MinValue;
+                if (maxValue > long.MaxValue) maxValue = long.MaxValue;
+                if (minValue == maxValue) return minValue;
+                if (minValue > maxValue)
+                {
+                    long tmp = minValue;
+                    minValue = maxValue;
+                    maxValue = tmp;
+                }
+
+                ulong range = (ulong)(maxValue - minValue);
+
+
+                return (long)(getNextULong() % range) + minValue;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return minValue;
+
+
+        }
+
+
 
 
         /// <summary>
@@ -65,6 +117,7 @@ namespace Kugua
         }
 
 
+
         /// <summary>
         /// 生成随机[0~maxValue)之间的整数（不包含maxValue）
         /// </summary>
@@ -75,6 +128,15 @@ namespace Kugua
             return Next(0, maxValue);
         }
 
+        /// <summary>
+        /// 生成随机[0~maxValue)之间的整数（不包含maxValue）
+        /// </summary>
+        /// <param name="maxValue"></param>
+        /// <returns></returns>
+        public static long Next(long maxValue)
+        {
+            return Next(0, maxValue);
+        }
 
 
         public static int Next(IEnumerable<object> items)
@@ -89,24 +151,10 @@ namespace Kugua
         /// <returns></returns>
         public static double NextDouble()
         {
-            try
-            {
-                // 使用 byte 数组存储随机字节
-                byte[] randomNumber = new byte[8]; // 8 字节可以表示一个 64 位整数
-                _rng.GetBytes(randomNumber); // 填充随机字节
+            var d = Math.Abs((double)getNextULong() / ulong.MaxValue);
+            //Logger.Log(d.ToString());
+            return d;
 
-                // 将字节转换为无符号 64 位整数
-                ulong ulongRandomNumber = BitConverter.ToUInt64(randomNumber, 0);
-
-                // 将其映射到 [0.0, 1.0)
-                return (ulongRandomNumber / (double)(ulong.MaxValue + 1.0));
-            }
-            catch (Exception ex)
-            {
-                // 异常处理，返回安全默认值
-                Logger.Log(ex);
-            }
-            return 0.0;
         }
 
         /// <summary>
@@ -120,9 +168,7 @@ namespace Kugua
             char[] stringChars = new char[length];
             for (int i = 0; i < length; i++)
             {
-                // 随机选择一个字符
-                int randomIndex = Next(0, chars.Length);
-                stringChars[i] = chars[randomIndex];
+                stringChars[i] = chars[Next(chars.Length)];
             }
             return new string(stringChars);
         }

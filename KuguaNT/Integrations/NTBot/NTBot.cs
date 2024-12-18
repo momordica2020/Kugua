@@ -87,13 +87,17 @@ namespace Kugua.Integrations.NTBot
 
 
 
-
+        /// <summary>
+        /// 发送戳一戳
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="userId"></param>
         public async void SendPoke(string groupId, string userId)
         {
             string uri = Config.Instance.App.Net.QQHTTP + (string.IsNullOrWhiteSpace(groupId)?"/friend_poke":"/group_poke");
             //Logger.Log(uri);
             string res = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new SendPoke { group_id=groupId, user_id=userId }));
-            //Logger.Log(res);
+            Logger.Log(res);
         }
 
         public async Task<string> Send(SenderData sender)

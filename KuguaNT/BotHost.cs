@@ -106,9 +106,15 @@ namespace Kugua
                     new ModTextFunction(),
                     new ModZhanbu(),
                     new ModTranslate(),
+                    new ModPicture(),
+                    new ModInfotool(),
+                    new ModAudio(),
                     new ModTimerTask(),
                     new ModNLP(),
-                    new ModRandomChat(),    // 这个会用闲聊收尾
+
+
+                    // 这个模块会用闲聊收尾
+                    new ModRandomChat(),    
 
                 };
 
@@ -130,27 +136,7 @@ namespace Kugua
                 else
                 {
                     Logger.Log($"历史记录不会有记录");
-                }
-
-                foreach (var mod in Mods)
-                {
-                    try
-                    {
-                        mod.clientQQ = ClientX;
-                        mod.clientLocal = ClientLocal;
-                        if (mod.Init(null))
-                        {
-                            Logger.Log($"模块{mod.GetType().Name}已初始化");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                }
-
-                //State = BotRunningState.ok;
-                
+                }                
 
 
                 //mirai = new MiraiLink();
@@ -159,8 +145,10 @@ namespace Kugua
 
                     //string verifyKey = "123456";
                     string connectUri = $"{Config.Instance.App.Net.QQWS}";
-                    Logger.Log($"正在连接QQ...{connectUri}");
                     ClientX = new(connectUri);
+
+                    Logger.Log($"正在连接QQ...{connectUri}");
+                    
                     //ClientX._OnServeiceConnected += ServiceConnected;
                     //ClientX._OnServeiceError += OnServeiceError;
                     //ClientX._OnServiceDropped += OnServiceDropped;
@@ -184,6 +172,24 @@ namespace Kugua
                 {
                     Logger.Log($"QQ未启动");
                 }
+
+                foreach (var mod in Mods)
+                {
+                    try
+                    {
+                        mod.clientQQ = ClientX;
+                        mod.clientLocal = ClientLocal;
+                        if (mod.Init(null))
+                        {
+                            Logger.Log($"模块{mod.GetType().Name}已初始化");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
+                }
+
                 Logger.Log($"启用GPT相关接口...");
                 GPT.Instance.Init();
                 if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri))

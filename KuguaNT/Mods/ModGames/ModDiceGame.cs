@@ -11,6 +11,10 @@ using System.Numerics;
 
 namespace Kugua
 {
+
+    /// <summary>
+    /// 掷骰子猜大小
+    /// </summary>
     public class ModDiceGame : Mod
     {
         public Dictionary<string, object> matchLock = new Dictionary<string, object>();

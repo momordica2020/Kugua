@@ -109,6 +109,12 @@ namespace Kugua
 
 
     public delegate string HandleCommandEvent(MessageContext context, string[] param);
+
+
+
+    /// <summary>
+    /// 模组的基础类型，根据正则匹配等方式调用模组内方法
+    /// </summary>
     public abstract class Mod
     {
         /// <summary>
