@@ -107,7 +107,7 @@ namespace Kugua
                 rmsg.AppendLine($"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)");
                 rmsg.AppendLine($"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)");
                 rmsg.AppendLine($"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}");
-                rmsg.AppendLine($"数据库有{Config.Instance.playgroups.Count}个群和{Config.Instance.players.Count}个账户");
+                rmsg.AppendLine($"数据库有{Config.Instance.groups.Count}个群和{Config.Instance.users.Count}个账户");
                 rmsg.AppendLine($"在群里被乐{Config.Instance.UseTimeGroup}次");
                 rmsg.AppendLine($"在私聊被乐{Config.Instance.UseTimePrivate}次");
                 rmsg.AppendLine($"报错{Config.Instance.ErrorTime}次");
@@ -201,12 +201,12 @@ namespace Kugua
             }
             if (context.isGroup)
             {
-                group.Tags.Add(message);
+                group.Tags.Remove(message);
                 return $"本群已移除tag：{message}";
             }
             else
             {
-                user.Tags.Add(message);
+                user.Tags.Remove(message);
                 return $"私聊已移除tag：{message}";
             }
         }

@@ -3,6 +3,7 @@ using Kugua.Integrations.NTBot;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using ZhipuApi;
 
 
 
@@ -70,7 +71,7 @@ namespace Kugua
             
 
 
-            TaskTimer = new(1000 * 10);
+            TaskTimer = new(1000 * 10); // 10s
             TaskTimer.AutoReset = true;
             TaskTimer.Start();
             TaskTimer.Elapsed += TaskTimer_Elapsed;
@@ -914,10 +915,37 @@ namespace Kugua
 
         }
 
+
+
+        /// <summary>
+        /// 定时任务
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void TaskTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             // 系统定时任务
-            
+            if(clientQQ != null)
+            {
+                foreach (var g in Config.Instance.groups)
+                {
+                    if ((long.Parse(g.Key) > 100000) && g.Value.Is("测试") && MyRandom.NextDouble() > (1 - 1 / 36))
+                    {
+                        //Logger.Log($"{g.Key} MMMM!");
+                        var context = new MessageContext
+                        {
+                            groupId = g.Key,
+                            client = clientQQ,
+                        };
+                        var r = ModRandomChat.getHistoryReact(context);
+                        foreach (var item in r)
+                        {
+                            context.SendBackPlain(item);
+                        }
+                    }
+                }
+            }
+
 
 
             // 用户的定时任务

@@ -306,7 +306,7 @@ namespace Kugua
             {
                 StringBuilder sb = new StringBuilder();
                 int maxnum = 10;
-                var users = Config.Instance.players.Values.Where(p => p.UseTimes > 0).ToList();
+                var users = Config.Instance.users.Values.Where(p => p.UseTimes > 0).ToList();
                 users.Sort((left, right) =>
                 {
                     return -1 * left.Money.CompareTo(right.Money);
@@ -339,7 +339,7 @@ namespace Kugua
             {
                 StringBuilder sb = new StringBuilder();
                 int maxnum = 10;
-                var users = Config.Instance.players.Values.Where(p=>p.UseTimes > 0).ToList();
+                var users = Config.Instance.users.Values.Where(p=>p.UseTimes > 0).ToList();
                 users.Sort((left, right) =>
                 {
                     return left.Money.CompareTo(right.Money);

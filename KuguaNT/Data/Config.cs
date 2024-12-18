@@ -30,7 +30,7 @@ namespace Kugua
             get
             {
                 long sum = 0;
-                foreach(var p in playgroups.Values)
+                foreach(var p in groups.Values)
                 {
                     sum += p.UseTimes;
                 }
@@ -43,7 +43,7 @@ namespace Kugua
             get
             {
                 long sum = 0;
-                foreach (var p in players.Values)
+                foreach (var p in users.Values)
                 {
                     sum += p.UseTimes;
                 }
@@ -55,8 +55,8 @@ namespace Kugua
         public SystemInfo systemInfo = new SystemInfo();
 
         public AppConfigs App;
-        public Dictionary<string, Player> players;
-        public Dictionary<string, Playgroup> playgroups;
+        public Dictionary<string, Player> users;
+        public Dictionary<string, Playgroup> groups;
 
         // 以下数据动态从Mirai收集
         //public Dictionary<long, QQFriend> qqfriends = new Dictionary<long, QQFriend>();
@@ -106,11 +106,11 @@ namespace Kugua
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
-                players = JsonConvert.DeserializeObject<Dictionary<string, Player>>(jsonString);
-                if (players != null)
+                users = JsonConvert.DeserializeObject<Dictionary<string, Player>>(jsonString);
+                if (users != null)
                 {
-                    Logger.Log($"从{path}读取了{players.Count}名用户资料");
-                    foreach(var p in players)
+                    Logger.Log($"从{path}读取了{users.Count}名用户资料");
+                    foreach(var p in users)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
                     }
@@ -123,11 +123,11 @@ namespace Kugua
                     File.WriteAllText(path, "{}");
                 }
                 jsonString = File.ReadAllText(path);
-                playgroups = JsonConvert.DeserializeObject<Dictionary<string, Playgroup>>(jsonString);
-                if (playgroups != null)
+                groups = JsonConvert.DeserializeObject<Dictionary<string, Playgroup>>(jsonString);
+                if (groups != null)
                 {
-                    Logger.Log($"从{path}读取了{playgroups.Count}个群组资料");
-                    foreach (var p in playgroups)
+                    Logger.Log($"从{path}读取了{groups.Count}个群组资料");
+                    foreach (var p in groups)
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
                     }
@@ -211,12 +211,12 @@ namespace Kugua
                 //File.WriteAllText(configFile, jsonString);
 
                 string path = ResourceFullPath("Player");
-                var jsonString = JsonConvert.SerializeObject(players, Formatting.Indented);
+                var jsonString = JsonConvert.SerializeObject(users, Formatting.Indented);
                 File.WriteAllText(path, jsonString);
 
 
                 path = ResourceFullPath("Playgroup");
-                jsonString = JsonConvert.SerializeObject(playgroups, Formatting.Indented);
+                jsonString = JsonConvert.SerializeObject(groups, Formatting.Indented);
                 File.WriteAllText(path, jsonString);
 
                 
@@ -286,7 +286,7 @@ namespace Kugua
         #region 用户Player相关
         public Player UserInfo(string id)
         {
-            if (players.TryGetValue(id, out Player p))
+            if (users.TryGetValue(id, out Player p))
             {
                 return p;
             }
@@ -300,7 +300,7 @@ namespace Kugua
                     UseTimes = 0,
                     Tags = new HashSet<string>(),
                 };
-                players.Add(id, p2);
+                users.Add(id, p2);
                 return p2;
             }
         }
@@ -353,7 +353,7 @@ namespace Kugua
         #region 群组Group相关
         public Playgroup GroupInfo(string id)
         {
-            if(playgroups.TryGetValue(id, out Playgroup g))
+            if(groups.TryGetValue(id, out Playgroup g))
             {
                 return g;
             }
@@ -367,7 +367,7 @@ namespace Kugua
                     Tags = new HashSet<string>(),
                     UseTimes = 0
                 };
-                playgroups.Add(id, p);
+                groups.Add(id, p);
                 return p;
             }
         }

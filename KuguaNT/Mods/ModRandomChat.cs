@@ -399,7 +399,7 @@ namespace Kugua
                     {
                         foreach (var s in chatResult)
                         {
-                            context.SendBackPlain(s, true);
+                            context.SendBackPlain(s, false, true);
                         }
                     }
                     
@@ -476,7 +476,7 @@ namespace Kugua
                         
                     case "语音":
                         // string gong = getGong();
-                        var r = getHistoryReact(context);
+                        var r = getHistoryReact(context, false);
                         string sendString = "";
                         foreach(var rs in r)
                         {
@@ -772,7 +772,7 @@ namespace Kugua
         /// 用群聊记录来随机回应
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<string> getHistoryReact(MessageContext context)
+        public static IEnumerable<string> getHistoryReact(MessageContext context, bool sendXML_Json = true)
         {
             List<string> result = new List<string>();
 
@@ -821,14 +821,14 @@ namespace Kugua
                                 msg = Regex.Replace(msg, "\\[CQ\\:[^\\]]+\\]", "");
 
                                 // json 直接发
-                                if (msg.Contains("{\"app\""))
+                                if (sendXML_Json && msg.Contains("{\"app\""))
                                 {
                                     _ = context.SendBack([new JsonData { data=msg }]);
                                     continue;
                                 }
 
                                 // xml直接发
-                                if (msg.Contains("xml"))
+                                if (sendXML_Json && msg.Contains("xml"))
                                 {
                                     var mth = new Regex(@"<\?xml.*?\?>|<([^>]+)>(.*?)<\/\1>", RegexOptions.Singleline).Match(msg);
                                     if (mth.Success)

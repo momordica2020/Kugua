@@ -75,11 +75,39 @@ namespace Kugua
             return Next(0, maxValue);
         }
 
+
+
         public static int Next(IEnumerable<object> items)
         {
             return items == null ? 0 : Next(0, items.Count());
         }
 
+
+        /// <summary>
+        /// 0.0~1.0
+        /// </summary>
+        /// <returns></returns>
+        public static double NextDouble()
+        {
+            try
+            {
+                // 使用 byte 数组存储随机字节
+                byte[] randomNumber = new byte[8]; // 8 字节可以表示一个 64 位整数
+                _rng.GetBytes(randomNumber); // 填充随机字节
+
+                // 将字节转换为无符号 64 位整数
+                ulong ulongRandomNumber = BitConverter.ToUInt64(randomNumber, 0);
+
+                // 将其映射到 [0.0, 1.0)
+                return (ulongRandomNumber / (double)(ulong.MaxValue + 1.0));
+            }
+            catch (Exception ex)
+            {
+                // 异常处理，返回安全默认值
+                Logger.Log(ex);
+            }
+            return 0.0;
+        }
 
         /// <summary>
         /// 生成指定长度的随机可打印字符串
