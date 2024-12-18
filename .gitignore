@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# local api
+Zhipu.cs
+
 # User-specific files
 *.rsuser
 *.suo
@@ -399,3 +402,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /output/_BK
+/KuguaNT/Integrations/AI/Zhipu.cs
