@@ -1,6 +1,8 @@
 ﻿
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Timers;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace Kugua
 {
@@ -93,7 +95,7 @@ namespace Kugua
                     items[i].write();
                 }
 
-                MessageHistoryGroup.maxWriteDate = DateTime.Now.AddHours(-1);
+                MessageHistoryGroup.maxWriteDate = DateTime.Now.AddMinutes(-5);
             }
             catch (Exception ex)
             {
@@ -137,8 +139,9 @@ namespace Kugua
         /// <param name="userId"></param>
         /// <param name="groupId"></param>
         /// <param name="keyWord"></param>
+        /// <param name="maxCount"></param>
         /// <returns></returns>
-        public MessageHistory[] findMessage(string userId, string groupId, string keyWord = "")
+        public MessageHistory[] findMessage(string userId, string groupId, string keyWord = "", int maxCount=10)
         {
             List<MessageHistory> results = new List<MessageHistory>();
 
@@ -147,17 +150,21 @@ namespace Kugua
                 //Logger.Log($"=FIND={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
                 if (history.TryGetValue(string.IsNullOrWhiteSpace(groupId)?$"P{userId}":$"G{groupId}", out MessageHistoryGroup g))
                 {
-                    
+
                     //var lines = g.history.ToArray();
                     //return lines;
-
+                    int i = 1;
                     foreach (var line in g.history)
                     {
                         //Logger.Log($"=FIND={line.messageId},{line.userid},{line.message}");
 
                         if (line.userid == userId)
                         {
-                            if (string.IsNullOrWhiteSpace(keyWord) || line.message.Contains(keyWord)) results.Add(line);
+                            if (string.IsNullOrWhiteSpace(keyWord) || line.message.Contains(keyWord))
+                            {
+                                results.Add(line);
+                                if (i++ > maxCount) break;
+                            }
                         }
                     }
                 }
@@ -169,6 +176,66 @@ namespace Kugua
             }
 
             return results.ToArray();
+        }
+
+        public static List<MessageHistory> GetGroupMessageFromFile(string groupId)
+        {
+            var historys = new List<MessageHistory>();
+            var files = new List<string>();
+            string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
+            string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
+
+            if (Directory.Exists(historyPath))
+            {
+                files.AddRange(Directory.GetFiles(historyPath, $"{groupId}.txt"));
+            }
+            if (Directory.Exists(historyPath2))
+            {
+                files.AddRange(Directory.GetFiles(historyPath2, $"{groupId}.txt"));
+            }
+            foreach (var file in files)
+            {
+                foreach(var line in LocalStorage.ReadLines(file))
+                {
+                    var items = line.Trim().Split('\t');
+                    if(items.Length >=3)historys.Add(new MessageHistory { date = DateTime.Parse(items[0].Replace("_"," ")), userid = items[1], message = items[2] });
+                }
+            }
+            
+
+            return historys;
+        }
+
+        public MessageHistory[] Search(string groupId, string input)
+        {
+            string[] chineseDays = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
+            var keywords = input.Split(new[] { '\r', '\n', ' ', '，', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                           .Select(k => k.Trim())
+                           .ToList(); 
+            var keywordPatterns = keywords.Select(k => $@"{Regex.Escape(k)}").ToList();
+            
+            var historys = GetGroupMessageFromFile(groupId);
+            if (historys.Count > 0)
+            {
+                //var lines = g.history.ToArray();
+                //return lines;
+                var matchres = historys.Select(line =>
+                {
+                    int matchCount = keywordPatterns.Count(pattern =>
+                    Regex.IsMatch($"{line.date.ToString("yyyy-MM-dd")} {chineseDays[((int)line.date.DayOfWeek)]} {line.userid} {Config.Instance.UserInfo(line.userid).Name} {line.message}", pattern, RegexOptions.IgnoreCase));
+                    return new { Content = line, MatchCount = matchCount };
+                });
+                return matchres
+                    .Where(m => m.MatchCount > 0)
+                    .OrderByDescending(r => r.MatchCount)
+                    .ThenByDescending(r => r.Content.date)
+                    .Select(r => r.Content)
+                    .ToArray();
+            }
+           
+
+            // empty
+            return new List<MessageHistory>().ToArray();
         }
     }
 }

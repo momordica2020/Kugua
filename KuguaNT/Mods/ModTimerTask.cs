@@ -223,7 +223,7 @@ namespace Kugua
             {
                 foreach (var g in Config.Instance.groups)
                 {
-                    if ((long.Parse(g.Key) > 10000) && g.Value.Is("测试") && MyRandom.NextDouble() > (1 - 1.0 / 360))
+                    if ((long.Parse(g.Key) > 10000) && g.Value.Is("自言自语") && MyRandom.NextDouble() > (1 - 1.0 / 360))
                     {
                         Logger.Log($"{g.Key} MMMM!");
                         var context = new MessageContext

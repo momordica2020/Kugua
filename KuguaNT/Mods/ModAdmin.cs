@@ -33,6 +33,7 @@ namespace Kugua
 
             ModCommands.Add(new ModCommand(new Regex(@"^撤回(.*)"), handleRecall));
             ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(.*)"), handleRecall2));
+            ModCommands.Add(new ModCommand(new Regex(@"^群内搜索(.+)"), handleSearch));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
@@ -40,6 +41,8 @@ namespace Kugua
 
             return true;
         }
+
+
 
         //public override Task<bool> HandleMessagesDIY(MessageContext context)
         //{
@@ -317,7 +320,7 @@ namespace Kugua
                 }
                 else
                 {
-                    Logger.Log($"?{msgid}");
+                    //Logger.Log($"?{msgid}");
                     context.client?.Send(new delete_msg(msgid));
                     historys[hindex].messageId = string.Empty;
                 }
@@ -365,7 +368,7 @@ namespace Kugua
                 }
                 else
                 {
-                    Logger.Log($"?{msgid}");
+                    //Logger.Log($"?{msgid}");
                     context.client?.Send(new delete_msg(msgid));
                     historys[hindex].messageId = string.Empty;
                 }
@@ -375,6 +378,31 @@ namespace Kugua
         }
 
 
+        /// <summary>
+        /// 在群内搜索关键词
+        /// 群内搜索 早安
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleSearch(MessageContext context, string[] param)
+        {
+            if (!context.isGroup) return "";
+            string keyword = param[1].Trim();
+            int showMax = 10;
+            var historys = HistoryManager.Instance.Search(context.groupId, keyword);
+            StringBuilder sb = new StringBuilder();
+            if (historys.Length <= 0)
+            {
+                return "没搜到。";
+            }
+            sb.AppendLine($"本群搜到{historys.Length}条结果：");
+            for (int i = 0; i < Math.Min(historys.Length, showMax); i++)
+            {
+                sb.AppendLine($"{historys[i].message}——{Config.Instance.UserInfo(historys[i].userid).Name},{historys[i].date.ToString("yyyy.MM.dd HH:mm")}");
+            }
+            return sb.ToString();
+        }
 
         ///// <summary>
         ///// 刷新好友列表并更新配置文件

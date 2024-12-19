@@ -37,8 +37,8 @@ namespace Kugua
         List<string> gongshou = new List<string>();
 
         string jokeName = "jokes.txt";
-        
-        
+
+
 
         List<List<string>> junks = new List<List<string>>();
 
@@ -53,13 +53,13 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^反转(.+)", RegexOptions.Singleline), handleReverse));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序(.+)", RegexOptions.Singleline), handleShuffle));
             ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline), handleGongshou));
-            ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline),handleRandomString));
+            ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline), handleRandomString));
             ModCommands.Add(new ModCommand(new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline), handleCutString));
             ModCommands.Add(new ModCommand(new Regex(@"^讽刺(.+)", RegexOptions.Singleline), handleJoke));
             ModCommands.Add(new ModCommand(new Regex(@"^历史上的(\S+)", RegexOptions.Singleline), handleHistoryToday));
             ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
             ModCommands.Add(new ModCommand(new Regex(@"^火星文(.+)", RegexOptions.Singleline), handleHX));
-
+            ModCommands.Add(new ModCommand(new Regex(@"^研究一下(.+)", RegexOptions.Singleline), handlePaper));
 
 
 
@@ -200,6 +200,16 @@ namespace Kugua
             return true;
         }
 
+        private string handlePaper(MessageContext context, string[] param)
+        {
+            string keyword = param[1];
+
+            string res = "";
+
+
+            return res;
+        }
+
         /// <summary>
         /// 文本转煋文
         /// 火星文 错的不是我，是世界！
@@ -218,7 +228,7 @@ namespace Kugua
                 Logger.Log(e);
             }
             return "";
-            
+
         }
 
         public void Exit()
@@ -265,7 +275,8 @@ namespace Kugua
                         checkDate = new DateTime(DateTime.Today.Year, m, d);
                     }
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
@@ -288,17 +299,17 @@ namespace Kugua
             string res = $"历史上的{checkDate.ToString("MM月dd日")}：\r\n";
             try
             {
-                
+
                 using (FileStream fs = new FileStream(Config.Instance.ResourceFullPath("history_in_today.txt"), FileMode.Open))
                 {
-                    using (StreamReader streamReader = new StreamReader(fs,Encoding.UTF8))
+                    using (StreamReader streamReader = new StreamReader(fs, Encoding.UTF8))
                     {
 
                         try
                         {
                             string line = "";
                             int num = 0;
-                            while((line = streamReader.ReadLine()) != null)   
+                            while ((line = streamReader.ReadLine()) != null)
                             {
                                 var lineitem = line.Split('\t', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                                 //Logger.Log(lineitem.Length + "\t" + line);
@@ -309,13 +320,13 @@ namespace Kugua
                                     var d = int.Parse(lineitem[2]);
                                     var type = lineitem[3];
                                     var data = lineitem[4];
-                                    
-                                    if(m== checkDate.Month && d == checkDate.Day && type=="1")
+
+                                    if (m == checkDate.Month && d == checkDate.Day && type == "1")
                                     {
                                         res += $"{y}年：{data}\r\n";
                                         if (num++ > 10) break;
                                     }
-                                    
+
                                 }
                             }
                         }
@@ -323,22 +334,22 @@ namespace Kugua
                         {
                             Logger.Log(ex);
                         }
-                           
+
                     }
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 Logger.Log(ex);
             }
 
             // 使用这里发送，加个过滤
-            if(!string.IsNullOrWhiteSpace(res))
+            if (!string.IsNullOrWhiteSpace(res))
             {
-                context.SendBackPlain(res,true,true);
+                context.SendBackPlain(res, true, true);
                 res = null;
             }
-            
+
             return res;
         }
 
@@ -400,7 +411,7 @@ namespace Kugua
             // K切多次
             int runTime = 0;
             int cutNum = 0;
-            int.TryParse(sNum, out cutNum) ;
+            int.TryParse(sNum, out cutNum);
             if (cutNum < 1) return "";
             int.TryParse(sTime, out runTime);
             if (runTime < 1) runTime = 1;
@@ -408,7 +419,7 @@ namespace Kugua
             runTime = Math.Min(runTime, 5);
             for (int i = 0; i < runTime; i++)
             {
-                target =  StaticUtil.ShuffleString(target, cutNum) + "\r\n";
+                target = StaticUtil.ShuffleString(target, cutNum) + "\r\n";
             }
             return target;
         }
@@ -427,8 +438,8 @@ namespace Kugua
             int.TryParse(param[1], out columns);    // 如果没有列数，默认为1
             int.TryParse(param[2], out rows);
             if (columns < 1) columns = 1;
-            if(rows < 1) rows = 1;
-            
+            if (rows < 1) rows = 1;
+
             if (rows > 100 || columns > 100 || rows * columns > 2500)
             {
                 return $"输入太多，溢出来了！";
@@ -526,7 +537,7 @@ namespace Kugua
             {
                 Logger.Log(ex);
             }
-            
+
             return WordSaladres;
         }
 
@@ -588,7 +599,7 @@ namespace Kugua
 
 
 
-        
+
 
 
         /// <summary>
@@ -607,10 +618,10 @@ namespace Kugua
             {
                 for (int j = 0; j < columns; j++)
                 {
-                    char rc = randomChar[MyRandom.Next(randomChar.Length)]; 
+                    char rc = randomChar[MyRandom.Next(randomChar.Length)];
                     sb.Append(rc);
                 }
-                sb.AppendLine(); 
+                sb.AppendLine();
             }
 
             return sb.ToString();

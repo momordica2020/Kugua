@@ -26,7 +26,7 @@ namespace Kugua
 
         Dictionary<string, string> wordReplace = new Dictionary<string, string>();
         Dictionary<string, ModeInfo> modedict = new Dictionary<string, ModeInfo>();
-       
+
 
         MD5 md5 = MD5.Create();
 
@@ -48,7 +48,7 @@ namespace Kugua
                 ModCommands.Add(new ModCommand(new Regex(@"^模式列表"), printModeList));
                 ModCommands.Add(new ModCommand(new Regex(@"^(清空|清除|删除)记忆"), clearMemory));
                 ModCommands.Add(new ModCommand(new Regex(@"^prompt=(.*)", RegexOptions.Singleline), setPrompt));
-                
+
 
 
 
@@ -199,10 +199,10 @@ namespace Kugua
                     }
                 }
                 modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
-               // modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
-                modedict["喷人"] = new ModeInfo { name = "喷人", config = {  } };
+                // modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
+                modedict["喷人"] = new ModeInfo { name = "喷人", config = { } };
                 modedict["语音"] = new ModeInfo { name = "语音", config = { } };
-                modedict["本草"] = new ModeInfo { name = "本草", config = {  } };
+                modedict["本草"] = new ModeInfo { name = "本草", config = { } };
                 //modedict["西医"] = new ModeInfo { name = "西医", config = { } };
 
 
@@ -292,7 +292,7 @@ namespace Kugua
                 if (string.IsNullOrWhiteSpace(modeName))
                 {
                     // 输入不合法
-                    return printModeList(context,param);
+                    return printModeList(context, param);
                 }
                 //ModeInfo mode = null;
                 if (modedict.TryGetValue(modeName, out ModeInfo mode))
@@ -302,14 +302,14 @@ namespace Kugua
                     {
                         // 隐藏模式，且没有相应权限就不启动
                         if (
-                            (context.isGroup && !Config.Instance.GroupHasAdminAuthority(context.groupId))
+                            context.isGroup && !Config.Instance.GroupHasAdminAuthority(context.groupId)
 
                             //||(!isGroup && !UserHasAdminAuthority(groupId))
                             )
                         {
                             return printModeList(context, param);
                         }
-                        if ((!context.isGroup))
+                        if (!context.isGroup)
                         {
                             // allowed
                         }
@@ -335,7 +335,7 @@ namespace Kugua
                 else
                 {
                     // 没有这个模式
-                    return $"~我还没有{modeName}模式~\n{printModeList(context,param)}";
+                    return $"~我还没有{modeName}模式~\n{printModeList(context, param)}";
                 }
             }
             catch (Exception ex)
@@ -373,7 +373,7 @@ namespace Kugua
 
 
             // 以下部分无需输入任何内容即可触发！！！！！！！！！！！！！1111111
-            
+
             ModeInfo modeTrigger = null;
             if (context.isGroup)
             {
@@ -392,7 +392,7 @@ namespace Kugua
             }
             else
             {
-                if(handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
+                if (handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
                 {
                     if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true, true);
                     else
@@ -402,7 +402,7 @@ namespace Kugua
                             context.SendBackPlain(s, false, true);
                         }
                     }
-                    
+
                     return true;
                 }
             }
@@ -443,7 +443,7 @@ namespace Kugua
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         var res = GPT.Instance.ZPChat(context);
-                        if(!string.IsNullOrWhiteSpace(res))
+                        if (!string.IsNullOrWhiteSpace(res))
                         {
                             context.SendBackPlain(res, true, true);
                         }
@@ -453,7 +453,7 @@ namespace Kugua
                             WaitNext(context, new ModCommand(null, descImage, false, true));
                         }
                         break;
-                    
+
                     case "小万邦":
                         answer.Add(getGong());
                         break;
@@ -472,21 +472,21 @@ namespace Kugua
                         break;
 
 
-                    
-                        
+
+
                     case "语音":
                         // string gong = getGong();
                         var r = getHistoryReact(context, false);
                         string sendString = "";
-                        foreach(var rs in r)
+                        foreach (var rs in r)
                         {
                             sendString += rs + "。";
-                            if(sendString.Length>50)
+                            if (sendString.Length > 50)
                             {
                                 GPT.Instance.AITalk(context, sendString);
                                 sendString = "";
                             }
-                            
+
                         }
                         if (sendString.Length > 0) GPT.Instance.AITalk(context, sendString);
                         break;
@@ -495,7 +495,8 @@ namespace Kugua
                         break;
                 }
 
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.Log(ex);
             }
@@ -521,7 +522,7 @@ namespace Kugua
             {
                 return null;
             }
-            
+
         }
 
         private ModeInfo getUserMode(Player player)
@@ -532,7 +533,7 @@ namespace Kugua
                 if (tag.EndsWith("模式"))
                 {
                     string findName = tag.Substring(0, tag.Length - 2);
-                    if(modedict.TryGetValue(findName, out ModeInfo mode))
+                    if (modedict.TryGetValue(findName, out ModeInfo mode))
                     {
                         return mode;
                     }
@@ -649,8 +650,8 @@ namespace Kugua
             foreach (var mode in modedict)
             {
                 if (!mode.Value.config.Contains("隐藏"))
-                { 
-                   sb.Append($"{mode.Key} | ");
+                {
+                    sb.Append($"{mode.Key} | ");
                 }
 
             }
@@ -674,7 +675,7 @@ namespace Kugua
             num = MyRandom.Next(1, 4);
             for (int i = 0; i < num; i++) treatment += xy_treatment[MyRandom.Next(xy_treatment.Count)] + "，";
 
-            return  $"查了下{treatment}怀疑你得了{disease}建议吃{drug}祝你早日康复！";
+            return $"查了下{treatment}怀疑你得了{disease}建议吃{drug}祝你早日康复！";
         }
 
         /// <summary>
