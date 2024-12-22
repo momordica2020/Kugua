@@ -1,4 +1,5 @@
 ﻿
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
@@ -6,25 +7,50 @@ using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace Kugua
 {
-
-
-
     /// <summary>
     /// 管理历史记录数据
     /// </summary>
     public class HistoryManager
     {
+        /// <summary>
+        /// 一次最多写入数量
+        /// </summary>
+        public static int maxWriteNum = 1000;
+
+        /// <summary>
+        /// 存档间隔
+        /// </summary>
+        public static TimeSpan SaveSpan = new TimeSpan(0, 5, 0);    // 5min
+
+
+        /// <summary>
+        /// 保留在内存中的撤回时间，早于该日期则清除内存
+        /// </summary>
+        public static DateTime minCallbackDate;
+
+        /// <summary>
+        /// 触发清理容量（触发内存清理的上限）
+        /// </summary>
+        public static int maxCapacity = 200;
+
+        /// <summary>
+        /// 内存保留容量（触发内存清理的下限）
+        /// </summary>
+        public static int trimCapacity = 10;
+
+
         private static readonly Lazy<HistoryManager> instance = new Lazy<HistoryManager>(() => new HistoryManager());
 
         public string path;
-
-        public System.Timers.Timer writeHistoryTask;
-        //public object savemsgMutex = new object();
-
-        Dictionary<string, MessageHistoryGroup> history = new Dictionary<string, MessageHistoryGroup>();
-
         public static string pathGroup = "group";
         public static string pathPrivate = "private";
+
+       
+        public System.Timers.Timer SaverTask;
+
+        Dictionary<string, HistoryStorage> Storages = new Dictionary<string, HistoryStorage>();
+
+
 
         private HistoryManager()
         {
@@ -56,46 +82,32 @@ namespace Kugua
 
 
             // 每30秒一归档
-            writeHistoryTask = new System.Timers.Timer(1000 * 30);
-            writeHistoryTask.Start();
-            writeHistoryTask.Elapsed += workDealHistory;
+            SaverTask = new System.Timers.Timer(1000 * 30);
+            SaverTask.Start();
+            SaverTask.Elapsed += workSaverTask;
         }
 
         public void Dispose()
         {
-            if (writeHistoryTask != null)
+            if (SaverTask != null)
             {
-                writeHistoryTask.Stop();     // 停止定时器
-                writeHistoryTask.Dispose();
+                SaverTask.Stop();     // 停止定时器
+                SaverTask.Dispose();
 
 
                 // 立即把没归档的都归档
-                MessageHistoryGroup.maxWriteDate = DateTime.Now.AddHours(1);
-                workDealHistory(null, null);
+                
+                workSaverTask(null, null);
             }
 
         }
 
-        private void workDealHistory(object sender, ElapsedEventArgs e)
+        private void workSaverTask(object sender, ElapsedEventArgs e)
         {
 
             try
             {
-                // 帮助配置文件一起定期存掉
-                Config.Instance.Save();
-
-
-
-
-                //Logger.Log($"把日期前的聊天记录归档中：{MessageHistoryGroup.maxWriteDate.ToString("F")}", LogType.Debug);
-                var items = history.Values.AsParallel().ToArray();
-                //var items = history.Values.ToArray();
-                for (int i = 0; i < items.Length; i++)
-                {
-                    items[i].write();
-                }
-
-                MessageHistoryGroup.maxWriteDate = DateTime.Now.AddMinutes(-5);
+                SaveAllToLocal();
             }
             catch (Exception ex)
             {
@@ -104,6 +116,16 @@ namespace Kugua
 
         }
 
+        public void SaveAllToLocal(bool force = false)
+        {
+            lock (Storages)
+            {
+                foreach (var storage in Storages)
+                {
+                    storage.Value.Save(force);
+                }
+            }
+        }
 
 
         /// <summary>
@@ -113,7 +135,7 @@ namespace Kugua
         /// <param name="group"></param>
         /// <param name="user"></param>
         /// <param name="msg"></param>
-        public void saveMsg(string sourceId, string group, string user, string msg)
+        public void Add(string sourceId, string group, string user, string msg)
         {
             try
             {
@@ -121,10 +143,14 @@ namespace Kugua
                 string uid = isGroup ? group : user;
                 string key = isGroup ? $"G{group}" : $"P{user}";
                 //Logger.Log($"=SAVE={key},{sourceId},{user},{msg}");
-                if (!history.ContainsKey(key)) history[key] = new MessageHistoryGroup(path, uid, isGroup);
-                history[key].addMessage(sourceId, user, msg);
-
-
+                if (!Storages.ContainsKey(key))
+                {
+                    lock (Storages)
+                    {
+                        Storages.Add(key, new HistoryStorage(path, uid, isGroup));
+                    }
+                }
+                Storages[key].Add(new HistoryItem(sourceId, user, msg));
             }
             catch (Exception ex)
             {
@@ -141,26 +167,27 @@ namespace Kugua
         /// <param name="keyWord"></param>
         /// <param name="maxCount"></param>
         /// <returns></returns>
-        public MessageHistory[] findMessage(string userId, string groupId, string keyWord = "", int maxCount=10)
+        public HistoryItem[] SearchByUser(string userId, string groupId, string keyWord = "", int maxCount=10)
         {
-            List<MessageHistory> results = new List<MessageHistory>();
+            List<HistoryItem> results = new List<HistoryItem>();
 
             try
             {
                 //Logger.Log($"=FIND={userId},{groupId},{(history.ContainsKey($"G{groupId}"))}");
-                if (history.TryGetValue(string.IsNullOrWhiteSpace(groupId)?$"P{userId}":$"G{groupId}", out MessageHistoryGroup g))
+                string key = string.IsNullOrWhiteSpace(groupId) ? $"P{userId}" : $"G{groupId}";
+                if (Storages.TryGetValue(key, out HistoryStorage g))
                 {
 
                     //var lines = g.history.ToArray();
                     //return lines;
                     int i = 1;
-                    foreach (var line in g.history)
+                    foreach (var line in g.History)
                     {
                         //Logger.Log($"=FIND={line.messageId},{line.userid},{line.message}");
 
-                        if (line.userid == userId)
+                        if (line.UserId == userId)
                         {
-                            if (string.IsNullOrWhiteSpace(keyWord) || line.message.Contains(keyWord))
+                            if (string.IsNullOrWhiteSpace(keyWord) || line.Content.Contains(keyWord))
                             {
                                 results.Add(line);
                                 if (i++ > maxCount) break;
@@ -178,35 +205,79 @@ namespace Kugua
             return results.ToArray();
         }
 
-        public static List<MessageHistory> GetGroupMessageFromFile(string groupId)
+        /// <summary>
+        /// 找出特定群记录文件路径，如果不输入群号，返回全部记录文件路径
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        public static string[] GetGroupHistoryFiles(string groupId = "")
         {
-            var historys = new List<MessageHistory>();
             var files = new List<string>();
             string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
             string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
 
             if (Directory.Exists(historyPath))
             {
-                files.AddRange(Directory.GetFiles(historyPath, $"{groupId}.txt"));
+                files.AddRange(Directory.GetFiles(historyPath, $"{(string.IsNullOrWhiteSpace(groupId) ? "*" : groupId)}.txt"));
             }
             if (Directory.Exists(historyPath2))
             {
-                files.AddRange(Directory.GetFiles(historyPath2, $"{groupId}.txt"));
+                files.AddRange(Directory.GetFiles(historyPath2, $"{(string.IsNullOrWhiteSpace(groupId) ? "*" : groupId)}.txt"));
             }
-            foreach (var file in files)
+
+            return files.ToArray();
+        }
+
+        /// <summary>
+        /// 读取本地保存过的群聊历史记录
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        public static List<HistoryItem> GetGroupHistoryFromFile(string groupId)
+        {
+            var historys = new List<HistoryItem>();
+            
+            foreach (var file in GetGroupHistoryFiles(groupId))
             {
-                foreach(var line in LocalStorage.ReadLines(file))
+                try
                 {
-                    var items = line.Trim().Split('\t');
-                    if(items.Length >=3)historys.Add(new MessageHistory { date = DateTime.Parse(items[0].Replace("_"," ")), userid = items[1], message = items[2] });
+                    foreach (var line in LocalStorage.ReadLines(file))
+                    {
+                        var items = line.Split('\t', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        if (items.Length >= 3 && Regex.IsMatch(items[0], @"^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}$"))
+                        {
+                            historys.Add(new HistoryItem
+                            {
+                                RecvDate = DateTime.Parse(items[0].Replace("_", " ")),
+                                UserId = items[1],
+                                Content = string.Join("\t", items.Skip(2))
+                            });
+                        }
+                        else if (historys.Count > 0)
+                        {
+                            historys.Last().Content += "\r\n" + line;
+                        }
+                    }
+                }catch (Exception e)
+                {
+                    Logger.Log(e);
                 }
+
             }
             
 
             return historys;
         }
 
-        public MessageHistory[] Search(string groupId, string input)
+
+
+        /// <summary>
+        /// 打开历史记录，不会是真的吧？
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public HistoryItem[] Search(string groupId, string input)
         {
             string[] chineseDays = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
             var keywords = input.Split(new[] { '\r', '\n', ' ', '，', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -214,7 +285,7 @@ namespace Kugua
                            .ToList(); 
             var keywordPatterns = keywords.Select(k => $@"{Regex.Escape(k)}").ToList();
             
-            var historys = GetGroupMessageFromFile(groupId);
+            var historys = GetGroupHistoryFromFile(groupId);
             if (historys.Count > 0)
             {
                 //var lines = g.history.ToArray();
@@ -222,20 +293,20 @@ namespace Kugua
                 var matchres = historys.Select(line =>
                 {
                     int matchCount = keywordPatterns.Count(pattern =>
-                    Regex.IsMatch($"{line.date.ToString("yyyy-MM-dd")} {chineseDays[((int)line.date.DayOfWeek)]} {line.userid} {Config.Instance.UserInfo(line.userid).Name} {line.message}", pattern, RegexOptions.IgnoreCase));
+                    Regex.IsMatch($"{line.RecvDate.ToString("yyyy-MM-dd")} {chineseDays[((int)line.RecvDate.DayOfWeek)]} {line.UserId} {Config.Instance.UserInfo(line.UserId).Name} {line.Content}", pattern, RegexOptions.IgnoreCase));
                     return new { Content = line, MatchCount = matchCount };
                 });
                 return matchres
-                    .Where(m => m.MatchCount > 0)
+                    .Where(m => m.MatchCount > 0 && m.Content.UserId!=Config.Instance.BotQQ && !m.Content.Content.Contains("群内搜索"))
                     .OrderByDescending(r => r.MatchCount)
-                    .ThenByDescending(r => r.Content.date)
+                    .ThenByDescending(r => r.Content.RecvDate)
                     .Select(r => r.Content)
                     .ToArray();
             }
            
 
             // empty
-            return new List<MessageHistory>().ToArray();
+            return new List<HistoryItem>().ToArray();
         }
     }
 }

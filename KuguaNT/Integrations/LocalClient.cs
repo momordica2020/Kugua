@@ -102,7 +102,7 @@ namespace Kugua
                     client = this,
                     recvMessages = msgs,
                 };
-                HistoryManager.Instance.saveMsg(msg.userId, context.groupId, context.userId, msg.messages.ToTextString());
+                HistoryManager.Instance.Add(msg.userId, context.groupId, context.userId, msg.messages.ToTextString());
 
                 BotHost.Instance.HandleGroupMessageReceiveMultiIO(context);
                 //JObject jo = JObject.Parse(e.Message);

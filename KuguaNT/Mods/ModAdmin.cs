@@ -25,8 +25,8 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^帮助$"), getWelcomeString));
             ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned));
             ModCommands.Add(new ModCommand(new Regex(@"^解封(\d+)"), handleUnBanned));
-            ModCommands.Add(new ModCommand(new Regex(@"^设置\+(\S+)"), handleAddTag));
-            ModCommands.Add(new ModCommand(new Regex(@"^设置\-(\S+)"), handleRemoveTag));
+            ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\+(\S+)"), handleAddTag));
+            ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\-(\S+)"), handleRemoveTag));
             ModCommands.Add(new ModCommand(new Regex(@"^设置清空(\s*)"), handleClearTag));
             ModCommands.Add(new ModCommand(new Regex(@"^状态$"),handleShowState));
             ModCommands.Add(new ModCommand(new Regex(@"^(存档|保存)$"), handleSave));
@@ -106,6 +106,7 @@ namespace Kugua
                 GPT.Instance.AISaveMemory();
                 ModRoulette.Instance.Save();
                 ModRaceHorse.Instance.Save();
+                HistoryManager.Instance.SaveAllToLocal(true);
 
                 return  $"配置文件以存档 {DateTime.Now.ToString("F")}";
             }
@@ -191,19 +192,21 @@ namespace Kugua
 
         private string handleAddTag(MessageContext context, string[] param)
         {
-            string message = param[1];
+            string groupid = param[1];
+            string message = param[2];
+            if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
             if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
 
             var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(context.groupId);
+            var group = Config.Instance.GroupInfo(groupid);
             if (string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
             }
-            if (!string.IsNullOrWhiteSpace(context.groupId))
+            if (context.isGroup)
             {
                 group.Tags.Add(message);
-                return $"本群已添加tag：{message}";
+                return $"群{groupid}已添加tag：{message}";
             }
             else
             {
@@ -215,11 +218,13 @@ namespace Kugua
 
         private string handleRemoveTag(MessageContext context, string[] param)
         {
-            string message = param[1];
+            string groupid = param[1];
+            string message = param[2];
+            if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
             if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
 
             var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(context.groupId);
+            var group = Config.Instance.GroupInfo(groupid);
             if (string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
@@ -227,7 +232,7 @@ namespace Kugua
             if (context.isGroup)
             {
                 group.Tags.Remove(message);
-                return $"本群已移除tag：{message}";
+                return $"群{groupid}已移除tag：{message}";
             }
             else
             {
@@ -308,12 +313,12 @@ namespace Kugua
             }
             if (num <= 0) num = 1;
             if (num >= 10) num = 10;
-            var historys = HistoryManager.Instance.findMessage(Config.Instance.BotQQ, context.groupId);
+            var historys = HistoryManager.Instance.SearchByUser(Config.Instance.BotQQ, context.groupId);
             for (int i = 0; i < Math.Min(historys.Length, num); i++)
             {
                 int hindex = historys.Length - i - 1;
                 if (hindex < 0) break;
-                string msgid = historys[hindex].messageId;
+                string msgid = historys[hindex].MessageId;
                 if (string.IsNullOrEmpty(msgid))
                 {
                     num++;
@@ -322,7 +327,7 @@ namespace Kugua
                 {
                     //Logger.Log($"?{msgid}");
                     context.client?.Send(new delete_msg(msgid));
-                    historys[hindex].messageId = string.Empty;
+                    historys[hindex].MessageId = string.Empty;
                 }
 
 
@@ -356,12 +361,12 @@ namespace Kugua
             }
             if (num <= 0) num = 1;
             if (num >= 10) num = 10;
-            var historys = HistoryManager.Instance.findMessage(context.userId, context.groupId);
+            var historys = HistoryManager.Instance.SearchByUser(context.userId, context.groupId);
             for (int i = 0; i < Math.Min(historys.Length, num); i++)
             {
                 int hindex = historys.Length - i - 1;
                 if (hindex < 0) break;
-                string msgid = historys[hindex].messageId;
+                string msgid = historys[hindex].MessageId;
                 if (string.IsNullOrEmpty(msgid))
                 {
                     num++;
@@ -370,7 +375,7 @@ namespace Kugua
                 {
                     //Logger.Log($"?{msgid}");
                     context.client?.Send(new delete_msg(msgid));
-                    historys[hindex].messageId = string.Empty;
+                    historys[hindex].MessageId = string.Empty;
                 }
             }
             return null;
@@ -399,7 +404,8 @@ namespace Kugua
             sb.AppendLine($"本群搜到{historys.Length}条结果：");
             for (int i = 0; i < Math.Min(historys.Length, showMax); i++)
             {
-                sb.AppendLine($"{historys[i].message}——{Config.Instance.UserInfo(historys[i].userid).Name},{historys[i].date.ToString("yyyy.MM.dd HH:mm")}");
+                sb.AppendLine($"{historys[i].Content}——{Config.Instance.UserInfo(historys[i].UserId).Name},{historys[i].RecvDate.ToString("yyyy.MM.dd HH:mm")}");
+                if (sb.Length > 900) break;
             }
             return sb.ToString();
         }

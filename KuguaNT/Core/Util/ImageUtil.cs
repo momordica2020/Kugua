@@ -1,4 +1,5 @@
 ﻿using ImageMagick;
+using ImageMagick.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ZhipuApi.Modules;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua
 {
@@ -490,6 +492,136 @@ namespace Kugua
                 Logger.Log(ex);
             }
             return "";
+        }
+
+        public static string[] Fonts = [
+            "华文中宋"  ,
+            "华文仿宋",
+            "华文宋体",
+            "华文彩云",
+            "华文新魏",
+            "华文楷体",
+            "华文琥珀",
+            "华文细黑",
+            "华文行楷",
+            "华文隶书",
+            "幼圆",
+            "方正姚体",
+            "方正舒体",
+            "隶书",
+            ];
+
+        public static MagickColor[] FontColors = [
+            MagickColor.FromRgb(0,0,0),// black
+            MagickColor.FromRgb(255,0,0),// red
+            MagickColor.FromRgb(255,255,0),// red
+            MagickColor.FromRgb(0,255,0),// green
+            MagickColor.FromRgb(0,255,255),// green-blue
+            MagickColor.FromRgb(0,0,255),// blue
+            MagickColor.FromRgb(255,0,255),// purple
+            ];
+
+        /// <summary>
+        /// 生成 CAPTCHA 图片
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string GenerateCaptchaImage(string text)
+        {
+            uint fontsize = 33;
+            int slide = (int)(fontsize * 0.3);
+            int lineMax = 10;
+            int lineNum = text.Length / lineMax;
+            
+            uint width = (uint)(fontsize * Math.Min(lineMax,text.Length) + slide * 2);
+            uint height = (uint)(fontsize * (lineNum + 1) + slide * 2);
+
+            var images = new MagickImageCollection();
+            int frameCount = 10;
+            uint frameDelay = 10;
+            for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
+            {
+                var frame = new MagickImage(
+                    MagickColor.FromRgba(255,255,255,0),
+                    width,
+                    height
+                );
+                frame.AnimationDelay = frameDelay;
+                for (int i = 0; i < text.Length; i++)
+                {
+                    
+                    frame.Settings.Font = Fonts[MyRandom.Next(Fonts)];
+                    frame.Settings.TextGravity = Gravity.West;
+                    frame.Settings.FillColor = FontColors[MyRandom.Next(FontColors)];
+                    frame.Settings.FontPointsize = fontsize + MyRandom.Next(-5, 5);
+                    frame.Annotate(
+                        text[i].ToString(), 
+                        new MagickGeometry(
+                            (int)((i% lineMax) * fontsize + MyRandom.Next(5,15) + slide),
+                            (int)((i / lineMax) * fontsize + MyRandom.Next(-5,5) + slide),
+                            100, 
+                            100), 
+                        Gravity.Northwest, 
+                        MyRandom.NextDouble()
+                        );
+                }
+
+                
+                //// 添加干扰线
+                //int lineCount = 1;
+                //Drawables drawables = new Drawables();
+                //for (int i = 0; i < lineCount; i++)
+                //{
+                //    int x1 = MyRandom.Next(frame.Width);
+                //    int y1 = MyRandom.Next(frame.Height);
+                //    int x2 = MyRandom.Next(frame.Width);
+                //    int y2 = MyRandom.Next(frame.Height);
+                //    drawables.StrokeColor(MagickColors.Gray)
+                //                .StrokeWidth(2)
+                //                .Line(x1, y1, x2, y2);
+                //}
+                //drawables.Draw(image);
+                frame.AddNoise(NoiseType.Gaussian, 0.4);
+                // 小幅度扭曲
+                frame.Distort(DistortMethod.Shepards, new double[] { 0, 0, 5, 10 });
+
+                images.Add(frame);
+            }
+            using (MemoryStream ms = new MemoryStream())
+            {
+                images.Optimize();
+                images.OptimizeTransparency();
+                images.Write(ms, MagickFormat.Gif);
+                byte[] imageBytes = ms.ToArray();
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
+
+
+            //using (MagickImage image = new MagickImage(MagickColors.White, width, height))
+            //{
+            //    //MagickReadSettings settings = new MagickReadSettings
+            //    //{
+            //    //    Font = "Arial",
+            //    //    Width = width,
+            //    //    Height = height,
+            //    //    FillColor = MagickColors.Black,
+            //    //    TextGravity = Gravity.Center,
+            //    //    FontPointsize = fontsize
+            //    //};
+               
+                    
+               
+            //    //return (MagickImage)image.Clone(); 
+            //}
+        }
+
+        // 添加随机干扰线
+        private static void AddRandomLines(MagickImage image, int lineCount)
+        {
+            Random random = new Random();
+            
+            
         }
 
     }

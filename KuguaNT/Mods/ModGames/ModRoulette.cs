@@ -12,8 +12,7 @@ using System.Numerics;
 
 namespace Kugua
 {
-    public class RInfo
-    { }
+
 
     /// <summary>
     /// 恶魔轮盘模块

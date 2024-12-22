@@ -351,7 +351,7 @@ namespace Kugua
                 recvMessages = e.message,
                 isAskme = true
             };
-            HistoryManager.Instance.saveMsg(e.message_id, context.groupId, context.userId, e.raw_message);
+            HistoryManager.Instance.Add(e.message_id, context.groupId, context.userId, e.raw_message);
             HandlePrivateMessageReceiveMultiIO(context);
         }
 
@@ -419,7 +419,7 @@ namespace Kugua
                 client = ClientX,
                 recvMessages = e.message,
             };
-            HistoryManager.Instance.saveMsg(e.message_id, context.groupId, context.userId, e.raw_message);
+            HistoryManager.Instance.Add(e.message_id, context.groupId, context.userId, e.raw_message);
             HandleGroupMessageReceiveMultiIO(context);
         }
 

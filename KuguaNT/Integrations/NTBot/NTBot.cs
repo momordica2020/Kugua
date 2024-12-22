@@ -85,7 +85,16 @@ namespace Kugua.Integrations.NTBot
         }
 
 
-
+        /// <summary>
+        /// 发送同意好友申请
+        /// </summary>
+        public async void SendAddFriendAccept(string flag)
+        {
+            string uri = Config.Instance.App.Net.QQHTTP + "/set_friend_add_request";
+            //Logger.Log(uri);
+            string res = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new set_friend_add_request { flag = flag, approve=true}));
+            Logger.Log(res);
+        }
 
         /// <summary>
         /// 发送戳一戳
@@ -126,7 +135,7 @@ namespace Kugua.Integrations.NTBot
                         Logger.Log(" - Trying Reconnect Socket -");
                         ws.Open();
                     }
-                   // Logger.Log(jsonStr, LogType.Mirai);
+                   //Logger.Log(jsonStr, LogType.Mirai);
                     ws?.Send(jsonStr);
 
 
@@ -152,11 +161,6 @@ namespace Kugua.Integrations.NTBot
                 }
             }, cts.Token);
             var completedTask = await Task.WhenAny(v, Task.Delay(timeout));
-
-
-
-            
-
             
             return messageId;
         }
@@ -488,7 +492,9 @@ namespace Kugua.Integrations.NTBot
                             {
                                 var eo = JsonConvert.DeserializeObject<friend_request_event>(json);
                                 Logger.Log($"[好友请求]{eo.user_id}附带消息：{eo.comment} flag={eo.flag}");
-                                Send(new set_friend_add_request { approve = true, flag = eo.flag });
+                                await Task.Delay(1000);
+                               // SendAddFriendAccept(eo.flag);
+                                Send(new set_friend_add_request { approve = true, flag = eo.flag, remark="" });
                             }
                             else if (jo["request_type"]?.ToString() == "group")
                             {
@@ -503,7 +509,7 @@ namespace Kugua.Integrations.NTBot
                                 {
                                     // invite me to the group
                                     Logger.Log($"[邀请入群][{eo.group_id}]邀请者{eo.user_id}，附带消息：{eo.comment} flag={eo.flag}");
-                                    Send(new set_group_add_request { type = "invite", approve = true, flag = eo.flag });
+                                    Send(new set_group_add_request { type = "invite", approve = true, flag = eo.flag, reason="" });
                                 }
                             
                             }

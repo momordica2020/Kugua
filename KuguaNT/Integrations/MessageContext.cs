@@ -182,7 +182,7 @@ namespace Kugua
                         {
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
-                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
+                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add( messageId);
                             
                         }
@@ -190,7 +190,7 @@ namespace Kugua
                         {
                             Config.Instance.UserInfo(userId).UseTimes += 1;
                             var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
-                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.saveMsg(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
+                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add(messageId);
 
                         }

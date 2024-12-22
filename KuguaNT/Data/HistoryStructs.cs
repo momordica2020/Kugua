@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua
 {
@@ -6,30 +7,50 @@ namespace Kugua
     /// <summary>
     /// 单条历史记录
     /// </summary>
-    public class MessageHistory
+    public class HistoryItem
     {
-        public string messageId;      // 只存入内存，用于at和回撤等操作。
-        public string userid;
-        public string message;
-        public DateTime date;
+        /// <summary>
+        /// 只存入内存，用于引用和回撤等操作。
+        /// </summary>
+        public string MessageId; 
 
-        public MessageHistory()
+        /// <summary>
+        /// 发送者qq号
+        /// </summary>
+        public string UserId;
+
+        /// <summary>
+        /// 消息内容
+        /// </summary>
+        public string Content;
+
+        /// <summary>
+        /// 发送日期
+        /// </summary>
+        public DateTime RecvDate;
+
+        /// <summary>
+        /// 是否被保存过
+        /// </summary>
+        public bool IsSaved = false;
+
+        public HistoryItem()
         {
-            userid = "";
-            message = "";
+            UserId = "";
+            Content = "";
         }
 
-        public MessageHistory(string _messageId, string _uid, string _message)
+        public HistoryItem(string _messageId, string _uid, string _message)
         {
-            date = DateTime.Now;
-            messageId = _messageId;
-            userid = _uid;
-            message = _message;
+            RecvDate = DateTime.Now;
+            MessageId = _messageId;
+            UserId = _uid;
+            Content = _message;
         }
 
         public override string ToString()
         {
-            return $"{date:yyyy-MM-dd_HH:mm:ss}\t{userid}\t{message}";
+            return $"{RecvDate:yyyy-MM-dd_HH:mm:ss}\t{UserId}\t{Content}";
         }
     }
 
@@ -38,51 +59,74 @@ namespace Kugua
     /// <summary>
     /// 某个人或组的全部历史记录
     /// </summary>
-    public class MessageHistoryGroup
+    public class HistoryStorage
     {
-        public string filePath = "";
-        public string uid;
-        public bool isGroup;
-        public Queue<MessageHistory> history = new Queue<MessageHistory>();
+        /// <summary>
+        /// 上次存档日期
+        /// </summary>
+        DateTime lastSaveDate;
 
-        public MessageHistoryGroup(string _rootpath, string _gid, bool _isGroup)
+        string FilePath = "";
+
+        /// <summary>
+        /// 标记，群号或私聊对象qq号
+        /// </summary>
+        public string Uid;
+
+        /// <summary>
+        /// 是否群组？
+        /// </summary>
+        public bool IsGroup;
+
+        /// <summary>
+        /// 历史消息数据
+        /// </summary>
+        public List<HistoryItem> History = new List<HistoryItem>();
+        //public Queue<MessageHistory> historyForCallback = new Queue<MessageHistory>();
+
+        public HistoryStorage(string _rootpath, string _gid, bool _isGroup)
         {
-            isGroup = _isGroup;
-            uid = _gid;
-            filePath = $"{_rootpath}/{(isGroup ? HistoryManager.pathGroup : HistoryManager.pathPrivate)}/{_gid}.txt";
+            IsGroup = _isGroup;
+            Uid = _gid;
+            FilePath = $"{_rootpath}/{(IsGroup ? HistoryManager.pathGroup : HistoryManager.pathPrivate)}/{_gid}.txt";
         }
 
-        public void addMessage(string messageId, string user, string message)
+        public void Add(HistoryItem h)
         {
-            MessageHistory h = new MessageHistory(messageId, user, message);
-            history.Enqueue(h);
+            //HistoryItem h = new HistoryItem(messageId, user, message);
+            lock (History)
+            {
+                History.Add(h);
+            }
         }
 
 
-        static readonly int maxWriteTime = 1000;
-        public static DateTime maxWriteDate;
-        public void write()
+        public void Save(bool force=false)
         {
             try
             {
-                StringBuilder sb = new StringBuilder();
+                if (!History.Any()) return;
 
-                int nowtime = 0;
-                while (history.Count > 0)
+                lock (History)
                 {
-                    // 只把日期老于maxWriteDate的历史记录归档
-                    var checkpoint = history.Peek();
-                    if (checkpoint.date > maxWriteDate) break;
+                    var res =
+                        History
+                        .Where(h => !h.IsSaved && (force || h.RecvDate < lastSaveDate + HistoryManager.SaveSpan))
+                        .Take(HistoryManager.maxWriteNum);
+                    File.AppendAllLines(FilePath, res.Select(h => h.ToString()), Encoding.UTF8);
+                    foreach (HistoryItem h in res) h.IsSaved = true;
+                    //Logger.Log($"SAVE=>{Uid} - {res.Count()} - {DateTime.Now}");
 
-                    sb.AppendLine(history.Dequeue().ToString());
-
-                    // 每次不写入超过maxWriteTime条
-                    if (nowtime++ >= maxWriteTime) break;
+                    if (History.Count > HistoryManager.maxCapacity)
+                    {
+                        // 移除最早的对象
+                        // History.Sort((x, y) => x.date.CompareTo(y.date));
+                        int itemsToRemove = History.Count - HistoryManager.trimCapacity;
+                        History.RemoveRange(0, itemsToRemove);
+                        //Logger.Log($"Trimmed {itemsToRemove} items from memory.");
+                    }
                 }
-                if (sb.Length > 0)
-                {
-                    File.AppendAllText(filePath, sb.ToString(), Encoding.UTF8);
-                }
+                lastSaveDate = DateTime.Now;
             }
             catch (Exception ex)
             {

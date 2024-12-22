@@ -15,16 +15,19 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
             ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
             ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
+            ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
             ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
             ModCommands.Add(new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
+            
 
             return true;
         }
 
+ 
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
@@ -235,7 +238,25 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 生成风格化文本图片
+        /// 扭曲 哈哈哈
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string genCaptcha(MessageContext context, string[] param)
+        {
+            string text = param[1].Trim();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var imgbase64 = ImageUtil.GenerateCaptchaImage(text);
+                context.SendBack([new Image($"base64://{imgbase64}")]);
+            }
 
+            return null;
+
+        }
 
         /// <summary>
         /// 图片顺时针旋转n度

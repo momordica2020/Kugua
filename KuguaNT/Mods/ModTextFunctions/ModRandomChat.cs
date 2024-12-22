@@ -778,25 +778,13 @@ namespace Kugua
             List<string> result = new List<string>();
             try
             {
-                string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
-                string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
-
-                var files = new List<string>();
-                if (Directory.Exists(historyPath))
-                {
-                    files.AddRange(Directory.GetFiles(historyPath, "*.txt"));
-                }
-                if (Directory.Exists(historyPath2))
-                {
-                    files.AddRange(Directory.GetFiles(historyPath2, "*.txt"));
-
-                }
+                var files = HistoryManager.GetGroupHistoryFiles();
                 int maxtime = 10;
 
-                if (files.Count <= 0) return result;
+                if (files.Length <= 0) return result;
                 while (maxtime-- > 0)
                 {
-                    int findex = MyRandom.Next(files.Count);
+                    int findex = MyRandom.Next(files.Length);
                     string[] lines = LocalStorage.ReadLines(files[findex]).ToArray();
                     if (lines.Length < 100) continue;
                     int begin = MyRandom.Next(lines.Length - 5);

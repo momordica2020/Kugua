@@ -219,11 +219,16 @@ namespace Kugua
         private void TaskTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             // 系统定时任务
-            if(clientQQ != null)
+
+            // 帮助配置文件一起定期存掉
+            Config.Instance.Save();
+
+            if (clientQQ != null)
             {
                 foreach (var g in Config.Instance.groups)
                 {
-                    if ((long.Parse(g.Key) > 10000) && g.Value.Is("自言自语") && MyRandom.NextDouble() > (1 - 1.0 / 360))
+                    // 随机触发自言自语
+                    if (g.Value.Is("自言自语") && MyRandom.NextDouble() > (1 - 1.0 / 360))
                     {
                         Logger.Log($"{g.Key} MMMM!");
                         var context = new MessageContext

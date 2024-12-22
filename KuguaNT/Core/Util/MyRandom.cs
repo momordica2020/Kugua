@@ -138,6 +138,10 @@ namespace Kugua
             return Next(0, maxValue);
         }
 
+        public static int Next(uint maxValue)
+        {
+            return (int)Next(0, (long)maxValue);
+        }
 
         public static int Next(IEnumerable<object> items)
         {
