@@ -108,7 +108,7 @@ namespace Kugua
                 }
             }
             string result = "";
-            if (context.isGroup)
+            if (context.IsGroup)
             {
                 if (no > 1)
                 {
@@ -296,7 +296,7 @@ namespace Kugua
             if (context.recvMessages == null || context.recvMessages.Count<=0) return false;
 
 
-            if (context.isPrivate)
+            if (context.IsPrivate)
             {
                 foreach (var msg in context.recvMessages)
                 {
@@ -326,7 +326,7 @@ namespace Kugua
                     }
                 }
             }
-            else if (context.isGroup)
+            else if (context.IsGroup)
             {
                 //if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
                 //{

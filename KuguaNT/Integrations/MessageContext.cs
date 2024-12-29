@@ -9,7 +9,7 @@ namespace Kugua
     {
         public string userId { get; set; }
         public string groupId { get; set; }
-        public bool isGroup
+        public bool IsGroup
         {
             get
             {
@@ -17,17 +17,18 @@ namespace Kugua
             }
         }
 
-        public bool isTemp = false;
+        public bool IsTemp = false;
 
-        public bool isPrivate
+        public bool IsPrivate
         {
             get
             {
-                return !isGroup;
+                return !IsGroup;
             }
         }
 
-        public bool isImage
+
+        public bool IsImage
         {
             get
             {
@@ -42,7 +43,28 @@ namespace Kugua
             }
         }
 
-        public bool isAskme;
+        public bool IsAdminUser
+        {
+            get
+            {
+                return Config.Instance.UserHasAdminAuthority(userId);
+            }
+        }
+
+        public bool IsAdminGroup
+        {
+            get
+            {
+                return IsGroup && Config.Instance.GroupHasAdminAuthority(groupId);
+            }
+        }
+
+        public bool Is(string tag)
+        {
+            return (IsGroup ? Config.Instance.GroupInfo(groupId).Is(tag) : Config.Instance.UserInfo(userId).Is(tag));
+        }
+
+        public bool IsAskme;
 
         public NTBot client { get; set; }
 
@@ -52,7 +74,7 @@ namespace Kugua
         {
             get
             {
-                if(recvMessages?.Count > 0 && isImage)
+                if(recvMessages?.Count > 0 && IsImage)
                 {
                     foreach (var it in recvMessages)
                     {
@@ -81,7 +103,7 @@ namespace Kugua
 
         public async Task<string> SendBackPlain(string message, bool isAt = false, bool isFilter=false)
         {
-            if (isGroup)
+            if (IsGroup)
             {
                 if (isAt) return SendBack([new At(userId), new Text(message)], isFilter).Result;
                 else return SendBack([new Text(message)], isFilter).Result;
@@ -178,7 +200,7 @@ namespace Kugua
                         //    Config.Instance.GroupInfo(userId).UseTimes += 1;
                         //}
                         //else
-                        if (isGroup)
+                        if (IsGroup)
                         {
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;

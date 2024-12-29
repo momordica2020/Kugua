@@ -1,4 +1,5 @@
 ﻿using Kugua.Integrations.NTBot;
+using System.Numerics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
@@ -31,7 +32,7 @@ namespace Kugua
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (context.isAskme)
+            if (context.IsAskme)
             {
                 // emoji deal
                 //var group = Config.Instance.GroupInfo(context.groupId);
@@ -71,7 +72,7 @@ namespace Kugua
                     if (item is Image itemImg)
                     {
                         var oriImg = Network.DownloadImage(itemImg.url);
-                        var newImgbase64 = ImageUtil.GifSpeed(oriImg, speed);
+                        var newImgbase64 = ImageUtil.ImgSetGifSpeed(oriImg, speed);
                         context.SendBack([
                             //new At(context.userId, null),
                             new Image($"base64://{newImgbase64}"),
@@ -114,7 +115,7 @@ namespace Kugua
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
                     //Logger.Log("? == " + oriImg.Count);
-                    var newImgbase64 = ImageUtil.ImageGreen(oriImg, (int)(50 * (1 - quality)), quality);
+                    var newImgbase64 = ImageUtil.ImgGreen(oriImg, (int)(50 * (1 - quality)), quality);
                     //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
                     context.SendBack([
                         //new At(context.userId, null),
@@ -173,7 +174,7 @@ namespace Kugua
         private string genImg(MessageContext context, string[] param)
         {
             var desc = param[1];
-            if (context.isImage)
+            if (context.IsImage)
             {
                 // 以图生图
 
@@ -186,13 +187,23 @@ namespace Kugua
                 WaitNext(context, new ModCommand(new Regex(@"生图(.*)", RegexOptions.Singleline), genImg));
                 return null;
             }
-
-
+            
+            BigInteger Price = 1000;
             if (!string.IsNullOrWhiteSpace(desc))
             {
-
-                GPT.Instance.ZPImage(context, desc);
-                return null;
+                if(ModBank.Instance.GetPay(context.userId, Price))
+                {
+                    if(!GPT.Instance.ZPImage(context, desc))
+                    {
+                        // fail
+                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, Price, out _);
+                    }
+                    return null;
+                }
+                else
+                {
+                    return $"{ModBank.unitName}不够，每次需{Price}";
+                } 
             }
 
             return "";
@@ -211,7 +222,7 @@ namespace Kugua
             var lang = param[1];
             if (lang == "外") lang = "德";
             var desc = param[2];
-            if (context.isImage)
+            if (context.IsImage)
             {
                 // 以图生图
 
@@ -230,9 +241,25 @@ namespace Kugua
 
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                desc = ModTranslate.getTrans(desc, lang);
-                GPT.Instance.ZPImage(context, desc);
-                return null;
+                BigInteger Price = 1000;
+                if (!string.IsNullOrWhiteSpace(desc))
+                {
+                    if (ModBank.Instance.GetPay(context.userId, Price))
+                    {
+                        desc = ModTranslate.getTrans(desc, lang);
+                        if (!GPT.Instance.ZPImage(context, desc))
+                        {
+                            // fail
+                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, Price, out _);
+                        }
+                        return null;
+                    }
+                    else
+                    {
+                        return $"{ModBank.unitName}不够，每次需{Price}";
+                    }
+                }
+
             }
 
             return "";
@@ -250,7 +277,7 @@ namespace Kugua
             string text = param[1].Trim();
             if (!string.IsNullOrWhiteSpace(text))
             {
-                var imgbase64 = ImageUtil.GenerateCaptchaImage(text);
+                var imgbase64 = ImageUtil.ImgGenerateCaptcha(text);
                 context.SendBack([new Image($"base64://{imgbase64}")]);
             }
 
@@ -309,7 +336,7 @@ namespace Kugua
                 if (item is Image itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    var newImgbase64 = ImageUtil.RemoveBackground(oriImg);
+                    var newImgbase64 = ImageUtil.ImgRemoveBackgrounds(oriImg);
                     if (string.IsNullOrWhiteSpace(newImgbase64))
                     {
                         // fail

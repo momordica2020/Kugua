@@ -33,7 +33,7 @@ namespace Kugua
 
         public bool Handle(MessageContext context)
         {
-            if (needAsk && !context.isAskme) return false;
+            if (needAsk && !context.IsAskme) return false;
             List<string> param = new List<string>();
             if (regex != null)
             {
@@ -69,7 +69,7 @@ namespace Kugua
                     //if (context.isGroup) sendMessage.Add(new At(context.userId));
                     //sendMessage.Add(new Text(res));
 
-                    context.SendBackPlain(res, context.isGroup);
+                    context.SendBackPlain(res, context.IsGroup);
                     return true;
                 }                        
             }
@@ -205,7 +205,7 @@ namespace Kugua
                 lock (WaitingCmdsLock){  isWaiting = WaitingCmds.TryGetValue(uid, out val);  }
                 if (isWaiting)
                 {
-                    if (context.isAskme)
+                    if (context.IsAskme)
                     {
                         // new ask!
                         lock (WaitingCmdsLock) {  WaitingCmds.Remove(uid);  }

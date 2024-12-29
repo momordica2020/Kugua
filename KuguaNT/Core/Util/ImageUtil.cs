@@ -131,7 +131,7 @@ namespace Kugua
         }
 
 
-        public static string GifSpeed(MagickImageCollection images, double speed)
+        public static string ImgSetGifSpeed(MagickImageCollection images, double speed)
         {
             if (images == null) return null;
             images.Coalesce();
@@ -249,7 +249,7 @@ namespace Kugua
         /// <param name="iterations"></param>
         /// <param name="quality"></param>
         /// <returns></returns>
-        public static string ImageGreen(MagickImageCollection images, int iterations = 16, double quality = 0.75)
+        public static string ImgGreen(MagickImageCollection images, int iterations = 16, double quality = 0.75)
         {
             Logger.Log($"{iterations},{quality}");
             if (images == null) return null;
@@ -423,7 +423,7 @@ namespace Kugua
 
 
 
-        public static byte[] RemoveBackground(byte[] imageBytes)
+        public static byte[] ImgRemoveBackground(byte[] imageBytes)
         {
             using (HttpClient client = new HttpClient())
             using (var content = new MultipartFormDataContent())
@@ -449,7 +449,7 @@ namespace Kugua
             }
         }
 
-        public static string RemoveBackground(MagickImageCollection images)
+        public static string ImgRemoveBackgrounds(MagickImageCollection images)
         {
             try
             {
@@ -460,7 +460,7 @@ namespace Kugua
 
                 for (int i = 0; i < num; i++)
                 {
-                    var resb = RemoveBackground(images[i].ToByteArray());
+                    var resb = ImgRemoveBackground(images[i].ToByteArray());
                     var img = new MagickImage(resb);
                     img.GifDisposeMethod = GifDisposeMethod.Background;
                     img.AnimationDelay = images[i].AnimationDelay;
@@ -526,7 +526,7 @@ namespace Kugua
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static string GenerateCaptchaImage(string text)
+        public static string ImgGenerateCaptcha(string text)
         {
             uint fontsize = 33;
             int slide = (int)(fontsize * 0.3);
@@ -626,49 +626,4 @@ namespace Kugua
 
     }
 
-
-
-
-    public class ImageUtil2
-    {
-        //public static void setGray(Bitmap bm)
-        //{
-        //    //   Bitmap bm2 = (Bitmap)bm.Clone();
-        //    Rectangle rect = new Rectangle(0, 0, bm.Width, bm.Height);
-        //    BitmapData bmpdata = bm.LockBits(rect, ImageLockMode.ReadWrite, bm.PixelFormat);
-
-        //    int row = bmpdata.Height;
-        //    int col = bmpdata.Width;
-        //    //byte[][] res = new byte[row][];
-
-        //    try
-        //    {
-        //        unsafe
-        //        {
-        //            byte* ptr = (byte*)(bmpdata.Scan0);
-        //            for (int i = 0; i < row; i++)
-        //            {
-        //                //res[i] = new byte[col];
-        //                for (int j = 0; j < col; j++)
-        //                {
-        //                    ptr = (byte*)(bmpdata.Scan0) + bmpdata.Stride * i + 3 * j;
-        //                    byte ptrgray = (byte)(0.299 * ptr[2] + 0.587 * ptr[1] + 0.114 * ptr[0]);
-        //                    ptr[0] = ptrgray;
-        //                    ptr[1] = ptrgray;
-        //                    ptr[2] = ptrgray;
-        //                    //res[i][j] = (byte)(0.299 * ptr[2] + 0.587 * ptr[1] + 0.114 * ptr[0]);
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    catch
-        //    {
-
-        //    }
-        //    bm.UnlockBits(bmpdata);
-        //    //return res;
-        //}
-
-    }
 }

@@ -144,7 +144,7 @@ namespace Kugua
 
                 if (roadnum <= 0 || roadnum > this.roadnum) return $"没有第{roadnum}条赛道";
 
-                BigInteger userHadMoney = ModBank.Instance.GetMoney(betUser.id);
+                BigInteger userHadMoney = ModBank.Instance.ShowBalance(betUser.id);
                 if (userHadMoney <= 0) return $"一分钱都没有，下你🐎呢？";
 
 
@@ -175,7 +175,7 @@ namespace Kugua
                     if (!bets[betUser].ContainsKey(roadnum)) bets[betUser][roadnum] = 0;
                     bets[betUser][roadnum] += betMoney;
 
-                    res += $"，余额{ModBank.Instance.GetMoney(betUser.id).ToHans()}";
+                    res += $"，余额{ModBank.Instance.ShowBalance(betUser.id).ToHans()}";
                 }
                 else
                 {
@@ -363,7 +363,7 @@ namespace Kugua
                     }
                 }
             }
-            sb.Append($"目前币池{ModBank.Instance.GetMoney(Config.Instance.BotQQ).ToHans()}");
+            sb.Append($"目前币池{ModBank.Instance.ShowBalance(Config.Instance.BotQQ).ToHans()}");
             return sb.ToString();
         }
        

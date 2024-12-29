@@ -32,15 +32,17 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^签到$"),DailyAttendance));
 
             ModCommands.Add(new ModCommand(new Regex(@"^发币(.+)"), AddBotMoney));
-            ModCommands.Add(new ModCommand(new Regex(@"^给(.+)补贴(.+)"), Grant));
+            //ModCommands.Add(new ModCommand(new Regex(@"^给(.+)补贴(.+)"), Grant));
             //ModCommands.Add(new ModCommand(new Regex(@"^捐(.+)"),Donate));
             //ModCommands.Add(new ModCommand(new Regex(@"^供养(.+)"), Donate2));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.*)给(.+)转(.+)"), PostMoney));
+
+
+
+
             ModCommands.Add(new ModCommand(new Regex(@"^(富人榜|富豪榜)"), showRichest));
 
             ModCommands.Add(new ModCommand(new Regex(@"^(穷人榜)"), showPoorest));
-
-            ModCommands.Add(new ModCommand(new Regex(@"^给(.+)转(.+)"), PostMoney));
-
 
 
 
@@ -60,7 +62,7 @@ namespace Kugua
 
         private string Grant(MessageContext context, string[] param)
         {
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
             
             
             long targetqq = -1;
@@ -92,23 +94,55 @@ namespace Kugua
         {
             try
             {
-                string target = param[1];
+                // 发起人信息
+                string from = param[1]; 
+                long fromqq = -1;
+                if (from == "你" && context.IsAdminUser)
+                {
+                    // 让bot作为主体来转账
+                    fromqq = long.Parse(Config.Instance.BotQQ);
+                }
+                else
+                {
+                    // 默认是发起者自己给别人转账
+                    fromqq = long.Parse(context.userId);
+                }
+
+                // 目标信息
+                string target = param[2];
                 long targetqq = -1;
                 if (!long.TryParse(target, out targetqq))
                 {
+                    
                     // nick name -> qq
                     //targetqq = bank.getID(target, msg.fromGroup);
                     // targetqq = getQQNumFromGroup(group, target.Trim());
                 }
-                string res = "";
+
                 if (targetqq <= 0)
                 {
-                    res = $"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转";
+                    if (target == "你")
+                    {
+                        targetqq = long.Parse(Config.Instance.BotQQ);
+                    }
+                    else if (context.IsAdminUser && target == "我" && from=="你")
+                    {
+                        // 借贷？
+                        targetqq = long.Parse(context.userId);
+                    }
+                    else
+                    {
+                        return $"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转";
+                    }
+                    
                 }
-                else
+
+
+                string res = "";
+                if(fromqq>0 &&  targetqq>0) 
                 {
-                    BigInteger money = StaticUtil.ConvertToBigInteger(param[2]);
-                    BigInteger succeedMoney = TransMoney(context.userId, targetqq.ToString(), money, out res);
+                    BigInteger money = StaticUtil.ConvertToBigInteger(param[3]);
+                    BigInteger succeedMoney = TransMoney(fromqq.ToString(), targetqq.ToString(), money, out res);
                 }
 
                 if (!string.IsNullOrWhiteSpace(res))
@@ -120,10 +154,10 @@ namespace Kugua
             return "";
         }
 
-
+        // 发币
         public string AddBotMoney(MessageContext context, string[] param)
         {
-            if (Config.Instance.UserHasAdminAuthority(context.userId))
+            if (context.IsAdminUser)
             {
                 BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
                 if (money > 0)
@@ -176,24 +210,28 @@ namespace Kugua
             var u = Config.Instance.UserInfo(context.userId);
             if (u.LastSignTime < DateTime.Today)
             {
-                int maxmoney = 114;
-                int minmoney = 30;
+                int maxmoney = 1145;
+                int minmoney = 0;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
-                return $"您今日领取失业补助{money}枚{unitName}，现在账上一共{u.Money.ToHans()}枚";
+                return $"您今日领取失业补助{money}{unitName}，现在账上总额{u.Money.ToHans()}";
             }
             else
             {
-                return $"嗨嗨嗨，今天领过了";
+                return $"嗨嗨嗨，今天{u.LastSignTime.ToString("HH:mm:ss")}领过了";
             }
         }
 
 
-
-        public string getUserInfo(string userqq)
+        /// <summary>
+        /// 打印账户当前金额数据
+        /// </summary>
+        /// <param name="userqq"></param>
+        /// <returns></returns>
+        public string ShowUserAccountInfo(string userqq)
         {
             var u = Config.Instance.UserInfo(userqq);
             return $"您的账上共有{u.Money.ToHans()}枚{unitName}。共领取失业补助{u.SignTimes}次，今日失业补助{(u.LastSignTime >= DateTime.Today ? "已领取" : "还未领取")}";
@@ -204,7 +242,7 @@ namespace Kugua
         /// </summary>
         /// <param name="userqq"></param>
         /// <returns></returns>
-        public BigInteger GetMoney(string userqq)
+        public BigInteger ShowBalance(string userqq)
         {
             var user = Config.Instance.UserInfo(userqq);
             return user.Money;
@@ -358,6 +396,27 @@ namespace Kugua
                 return "";
             }
         }
+
+        /// <summary>
+        /// 给bot转钱
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="price"></param>
+        /// <returns></returns>
+        public bool GetPay(string uid, BigInteger price)
+        {
+            if(ShowBalance(uid) < price)
+            {
+                return false;
+            }
+            else
+            {
+                var res = TransMoney(uid, Config.Instance.BotQQ, price, out _);
+                if(res == price)return true;
+                else return false;
+            }
+        }
+
 
 
 

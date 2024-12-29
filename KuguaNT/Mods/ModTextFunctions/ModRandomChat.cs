@@ -302,20 +302,16 @@ namespace Kugua
                     {
                         // 隐藏模式，且没有相应权限就不启动
                         if (
-                            context.isGroup && !Config.Instance.GroupHasAdminAuthority(context.groupId)
+                             !context.IsAdminGroup
 
                             //||(!isGroup && !UserHasAdminAuthority(groupId))
                             )
                         {
                             return printModeList(context, param);
                         }
-                        if (!context.isGroup)
-                        {
-                            // allowed
-                        }
                     }
                     // 切换模式tag
-                    if (context.isGroup)
+                    if (context.IsGroup)
                     {
                         // group
                         var group = Config.Instance.GroupInfo(context.groupId);
@@ -363,7 +359,7 @@ namespace Kugua
 
         public async override Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (!context.isAskme) return false;
+            if (!context.IsAskme) return false;
             var message = context.recvMessages.ToTextString().Trim();
 
             var user = Config.Instance.UserInfo(context.userId);
@@ -375,7 +371,7 @@ namespace Kugua
             // 以下部分无需输入任何内容即可触发！！！！！！！！！！！！！1111111
 
             ModeInfo modeTrigger = null;
-            if (context.isGroup)
+            if (context.IsGroup)
             {
                 // 群内
                 modeTrigger = getGroupMode(group);
@@ -510,7 +506,7 @@ namespace Kugua
         {
             string res = "";
 
-            if (context.isImage)
+            if (context.IsImage)
             {
                 res = GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "详细描述此图，并解释其深层含义和意图");
             }

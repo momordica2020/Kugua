@@ -138,7 +138,7 @@ namespace Kugua
             {
                 // 翻译
                 var input = context.recvMessages.ToTextString();
-                if (!context.isAskme || !input.Contains('译')) return false;
+                if (!context.IsAskme || !input.Contains('译')) return false;
                 (string text, List<string> langs) = CutLanguages(input);
                 if (langs.Count > 0 && !string.IsNullOrWhiteSpace(text))
                 {

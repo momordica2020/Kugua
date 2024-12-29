@@ -100,7 +100,7 @@ namespace Kugua
 
         private string handleSave(MessageContext context, string[] param)
         {
-            if (Config.Instance.UserHasAdminAuthority(context.userId))
+            if (context.IsAdminUser)
             {
                 Config.Instance.Save();
                 GPT.Instance.AISaveMemory();
@@ -126,7 +126,7 @@ namespace Kugua
             StringBuilder rmsg = new StringBuilder();
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(context.groupId);
-            if (Config.Instance.GroupHasAdminAuthority(context.groupId) || Config.Instance.UserHasAdminAuthority(context.userId)) //临时：只有测试群可查详细信息
+            if (context.IsAdminGroup || context.IsAdminUser) //临时：只有测试群可查详细信息
             {
                 DateTime startTime = Config.Instance.StartTime;
                 rmsg.AppendLine($"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）");
@@ -141,7 +141,7 @@ namespace Kugua
 
                 rmsg.AppendLine("自检信息：" + BotHost.Instance.SelfCheckInfo());
             }
-            if (context.isGroup)
+            if (context.IsGroup)
             {
                 rmsg.AppendLine($"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}");
             }
@@ -156,7 +156,7 @@ namespace Kugua
 
         private string handleBanned(MessageContext context, string[] param)
         {
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
             string message = param[1];
             var targetUserId = 0;
             if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
@@ -175,7 +175,7 @@ namespace Kugua
 
         private string handleUnBanned(MessageContext context, string[] param)
         {
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
             string message = param[1];
             var targetUserId = 0;
             if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetUserId))
@@ -195,7 +195,7 @@ namespace Kugua
             string groupid = param[1];
             string message = param[2];
             if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(groupid);
@@ -203,7 +203,7 @@ namespace Kugua
             {
                 return $"请在指令后接tag名称";
             }
-            if (context.isGroup)
+            if (context.IsGroup)
             {
                 group.Tags.Add(message);
                 return $"群{groupid}已添加tag：{message}";
@@ -221,7 +221,7 @@ namespace Kugua
             string groupid = param[1];
             string message = param[2];
             if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(groupid);
@@ -229,7 +229,7 @@ namespace Kugua
             {
                 return $"请在指令后接tag名称";
             }
-            if (context.isGroup)
+            if (context.IsGroup)
             {
                 group.Tags.Remove(message);
                 return $"群{groupid}已移除tag：{message}";
@@ -245,13 +245,13 @@ namespace Kugua
         private string handleClearTag(MessageContext context, string[] param)
         {
             string message = param[1];
-            if (!Config.Instance.UserHasAdminAuthority(context.userId)) return "";
+            if (!context.IsAdminUser) return "";
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(context.groupId);
             if (string.IsNullOrWhiteSpace(message))
             {
-                if (context.isGroup)
+                if (context.IsGroup)
                 {
                     group.Tags.Clear();
                     return $"本群已清空所有tag";
@@ -266,7 +266,7 @@ namespace Kugua
             }
             else
             {
-                if (context.isGroup)
+                if (context.IsGroup)
                 {
                     group.Tags.RemoveWhere(tag => tag.Contains(message));
                     return  $"本群已删除所有带{message}tag";
@@ -392,7 +392,7 @@ namespace Kugua
         /// <returns></returns>
         private string handleSearch(MessageContext context, string[] param)
         {
-            if (!context.isGroup) return "";
+            if (!context.IsGroup) return "";
             string keyword = param[1].Trim();
             int showMax = 10;
             var historys = HistoryManager.Instance.Search(context.groupId, keyword);

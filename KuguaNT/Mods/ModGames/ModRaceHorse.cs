@@ -329,7 +329,7 @@ namespace Kugua
         public string getUserGameInfo(MessageContext context, string[] param)
         {
             
-            return ModBank.Instance.getUserInfo(context.userId) + "\n"
+            return ModBank.Instance.ShowUserAccountInfo(context.userId) + "\n"
                 + ModRaceHorse.Instance.UserHistory(context.userId) + "\n"
                 + ModRoulette.Instance.UserHistory(context.userId) + "\n"
                 + ModSlotMachine.Instance.UserHistory(context.userId) + "\n"

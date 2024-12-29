@@ -349,7 +349,7 @@ namespace Kugua
                 groupId = "",
                 client = ClientX,
                 recvMessages = e.message,
-                isAskme = true
+                IsAskme = true
             };
             HistoryManager.Instance.Add(e.message_id, context.groupId, context.userId, e.raw_message);
             HandlePrivateMessageReceiveMultiIO(context);
@@ -426,7 +426,7 @@ namespace Kugua
         public async void HandleGroupMessageReceiveMultiIO(MessageContext context)
         {
             // ask me?
-            context.isAskme = false;
+            context.IsAskme = false;
             if (context.recvMessages != null)
             {
                 foreach (var item in context.recvMessages)
@@ -435,7 +435,7 @@ namespace Kugua
                     {
                         if (itemat.qq == Config.Instance.BotQQ)
                         {
-                            context.isAskme = true;
+                            context.IsAskme = true;
                             break;
                         }
                     }
@@ -444,7 +444,7 @@ namespace Kugua
                         if (plain.text.TrimStart().StartsWith(Config.Instance.BotName))
                         {
                             plain.text = plain.text.TrimStart().Substring(Config.Instance.BotName.Length);
-                            context.isAskme = true;
+                            context.IsAskme = true;
                             break;
                         }
                     }
