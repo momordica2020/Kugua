@@ -2,6 +2,9 @@
 
 namespace Kugua
 {
+    /// <summary>
+    /// 苏联笑话的模板填充相关
+    /// </summary>
     public class Joke
     {
         class Trie

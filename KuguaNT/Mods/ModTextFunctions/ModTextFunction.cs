@@ -440,9 +440,12 @@ namespace Kugua
             if (columns < 1) columns = 1;
             if (rows < 1) rows = 1;
 
-            if (rows > 100 || columns > 100 || rows * columns > 2500)
+            if (rows * columns > 2500)
             {
-                return $"输入太多，溢出来了！";
+                // return $"输入太多，溢出来了！";
+                int maxrow = 2500 / columns;
+                if (maxrow <= 0) { rows = 1; columns = 2500; }
+                else rows= maxrow;
             }
             return GenerateRandomStringHans(rows, columns);
         }
