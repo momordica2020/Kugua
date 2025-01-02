@@ -188,21 +188,20 @@ namespace Kugua
                 return null;
             }
             
-            BigInteger Price = 1000;
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                if(ModBank.Instance.GetPay(context.userId, Price))
+                if(ModBank.Instance.GetPay(context.userId, GPT.ImgMoneyCost))
                 {
                     if(!GPT.Instance.ZPImage(context, desc))
                     {
                         // fail
-                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, Price, out _);
+                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, GPT.ImgMoneyCost, out _);
                     }
                     return null;
                 }
                 else
                 {
-                    return $"{ModBank.unitName}不够，每次需{Price}";
+                    return $"{ModBank.unitName}不够，每次需{GPT.ImgMoneyCost.ToHans()}";
                 } 
             }
 
@@ -241,22 +240,21 @@ namespace Kugua
 
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                BigInteger Price = 1000;
                 if (!string.IsNullOrWhiteSpace(desc))
                 {
-                    if (ModBank.Instance.GetPay(context.userId, Price))
+                    if (ModBank.Instance.GetPay(context.userId, GPT.ImgMoneyCost))
                     {
                         desc = ModTranslate.getTrans(desc, lang);
                         if (!GPT.Instance.ZPImage(context, desc))
                         {
                             // fail
-                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, Price, out _);
+                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, GPT.ImgMoneyCost, out _);
                         }
                         return null;
                     }
                     else
                     {
-                        return $"{ModBank.unitName}不够，每次需{Price}";
+                        return $"{ModBank.unitName}不够，每次需{GPT.ImgMoneyCost.ToHans()}";
                     }
                 }
 

@@ -311,6 +311,11 @@ namespace Kugua
             return input;
         }
 
+        /// <summary>
+        /// 转为以中文单位表示的字符串形式，例如12345 = 1万2千345
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
         public static string ToHans(this BigInteger number)
         {
             return ConvertToChinese(number);

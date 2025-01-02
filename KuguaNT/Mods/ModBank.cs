@@ -32,6 +32,7 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^签到$"),DailyAttendance));
 
             ModCommands.Add(new ModCommand(new Regex(@"^发币(.+)"), AddBotMoney));
+            ModCommands.Add(new ModCommand(new Regex(@"^放生(.+)"), RemoveBotMoney));
             //ModCommands.Add(new ModCommand(new Regex(@"^给(.+)补贴(.+)"), Grant));
             //ModCommands.Add(new ModCommand(new Regex(@"^捐(.+)"),Donate));
             //ModCommands.Add(new ModCommand(new Regex(@"^供养(.+)"), Donate2));
@@ -49,14 +50,16 @@ namespace Kugua
             return true;
         }
 
+
+
         //private string Donate2(MessageContext context, string[] param)
         //{
-            
+
         //}
 
         //private string Donate(MessageContext context, string[] param)
         //{
-            
+
         //}
 
 
@@ -187,7 +190,7 @@ namespace Kugua
                 var u = Config.Instance.UserInfo(userqq);
 
                 u.Money += money;
-                answer += $"{u.Name} 新到账 {money}元。{unitName}余额：{u.Money.ToHans()}";
+                answer += $"{u.Name} 新到账 {money.ToHans()}元。{unitName}余额：{u.Money.ToHans()}";
             }
             catch(Exception ex)
             {
@@ -196,7 +199,35 @@ namespace Kugua
             return answer;
         }
 
+        // 放生了
+        private string RemoveBotMoney(MessageContext context, string[] param)
+        {
+            string answer = "";
 
+            try
+            {
+                if (context.IsAdminUser)
+                {
+                    BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+
+                    if (money > 0)
+                    {
+                        
+                        var u = Config.Instance.UserInfo(Config.Instance.BotQQ);
+
+                        money = BigInteger.Min(money, u.Money);
+                        u.Money -= money;
+                        answer += $"{Config.Instance.BotName}放生了{money.ToHans()}{unitName}！阿弥陀佛，阿弥陀佛！善哉，善哉！余额：{u.Money.ToHans()}";
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return answer;
+        }
 
 
         /// <summary>
