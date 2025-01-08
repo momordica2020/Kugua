@@ -21,7 +21,6 @@ namespace Kugua
     /// </summary>
     public class ModTextFunction : Mod
     {
-        Dictionary<Regex, HandleCommandEvent> cmds = new Dictionary<Regex, HandleCommandEvent>();
 
 
         #region 语料

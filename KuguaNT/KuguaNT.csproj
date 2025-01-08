@@ -38,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Prophecy">
+      <HintPath>..\..\Prophecy\Prophecy\bin\Debug\net8.0\Prophecy.dll</HintPath>
+    </Reference>
     <Reference Include="ZhipuApi">
       <HintPath>..\..\..\zhipuai-sdk-csharp-v4\bin\Debug\net8.0\ZhipuApi.dll</HintPath>
     </Reference>

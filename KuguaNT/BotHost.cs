@@ -101,6 +101,7 @@ namespace Kugua
                     ModSlotMachine.Instance,
                     ModRoulette.Instance,
                     ModDiceGame.Instance,
+                    new ModCalendar(),
                     new ModDice(),
                     new ModProof(),
                     new ModTextFunction(),
@@ -114,7 +115,7 @@ namespace Kugua
 
 
                     // 这个模块会用闲聊收尾
-                    new ModRandomChat(),    
+                    new ModRandomChat(),
 
                 };
 
