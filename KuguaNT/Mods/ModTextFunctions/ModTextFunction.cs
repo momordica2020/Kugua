@@ -203,8 +203,7 @@ namespace Kugua
         {
             string keyword = param[1];
 
-            string res = "";
-
+            var res = TextModules.GenerateEssay(keyword);
 
             return res;
         }
