@@ -292,8 +292,9 @@ namespace Kugua
 
 
         #region 用户Player相关
-        public Player UserInfo(string id)
+        public Player? UserInfo(string id)
         {
+            if (id == null || string.IsNullOrWhiteSpace(id)) return null;
             if (users.TryGetValue(id, out Player p))
             {
                 return p;
@@ -359,9 +360,10 @@ namespace Kugua
 
 
         #region 群组Group相关
-        public Playgroup GroupInfo(string id)
+        public Playgroup? GroupInfo(string id)
         {
-            if(groups.TryGetValue(id, out Playgroup g))
+            if (id == null || string.IsNullOrWhiteSpace(id)) return null;
+            if (groups.TryGetValue(id, out Playgroup g))
             {
                 return g;
             }
@@ -392,6 +394,7 @@ namespace Kugua
             {
 
                 var g = GroupInfo(id);
+                if (g == null) return true;
                 if (g.Type == PlaygroupType.Blacklist || g.Is("屏蔽")) return false;
 
                 // 默认皆可应答
@@ -411,6 +414,7 @@ namespace Kugua
             if (string.IsNullOrWhiteSpace(groupId)) return false;
             if (groupId == App.Avatar.adminGroup) return true;
             var group = GroupInfo(groupId);
+            if (group == null) return false;
             if (group.Is("测试")) return true;
             if (group.Type == PlaygroupType.Test) return true;
             return false;

@@ -315,18 +315,23 @@ namespace Kugua
                     {
                         // group
                         var group = Config.Instance.GroupInfo(context.groupId);
-                        group.Tags.RemoveWhere(t => t.EndsWith("模式"));
-                        group.Tags.Add($"{mode.name}模式");
+                        if(group != null)
+                        {
+                            group.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                           group.Tags.Add($"{mode.name}模式");
+                        }
                     }
                     else
                     {
                         // private
                         var user = Config.Instance.UserInfo(context.userId);
-                        user.Tags.RemoveWhere(t => t.EndsWith("模式"));
-                        user.Tags.Add($"{mode.name}模式");
+                        if (user != null)
+                        {
+                            user.Tags.RemoveWhere(t => t.EndsWith("模式"));
+                            user.Tags.Add($"{mode.name}模式");
+                        }
                     }
                     return $"~{Config.Instance.App.Avatar.askName}的{mode.name}模式启动~";
-
                 }
                 else
                 {
@@ -438,17 +443,17 @@ namespace Kugua
                     case "正常":
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        GPT.Instance.OllamaReply(context);
-                        //var res = GPT.Instance.ZPChat(context);
-                        //if (!string.IsNullOrWhiteSpace(res))
-                        //{
-                        //    context.SendBackPlain(res, true, true);
-                        //}
-                        //else
-                        //{
-                        //    // next wait for image input
-                        //    WaitNext(context, new ModCommand(null, descImage, false, true));
-                        //}
+                        //GPT.Instance.OllamaReply(context);
+                        var res = GPT.Instance.ZPChat(context);
+                        if (!string.IsNullOrWhiteSpace(res))
+                        {
+                            context.SendBackPlain(res, true, true);
+                        }
+                        else
+                        {
+                            // next wait for image input
+                            WaitNext(context, new ModCommand(null, descImage, false, true));
+                        }
                         break;
 
                     case "小万邦":
@@ -524,7 +529,7 @@ namespace Kugua
 
         private ModeInfo getUserMode(Player player)
         {
-            if (player.Tags == null) return null;
+            if (player==null || player.Tags == null) return null;
             foreach (var tag in player.Tags)
             {
                 if (tag.EndsWith("模式"))
@@ -541,7 +546,7 @@ namespace Kugua
 
         private ModeInfo getGroupMode(Playgroup group)
         {
-            if (group.Tags != null)
+            if (group == null || group.Tags != null)
             {
                 foreach (var tag in group.Tags)
                 {

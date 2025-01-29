@@ -296,6 +296,21 @@ namespace Kugua
         {
             if (context.recvMessages == null || context.recvMessages.Count<=0) return false;
 
+            if(context.recvMessages.ToTextString() == "测试以下")
+            {
+                Logger.Log($"{context.groupId} MMMM!");
+                var ccontext = new MessageContext
+                {
+                    groupId = context.groupId,
+                    client = clientQQ,
+                };
+                var r = ModRandomChat.getHistoryReact(ccontext);
+                foreach (var item in r)
+                {
+                    Logger.Log($"-{item.Length}!");
+                    ccontext.SendBackPlain(item);
+                }
+            }
 
             if (context.IsPrivate)
             {

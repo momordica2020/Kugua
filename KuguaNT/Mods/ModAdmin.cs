@@ -124,8 +124,8 @@ namespace Kugua
         private string handleShowState(MessageContext context, string[] param)
         {
             StringBuilder rmsg = new StringBuilder();
-            var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(context.groupId);
+           
+            
             if (context.IsAdminGroup || context.IsAdminUser) //临时：只有测试群可查详细信息
             {
                 DateTime startTime = Config.Instance.StartTime;
@@ -142,13 +142,15 @@ namespace Kugua
                 rmsg.AppendLine("自检信息：" + BotHost.Instance.SelfCheckInfo());
             }
             if (context.IsGroup)
-            {
-                rmsg.AppendLine($"在本群的标签是：{(group.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group.Tags))}");
+            { 
+                var group = Config.Instance.GroupInfo(context.groupId);
+                if(group!=null)rmsg.AppendLine($"在本群的标签是：{(group?.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", group?.Tags))}");
             }
             else
             {
                 //私聊查状态
-                rmsg.AppendLine($"在私聊的标签是：{(user.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", user.Tags))}");
+                var user = Config.Instance.UserInfo(context.userId);
+                if(user != null)rmsg.AppendLine($"在私聊的标签是：{(user?.Tags.Count == 0 ? "(暂无标签)" : string.Join(", ", user?.Tags))}");
             }
             return rmsg.ToString();
         }
@@ -199,7 +201,7 @@ namespace Kugua
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(groupid);
-            if (string.IsNullOrWhiteSpace(message))
+            if (user == null || group == null || string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
             }
@@ -225,7 +227,7 @@ namespace Kugua
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(groupid);
-            if (string.IsNullOrWhiteSpace(message))
+            if (user == null || group == null || string.IsNullOrWhiteSpace(message))
             {
                 return $"请在指令后接tag名称";
             }
@@ -249,6 +251,7 @@ namespace Kugua
 
             var user = Config.Instance.UserInfo(context.userId);
             var group = Config.Instance.GroupInfo(context.groupId);
+            if (user == null || group == null) return "";
             if (string.IsNullOrWhiteSpace(message))
             {
                 if (context.IsGroup)

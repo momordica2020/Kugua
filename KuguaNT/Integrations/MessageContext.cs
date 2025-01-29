@@ -61,7 +61,18 @@ namespace Kugua
 
         public bool Is(string tag)
         {
-            return (IsGroup ? Config.Instance.GroupInfo(groupId).Is(tag) : Config.Instance.UserInfo(userId).Is(tag));
+            if (IsGroup)
+            {
+                var group = Config.Instance.GroupInfo(groupId);
+                if (group == null) return false;
+                return group.Is(tag);
+            }
+            else
+            {
+                var user = Config.Instance.UserInfo(userId);
+                if (user == null) return false;
+                return user.Is(tag);
+            }
         }
 
         public bool IsAskme;
@@ -202,8 +213,10 @@ namespace Kugua
                         //else
                         if (IsGroup)
                         {
-                            Config.Instance.GroupInfo(groupId).UseTimes += 1;
-                            Config.Instance.UserInfo(userId).UseTimes += 1;
+                            var group = Config.Instance.GroupInfo(groupId);
+                            if (group != null) group.UseTimes += 1;
+                            var user = Config.Instance.UserInfo(userId);
+                            if(user!=null)user.UseTimes += 1;
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add( messageId);
@@ -211,10 +224,11 @@ namespace Kugua
                         }
                         else
                         {
-                            Config.Instance.UserInfo(userId).UseTimes += 1;
+                            var user = Config.Instance.UserInfo(userId);
+                            if (user != null) user.UseTimes += 1;
                             var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
-                            msgIds.Add(messageId);
+                            msgIds.Add( messageId);
 
                         }
                     }
