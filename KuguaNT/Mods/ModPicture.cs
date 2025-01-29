@@ -39,8 +39,13 @@ namespace Kugua
                 //var user = Config.Instance.UserInfo(context.userId);
 
                 var message = context.recvMessages.ToTextString();
-                var elist = StaticUtil.ExtractEmojis(message);
-                return DealEmojiMix(context, elist);
+                if (StaticUtil.isOnlyEmoji(message))
+                {
+                    // 只有纯emoji才触发拼合功能，防止误触
+                    var elist = StaticUtil.ExtractEmojis(message);
+                    return DealEmojiMix(context, elist);
+                }
+                
             }
 
             return false;

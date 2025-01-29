@@ -112,7 +112,7 @@ namespace Kugua
                     new ModAudio(),
                     new ModTimerTask(),
                     new ModNLP(),
-
+                    new ModHongbao(),
 
                     // 这个模块会用闲聊收尾
                     new ModRandomChat(),

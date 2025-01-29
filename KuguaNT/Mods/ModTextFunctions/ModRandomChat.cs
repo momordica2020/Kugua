@@ -438,16 +438,17 @@ namespace Kugua
                     case "正常":
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
-                        var res = GPT.Instance.ZPChat(context);
-                        if (!string.IsNullOrWhiteSpace(res))
-                        {
-                            context.SendBackPlain(res, true, true);
-                        }
-                        else
-                        {
-                            // next wait for image input
-                            WaitNext(context, new ModCommand(null, descImage, false, true));
-                        }
+                        GPT.Instance.OllamaReply(context);
+                        //var res = GPT.Instance.ZPChat(context);
+                        //if (!string.IsNullOrWhiteSpace(res))
+                        //{
+                        //    context.SendBackPlain(res, true, true);
+                        //}
+                        //else
+                        //{
+                        //    // next wait for image input
+                        //    WaitNext(context, new ModCommand(null, descImage, false, true));
+                        //}
                         break;
 
                     case "小万邦":

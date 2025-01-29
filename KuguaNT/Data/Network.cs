@@ -53,6 +53,7 @@ namespace Kugua
             {
                 try
                 {
+                    client.Timeout = TimeSpan.FromMinutes(5);  // 设置为5分钟
                     client.DefaultRequestHeaders.Add("User-Agent", defaultHeaderAgentString);
 
                     // 获取图片的响应

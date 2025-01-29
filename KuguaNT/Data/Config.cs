@@ -115,6 +115,10 @@ namespace Kugua
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
                     }
                 }
+                else
+                {
+                    users = new Dictionary<string, Player>();
+                }
 
                 path = ResourceFullPath("Playgroup");
                 if (!File.Exists(path))
@@ -131,6 +135,10 @@ namespace Kugua
                     {
                         if (p.Value.Tags == null) p.Value.Tags = new HashSet<string>();
                     }
+                }
+                else
+                {
+                    groups = new Dictionary<string, Playgroup>();
                 }
 
 

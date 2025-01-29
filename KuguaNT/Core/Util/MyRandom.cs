@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,16 @@ namespace Kugua
             _rng.GetBytes(randomNumber);
             return BitConverter.ToUInt64(randomNumber, 0);
         }
+
+
+        public static BigInteger getNextBigInteger(int size)
+        {
+            // 使用 byte 数组存储随机字节
+            byte[] randomNumber = new byte[size];
+            _rng.GetBytes(randomNumber);
+            return new BigInteger(randomNumber);
+        }
+
 
         //public static long getNextLong()
         //{
@@ -74,6 +85,40 @@ namespace Kugua
         }
 
 
+
+        //
+        /// <summary>
+        ///  生成范围在 min 和 max 之间的（高随机度的）BigInteger整数
+        ///  注意！maxValue值到达不了，实际范围在[min,max-1]
+        /// </summary>
+        /// <param name="minValue"></param>
+        /// <param name="maxValue">注意！maxValue值到达不了，实际范围在[min,max-1]</param>
+        /// <returns></returns>
+        public static BigInteger Next(BigInteger minValue, BigInteger maxValue)
+        {
+            try
+            {
+                if (minValue == maxValue) return minValue;
+                if (minValue > maxValue)
+                {
+                    BigInteger tmp = minValue;
+                    minValue = maxValue;
+                    maxValue = tmp;
+                }
+
+                BigInteger range = maxValue - minValue;
+                var r = getNextBigInteger(range.ToByteArray().Length);
+                while (r < range) r += range;
+                return (r % range) + minValue;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return minValue;
+
+
+        }
 
 
         public static long Next(long minValue, long maxValue)

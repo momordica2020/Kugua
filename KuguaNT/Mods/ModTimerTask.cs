@@ -239,6 +239,7 @@ namespace Kugua
                         var r = ModRandomChat.getHistoryReact(context);
                         foreach (var item in r)
                         {
+                            Logger.Log($"-{item.Length}!");
                             context.SendBackPlain(item);
                         }
                     }

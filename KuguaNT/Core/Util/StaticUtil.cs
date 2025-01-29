@@ -539,6 +539,48 @@ namespace Kugua
                 || (codePoint >= 0x2B50 && codePoint <= 0x2B59)   // 箭头符号
                 ;
         }
+
+        /// <summary>
+        /// 判断输入的数据里是不是只有emoji，如果解析中途未匹配就返回false
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static bool isOnlyEmoji(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (char.IsHighSurrogate(input[i]) && i + 1 < input.Length && char.IsLowSurrogate(input[i + 1]))
+                {
+                    // 处理 emoji 的代理对
+                    int codePoint = char.ConvertToUtf32(input, i);
+                    if (!IsEmojiCodePoint(codePoint))
+                    {
+                        return false;
+                    }
+                    i++; // 跳过低代理字符
+                }
+                else if (!char.IsSurrogate(input[i]))
+                {
+                    // 处理非代理对的单个字符
+                    int codePoint = char.ConvertToUtf32(input, i);
+                    if (!IsEmojiCodePoint(codePoint))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
+
+        /// <summary>
+        /// 将内容中的emoji解析成emoji编号序列，形如 "u1f004"
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static List<string> ExtractEmojis(string input)
         {
             List<string> emojiList = new List<string>();

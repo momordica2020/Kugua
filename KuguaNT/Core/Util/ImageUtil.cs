@@ -316,7 +316,7 @@ namespace Kugua
                         foreach (var image in images)
                         {
                             //image.Format = MagickFormat.Jpeg;
-                            image.Quality = (uint)(quality*90);
+                            image.Quality = (uint)(quality*90 * MyRandom.NextDouble());
                             //image.Write(ms);
                         }
                         images.Write(mss);
@@ -514,7 +514,7 @@ namespace Kugua
         public static MagickColor[] FontColors = [
             MagickColor.FromRgb(0,0,0),// black
             MagickColor.FromRgb(255,0,0),// red
-            MagickColor.FromRgb(255,255,0),// red
+            MagickColor.FromRgb(255,255,0),// yellow
             MagickColor.FromRgb(0,255,0),// green
             MagickColor.FromRgb(0,255,255),// green-blue
             MagickColor.FromRgb(0,0,255),// blue
@@ -614,6 +614,69 @@ namespace Kugua
                
             //    //return (MagickImage)image.Clone(); 
             //}
+        }
+
+
+
+        public static string GetHongbao(string text)
+        {
+            uint maxfontsize = 50;
+            uint minfontsize = 5;
+            uint fontsize = 55;
+            int slide = (int)(fontsize * 0.1);
+            int lineMax = 7;
+            int lineNum = text.Length / lineMax;
+            int offsetx = 20;
+            int offsety = 200;
+
+            int offsetsingle = (int)fontsize + slide;
+            uint width = (uint)(fontsize * Math.Min(lineMax, text.Length) + slide * 2);
+            uint height = (uint)(fontsize * (lineNum + 1) + slide * 2);
+
+
+            var images = new MagickImageCollection();
+            //int frameCount = 10;
+            //uint frameDelay = 10;
+            //for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
+            {
+                var frame = new MagickImage(
+                    Config.Instance.ResourceFullPath("hongbao.png")
+                    //MagickColor.FromRgba(255, 255, 255, 0),
+                    //width,
+                    //height
+                );
+
+                //frame.AnimationDelay = frameDelay;
+                frame.Settings.Font = "华文细黑";
+                frame.Settings.TextGravity = Gravity.West;
+                frame.Settings.FillColor = MagickColor.FromRgb(0xD7, 0x99, 0x00);
+                frame.Settings.FontPointsize = fontsize;
+
+                for (int i = 0; i < text.Length; i++)
+                {
+                    frame.Annotate(
+                    text[i].ToString(),
+                    new MagickGeometry(
+                        (int)(frame.Width / 2 - width + (int)((i% lineMax)) * offsetsingle + offsetx),
+                       (int)(offsety - height / 2 + (int)((i/ lineMax)) * offsetsingle),
+                        width,
+                        height),
+                    Gravity.North, 0
+                    );
+
+                }
+                images.Add(frame);
+            }
+            using (MemoryStream ms = new MemoryStream())
+            {
+                images.Optimize();
+                images.OptimizeTransparency();
+                images.Write(ms, MagickFormat.Png);
+                byte[] imageBytes = ms.ToArray();
+                string base64String = Convert.ToBase64String(imageBytes);
+                return base64String;
+            }
+
         }
 
         // 添加随机干扰线

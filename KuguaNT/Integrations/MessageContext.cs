@@ -203,6 +203,7 @@ namespace Kugua
                         if (IsGroup)
                         {
                             Config.Instance.GroupInfo(groupId).UseTimes += 1;
+                            Config.Instance.UserInfo(userId).UseTimes += 1;
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add( messageId);

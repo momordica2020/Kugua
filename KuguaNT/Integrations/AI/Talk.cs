@@ -121,6 +121,8 @@ namespace Kugua
                 Thread.Sleep(3000);
                 //System.IO.File.Delete(amrf);
                 //System.IO.File.Delete(resInc);
+                // 临时：用于存下来素材用
+                File.Copy(res, $"D:/Musics/kuguaaudio/{input}({DateTime.Now.ToString("yyyyMMdd hhmmss")}).wav", true);
                 System.IO.File.Delete(res);
 
                 //System.IO.File.Delete(amrFile);
