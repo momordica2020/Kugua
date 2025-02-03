@@ -122,7 +122,7 @@ namespace Kugua
         void tLog(Exception ex, LogType logType = LogType.System)
         {
             Log($"{ex.Message}\r\n{ex.StackTrace}", logType);
-            Config.Instance.ErrorTime++;
+            Config.Instance.ErrorNum++;
         }
 
         // 关闭日志文件

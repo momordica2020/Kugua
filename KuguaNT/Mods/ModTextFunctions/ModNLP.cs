@@ -43,8 +43,8 @@ namespace Kugua
 
                 model = new ViterbiModel(this);
                 //string updateFile = "input.txt"; // 这里是输入的文本文件
-                string modelData = Config.Instance.ResourceFullPath("NLP_MODEL1");
-                string pinyinUTF8 = Config.Instance.ResourceFullPath("Pinyin");
+                string modelData = Config.Instance.FullPath("NLP_MODEL1");
+                string pinyinUTF8 = Config.Instance.FullPath("Pinyin");
                 pinyinMapping = new List<string>();
                 foreach (var line in File.ReadLines(pinyinUTF8))
                 {

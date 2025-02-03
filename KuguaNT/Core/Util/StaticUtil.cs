@@ -320,6 +320,9 @@ namespace Kugua
         {
             return ConvertToChinese(number);
         }
+
+        
+
         /// <summary>
         /// 解析字符串为BigInteger
         /// </summary>

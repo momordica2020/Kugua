@@ -55,7 +55,7 @@ namespace Kugua
                 ModCommands.Add(new ModCommand(new Regex(@"^(\S+)\s*模式\s*(on)", RegexOptions.IgnoreCase), selectMode));
 
 
-                string PluginPath = Config.Instance.ResourceFullPath("ModePath");
+                string PluginPath = Config.Instance.FullPath("ModePath");
 
                 // pen
                 penlist = LocalStorage.ReadLines($"{PluginPath}/pen.txt").ToList();

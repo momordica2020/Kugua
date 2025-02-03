@@ -20,7 +20,7 @@ namespace Kugua
 
             try
             {
-                qqwry = new QQWry(Config.Instance.ResourceFullPath("qqwry.dat"));
+                qqwry = new QQWry(Config.Instance.FullPath("qqwry.dat"));
             }
             catch (Exception ex)
             {

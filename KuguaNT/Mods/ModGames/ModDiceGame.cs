@@ -64,7 +64,7 @@ namespace Kugua
                 {
                     sb.Append($"{user.ToString()}\r\n");
                 }
-                LocalStorage.writeText(Config.Instance.ResourceFullPath(DataFile), sb.ToString());
+                LocalStorage.writeText(Config.Instance.FullPath(DataFile), sb.ToString());
             }
             catch (Exception ex)
             {

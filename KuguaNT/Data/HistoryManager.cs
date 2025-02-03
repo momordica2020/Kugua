@@ -65,7 +65,7 @@ namespace Kugua
 
             try
             {
-                string path = Config.Instance.ResourceFullPath("HistoryPath");
+                string path = Config.Instance.FullPath("HistoryPath");
                 if (!Directory.Exists(path))
                 {
                     Logger.Log($"新建历史记录文件夹，路径是{path}", LogType.Debug);
@@ -213,8 +213,8 @@ namespace Kugua
         public static string[] GetGroupHistoryFiles(string groupId = "")
         {
             var files = new List<string>();
-            string historyPath = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group");
-            string historyPath2 = Path.GetFullPath($"{Config.Instance.ResourceFullPath("HistoryPath")}/group2");
+            string historyPath = Path.GetFullPath($"{Config.Instance.FullPath("HistoryPath")}/group");
+            string historyPath2 = Path.GetFullPath($"{Config.Instance.FullPath("HistoryPath")}/group2");
 
             if (Directory.Exists(historyPath))
             {

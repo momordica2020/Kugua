@@ -32,7 +32,7 @@ namespace Kugua
         {
             try
             {
-                string realPath = Config.Instance.ResourceFullPath(resourceName);
+                string realPath = Config.Instance.FullPath(resourceName);
                 return Read(realPath, IsCompress);
             }
             catch (Exception ex)

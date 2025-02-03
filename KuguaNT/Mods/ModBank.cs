@@ -241,14 +241,16 @@ namespace Kugua
             var u = Config.Instance.UserInfo(context.userId);
             if (u.LastSignTime < DateTime.Today)
             {
-                int maxmoney = 1145;
-                int minmoney = 0;
+                BigInteger maxmoney = u.Money / 25;
+                if (maxmoney < 1000) maxmoney = 1000;
+                BigInteger minmoney = u.Money / 50;
+                if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
-                return $"您今日领取失业补助{money}{unitName}，现在账上总额{u.Money.ToHans()}";
+                return $"您今日领取失业补助{money.ToHans()}{unitName}，现在账上总额{u.Money.ToHans()}";
             }
             else
             {

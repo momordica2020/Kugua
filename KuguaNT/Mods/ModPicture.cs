@@ -152,7 +152,7 @@ namespace Kugua
                 List<Message> msgs = new List<Message>();
                 foreach (var emoji in elist)
                 {
-                    var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojitg/"), $"*{emoji.Replace("u", "")}*.gif");
+                    var fff = Directory.GetFiles(Config.Instance.FullPath($"emojitg/"), $"*{emoji.Replace("u", "")}*.gif");
                     if (fff.Length > 0)
                     {
                         msgs.Add(new Image($"file://{fff[MyRandom.Next(fff.Length)]}"));
@@ -401,8 +401,8 @@ namespace Kugua
                 string emojiA = emojiList[0];
                 string emojiB = emojiList[1];
                 var fres = new List<string>();
-                fres.AddRange(Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"{emojiA}*{emojiB}*.png"));
-                fres.AddRange(Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"{emojiB}*{emojiA}*.png"));
+                fres.AddRange(Directory.GetFiles(Config.Instance.FullPath($"emojimix/"), $"{emojiA}*{emojiB}*.png"));
+                fres.AddRange(Directory.GetFiles(Config.Instance.FullPath($"emojimix/"), $"{emojiB}*{emojiA}*.png"));
                 if (fres.Count > 0)
                 {
                     if (fres.Count > 1) Logger.Log($"{fres.Count} => {emojiA}*{emojiB}*.png");
@@ -416,7 +416,7 @@ namespace Kugua
             else if (emojiList.Count == 1)
             {
                 string emojiA = emojiList[0];
-                var fff = Directory.GetFiles(Config.Instance.ResourceFullPath($"emojimix/"), $"*{emojiA}*.png");
+                var fff = Directory.GetFiles(Config.Instance.FullPath($"emojimix/"), $"*{emojiA}*.png");
 
                 if (fff.Length > 0)
                 {
@@ -473,32 +473,32 @@ namespace Kugua
                 string[] files = null;
                 if (something == "小猫")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifscat", "*.gif");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/gifscat", "*.gif");
 
                 }
                 else if (something == "狐狸")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/gifsfox", "*.gif");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/gifsfox", "*.gif");
                 }
                 else if (something == "非主流")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgfzl", "*.*");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/imgfzl", "*.*");
                 }
                 else if (something == "杀马特")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgsmt", "*.*");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/imgsmt", "*.*");
                 }
                 else if (something == "猫姬")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgmj", "*.*");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/imgmj", "*.*");
                 }
                 else if (something == "车万" || something == "东方")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/imgth", "*.*");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/imgth", "*.*");
                 }
                 else if (something == "相声")
                 {
-                    files = Directory.GetFiles($"{Config.Instance.ResourceRootPath}/xiangsheng", "*.*");
+                    files = Directory.GetFiles($"{Config.Instance.RootPath}/xiangsheng", "*.*");
                     string fname = files[MyRandom.Next(files.Length)];
                     var fdesc = fname.Split('-')[1].Trim();
                     context.SendBackPlain($"▶ {fdesc}", true);
@@ -508,7 +508,7 @@ namespace Kugua
                 }
                 else if (something == "emoji")
                 {
-                    files = Directory.GetFiles(Config.Instance.ResourceFullPath("/emojimix/"), "*.png");
+                    files = Directory.GetFiles(Config.Instance.FullPath("/emojimix/"), "*.png");
                     string fname = files[MyRandom.Next(files.Length)];
                     var f = Path.GetFileNameWithoutExtension(fname).Replace("-u200d", "").Replace("-ufe0f", "").Split("_");
                     if (f.Length == 2)

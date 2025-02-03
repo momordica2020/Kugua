@@ -61,7 +61,7 @@ namespace Kugua
         {
             get
             {
-                string rootPath = $"{Config.Instance.ResourceRootPath}AI{Path.DirectorySeparatorChar}";
+                string rootPath = $"{Config.Instance.RootPath}AI{Path.DirectorySeparatorChar}";
                 if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
                 return rootPath;
             }

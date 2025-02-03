@@ -39,7 +39,7 @@ namespace Kugua
                 }
 
 
-                var emojiss = Directory.GetFiles($"{Config.Instance.ResourceRootPath}{Path.DirectorySeparatorChar}game{Path.DirectorySeparatorChar}emojis", "*.png");
+                var emojiss = Directory.GetFiles($"{Config.Instance.RootPath}{Path.DirectorySeparatorChar}game{Path.DirectorySeparatorChar}emojis", "*.png");
                 foreach (var f in emojiss)
                 {
                     byte[] pngBytes = System.IO.File.ReadAllBytes(f);
@@ -67,7 +67,7 @@ namespace Kugua
                 {
                     sb.Append($"{user.ToString()}\r\n");
                 }
-                LocalStorage.writeText(Config.Instance.ResourceFullPath("game/slot_user.txt"), sb.ToString());
+                LocalStorage.writeText(Config.Instance.FullPath("game/slot_user.txt"), sb.ToString());
             }
             catch (Exception ex)
             {

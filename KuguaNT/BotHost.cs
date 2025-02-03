@@ -9,21 +9,21 @@ namespace Kugua
 {
     public class BotHost
     {
+        #region 单例
         private static readonly Lazy<BotHost> instance = new Lazy<BotHost>(() => new BotHost());
 
-        // 私有构造函数
+        /// <summary>
+        /// 私有构造函数
+        /// </summary>
         private BotHost()
         {
 
         }
         public static BotHost Instance => instance.Value;
-
-        public static NTBot ClientX;
-        public static LocalClient ClientLocal = new LocalClient("local");
-
-        public List<Mod> Mods = new List<Mod>();
+        #endregion
 
 
+        #region 日志输出
         public SendLogDelegate _sendLog;
         //public MMDKBot(MMDK.Util.SendLogDelegate sendLogEvent=null)
         //{
@@ -39,36 +39,17 @@ namespace Kugua
             // print log?
             Console.WriteLine(logInfo.ToDescription());
         }
-        /// <summary>
-        /// 检查并初始化配置
-        /// </summary>
-        /// <returns></returns>
-        bool checkAndSetConfigValid()
-        {
-            try
-            {
 
-                if (string.IsNullOrWhiteSpace(Config.Instance.App.Version)) Config.Instance.App.Version = "v0.0.1";
-                if (Config.Instance.App.Avatar == null)
-                {
-                    return false;
-                }
-                // qq info
-                if (string.IsNullOrWhiteSpace(Config.Instance.App.Avatar.myQQ.ToString())) Config.Instance.App.Avatar.myQQ = "";
+        #endregion
 
 
-                Config.Instance.StartTime = DateTime.Now;
 
+        public static NTBot ClientX;
+        public static LocalClient ClientLocal = new LocalClient("local");
 
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-                return false;
-            }
+        public List<Mod> Mods = new List<Mod>();
 
-            return true;
-        }
+       
         public void Start()
         {
             try
@@ -78,8 +59,8 @@ namespace Kugua
                 Logger.Instance.OnBroadcastLogEvent += sendLog;
                 Logger.Log("开始初始化配置文件。");
 
-                Config.Instance.Load();
-                bool isValid = checkAndSetConfigValid();
+                ;
+                bool isValid = Config.Instance.Load();
                 if (!isValid)
                 {
                     Logger.Log("配置文件读取失败，中止运行");
@@ -129,7 +110,7 @@ namespace Kugua
                 if (true)
                 {
                     // 打开历史记录，不会是真的吧
-                    string HistoryPath = Config.Instance.ResourceFullPath("HistoryPath");
+                    string HistoryPath = Config.Instance.FullPath("HistoryPath");
                     if (!Directory.Exists(HistoryPath)) Directory.CreateDirectory(HistoryPath);
                     Logger.Log($"历史记录保存在 {HistoryPath} 里");
                     HistoryManager.Instance.Init(HistoryPath);

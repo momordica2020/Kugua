@@ -136,7 +136,7 @@ namespace Kugua
                 rmsg.AppendLine($"数据库有{Config.Instance.groups.Count}个群和{Config.Instance.users.Count}个账户");
                 rmsg.AppendLine($"在群里被乐{Config.Instance.UseTimeGroup}次");
                 rmsg.AppendLine($"在私聊被乐{Config.Instance.UseTimePrivate}次");
-                rmsg.AppendLine($"报错{Config.Instance.ErrorTime}次");
+                rmsg.AppendLine($"报错{Config.Instance.ErrorNum}次");
                 rmsg.AppendLine($"机主是{Config.Instance.App.Avatar.adminQQ}");
 
                 rmsg.AppendLine("自检信息：" + BotHost.Instance.SelfCheckInfo());

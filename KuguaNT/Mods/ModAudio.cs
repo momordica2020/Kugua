@@ -51,7 +51,7 @@ namespace Kugua
                         {
                             if (string.IsNullOrWhiteSpace(localPath))
                             {
-                                localPath = Config.Instance.ResourceFullPath($"music/{vm.Name}_{vm.Singer}.mp3");
+                                localPath = Config.Instance.FullPath($"music/{vm.Name}_{vm.Singer}.mp3");
                                 if (System.IO.File.Exists(localPath)) System.IO.File.Delete(localPath);
                                 url = musicDownloader.GetMusicDownloadURL(vm.DownloadInfo, enmMusicSource.QQ);
                                 Network.Download(url, localPath);

@@ -154,7 +154,7 @@ namespace Kugua
                     {
                         sb.Append($"{user.ToString()}\r\n");
                     }
-                    LocalStorage.writeText(Config.Instance.ResourceFullPath("RaceUser"), sb.ToString());
+                    LocalStorage.writeText(Config.Instance.FullPath("RaceUser"), sb.ToString());
                 }
                 catch (Exception ex)
                 {

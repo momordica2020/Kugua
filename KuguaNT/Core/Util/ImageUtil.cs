@@ -640,7 +640,7 @@ namespace Kugua
             //for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
             {
                 var frame = new MagickImage(
-                    Config.Instance.ResourceFullPath("hongbao.png")
+                    Config.Instance.FullPath("hongbao.png")
                     //MagickColor.FromRgba(255, 255, 255, 0),
                     //width,
                     //height

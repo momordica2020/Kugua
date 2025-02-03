@@ -62,7 +62,7 @@ namespace Kugua
 
 
 
-            string PluginPath = Config.Instance.ResourceFullPath("ModePath");
+            string PluginPath = Config.Instance.FullPath("ModePath");
             randomChar = LocalStorage.Read($"{PluginPath}/{randomch}").Trim();
 
             // gongshou
@@ -298,7 +298,7 @@ namespace Kugua
             try
             {
 
-                using (FileStream fs = new FileStream(Config.Instance.ResourceFullPath("history_in_today.txt"), FileMode.Open))
+                using (FileStream fs = new FileStream(Config.Instance.FullPath("history_in_today.txt"), FileMode.Open))
                 {
                     using (StreamReader streamReader = new StreamReader(fs, Encoding.UTF8))
                     {
