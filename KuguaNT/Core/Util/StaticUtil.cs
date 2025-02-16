@@ -127,6 +127,32 @@ namespace Kugua
 
 
         #region 数字转换
+
+
+        /// <summary>
+        /// 取得biginteger保留最高n位整数的结果
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="keepnum"></param>
+        /// <returns></returns>
+        public static BigInteger Floor(BigInteger value, int n = 1)
+        {
+            if (n < 1) n = 1;
+            // 获取当前数值的位数
+            int totalDigits = (int)Math.Floor(BigInteger.Log10(value) + 1);
+
+            // 计算移除低位部分的倍数
+            int digitsToRemove = totalDigits - n;
+            if(digitsToRemove<0) digitsToRemove = 0;
+
+            // 保留最高 n 位
+            BigInteger highestN = value / BigInteger.Pow(10, digitsToRemove) * BigInteger.Pow(10, digitsToRemove);
+
+            return highestN;
+        }
+
+
+
         /// <summary>
         /// 将科学计数法字符串解析为 BigInteger
         /// </summary>

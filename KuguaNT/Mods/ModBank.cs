@@ -30,11 +30,13 @@ namespace Kugua
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^签到$"),DailyAttendance));
+            ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), DailyWork));
+
 
             ModCommands.Add(new ModCommand(new Regex(@"^发币(.+)"), AddBotMoney));
             ModCommands.Add(new ModCommand(new Regex(@"^放生(.+)"), RemoveBotMoney));
             //ModCommands.Add(new ModCommand(new Regex(@"^给(.+)补贴(.+)"), Grant));
-            //ModCommands.Add(new ModCommand(new Regex(@"^捐(.+)"),Donate));
+            ModCommands.Add(new ModCommand(new Regex(@"^捐(.+)"),Donate));
             //ModCommands.Add(new ModCommand(new Regex(@"^供养(.+)"), Donate2));
             ModCommands.Add(new ModCommand(new Regex(@"^(.*)给(.+)转(.+)"), PostMoney));
 
@@ -48,6 +50,79 @@ namespace Kugua
 
 
             return true;
+        }
+
+        private string DailyWork(MessageContext context, string[] param)
+        {
+            var u = Config.Instance.UserInfo(context.userId);
+            if (context.IsAdminUser)
+            {
+                BigInteger maxmoney = u.Money / 25;
+                if (maxmoney < 1000) maxmoney = 1000;
+                BigInteger minmoney = u.Money / 50;
+                if (maxmoney < 1) maxmoney = 1;
+                // success
+                BigInteger money = MyRandom.Next(minmoney, maxmoney);
+                money = StaticUtil.Floor(money, 2);
+                u.Money += money;
+                u.LastSignTime = DateTime.Now;
+                u.SignTimes += 1;
+                return $"您今日修炼得到{money.ToHans()}{unitName}，现在账上总额{u.Money.ToHans()}";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 捐钱给bot，积累赛博阴德
+        /// 我苦捐100
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        private string Donate(MessageContext context, string[] param)
+        {
+            string answer = "";
+
+            try
+            {
+                
+                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+
+                if (money > 0)
+                {
+
+                    var u = Config.Instance.UserInfo(context.userId);
+                    if (u == null) return "";
+
+                    money = BigInteger.Min(money, u.Money);
+                    if(u.Money <= 0)
+                    {
+                        answer += $"虽然您身无分文，但我知道您是个好人";
+                    }
+                    else if(money < 0)
+                    {
+                        answer += $"反向募捐？笑死，你赛博阴德没有了";
+                    }
+                    else if(money == 0)
+                    {
+                        //answer += $"？";
+                    }
+                    else
+                    {
+                        TransMoney(context.userId, Config.Instance.BotQQ, money, out _);
+                        answer += $"{Config.Instance.BotName}捐了{money.ToHans()}{unitName}！阿弥陀佛，阿弥陀佛！善哉，善哉！余额：{u.Money.ToHans()}";
+                    }
+                    
+                }
+                
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return answer;
         }
 
 
@@ -247,6 +322,7 @@ namespace Kugua
                 if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
+                money = StaticUtil.Floor(money, 2);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;

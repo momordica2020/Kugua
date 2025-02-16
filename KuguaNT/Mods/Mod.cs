@@ -86,20 +86,27 @@ namespace Kugua
                 XElement xmlDoc = XElement.Load(xmlFilePath);
                 string xmlName = $".{method.Name}(Kugua.MessageContext,System.String[])";
                 //Logger.Log(xmlName);
-                var summaryElement = xmlDoc.Descendants("member")
-                                    .FirstOrDefault(m =>  m.Attribute("name").Value.Contains(xmlName));
-                if (summaryElement != null)
+                try
                 {
-                    // 获取函数的 <summary> 信息
-                    desc = summaryElement.Elements("summary").FirstOrDefault()?.Value.Trim();
-                    var desclines = desc.Split('\n',StringSplitOptions.TrimEntries);
-                    if (desclines.Length > 1)
+                    var summaryElement = xmlDoc.Descendants("member")
+                    .FirstOrDefault(m => m.Attribute("name").Value.Contains(xmlName));
+                    if (summaryElement != null)
                     {
-                        var cmd = desclines.Last();
-                        desc = desc.Substring(0, desc.Length - cmd.Length).Trim();
-                        return $"{desc}  格式：{cmd}";
+                        // 获取函数的 <summary> 信息
+                        desc = summaryElement.Elements("summary").FirstOrDefault()?.Value.Trim();
+                        var desclines = desc.Split('\n', StringSplitOptions.TrimEntries);
+                        if (desclines.Length > 1)
+                        {
+                            var cmd = desclines.Last();
+                            desc = desc.Substring(0, desc.Length - cmd.Length).Trim();
+                            return $"{desc}  格式：{cmd}";
+                        }
                     }
+                }catch(Exception ex)
+                {
+                    Logger.Log(ex);
                 }
+
             }
             //return $"{desc} 匹配格式: {regex?.ToString()}";//,{(useImage ? "发图" : "发文字")}";
             return "";

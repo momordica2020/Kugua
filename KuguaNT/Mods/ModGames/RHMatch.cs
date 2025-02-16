@@ -268,103 +268,110 @@ namespace Kugua
         /// <returns></returns>
         public string calBetResult(int winnerroad)
         {
-            StringBuilder sb = new StringBuilder();
-
-
-            //foreach (var bet in bets.Values) foreach (var money in bet.Values) allmoney += money;
-            List<(RHUser user, decimal multi, BigInteger betMoney)> winners = new List<(RHUser user, decimal multi, BigInteger betMoney)>();
-
-            BigInteger loserMoneys = 0;
-            foreach (var bet in bets)
+            
+            try
             {
-                var betUser = bet.Key;
-                var betList = bet.Value;
-                decimal multi = -1;
-                BigInteger winBetMoney = 0;
-                BigInteger loseBetMoney = 0;
-                foreach (var betpair in betList)
+                StringBuilder sb = new StringBuilder();
+                //foreach (var bet in bets.Values) foreach (var money in bet.Values) allmoney += money;
+                List<(RHUser user, int multi, BigInteger betMoney)> winners = new List<(RHUser user, int multi, BigInteger betMoney)>();
+
+                BigInteger loserMoneys = 0;
+                foreach (var bet in bets)
                 {
-                    
-                    if (betpair.Key == winnerroad)
+                    var betUser = bet.Key;
+                    var betList = bet.Value;
+                    int multi = -1;
+                    BigInteger winBetMoney = 0;
+                    BigInteger loseBetMoney = 0;
+                    foreach (var betpair in betList)
                     {
-                        // 猜中了
-                        winBetMoney += betpair.Value; // 猜中项的本金
-                        if (bet.Value.Count == 1)
+
+                        if (betpair.Key == winnerroad)
                         {
-                            // 只押了一匹，倍率
-                            multi = (decimal)5.0;
+                            // 猜中了
+                            winBetMoney += betpair.Value; // 猜中项的本金
+                            if (bet.Value.Count == 1)
+                            {
+                                // 只押了一匹，倍率
+                                multi = 5;
+                            }
+                            else if (bet.Value.Count >= 2)
+                            {
+                                //两匹 
+                                multi = 3;
+                            }
                         }
-                        else if (bet.Value.Count >= 2)
+                        else
                         {
-                            //两匹 
-                            multi = (decimal)3.0;
+                            loseBetMoney += betpair.Value; // 一去不回的钱
                         }
+                    }
+                    if (winBetMoney > 0)
+                    {
+                        // 赢家
+                        winners.Add((betUser, multi, winBetMoney));
+                        betUser.wintime += 1;
                     }
                     else
                     {
-                        loseBetMoney += betpair.Value; // 一去不回的钱
+                        // 输家
+                        betUser.losetime += 1;
                     }
+                    loserMoneys += loseBetMoney;
                 }
-                if (winBetMoney > 0)
+
+
+                if (winners.Count <= 0)
                 {
-                    // 赢家
-                    winners.Add((betUser, multi, winBetMoney));
-                    betUser.wintime += 1;
+                    sb.Append($"很遗憾，本场无人猜中！本场入币{loserMoneys.ToHans()}。");
+                    // 已经预先转账了，这里不需要再入账 ModBank.Instance.TransMoney()
+                    // 钱入苦瓜账上
+
                 }
                 else
                 {
-                    // 输家
-                    betUser.losetime += 1;
-                }
-                loserMoneys += loseBetMoney;
-            }
+                    // 分账
+                    int rakeP = 5;    // 抽水5%
 
-
-            if (winners.Count <= 0)
-            {
-                sb.Append($"很遗憾，本场无人猜中！本场入币{loserMoneys.ToHans()}。");
-                // 已经预先转账了，这里不需要再入账 ModBank.Instance.TransMoney()
-                // 钱入苦瓜账上
-                
-            }
-            else
-            {
-                // 分账
-                decimal rakeP = (decimal)0.05;    // 抽水5%
-
-                // 这里判断如果我苦账上钱不够了，则只把现有的钱有多少分多少瓜分给用户
-                // 公式：   赢钱=[在赌中马上的投注*赔率+（所有人没中的钱数/赌中的总人数）]*95%
-                BigInteger allNeed = 0;
-                foreach (var winner in winners)
-                {
-                    allNeed  += (BigInteger)(( (decimal)winner.betMoney* winner.multi + (decimal)loserMoneys / winners.Count) * (1 - rakeP));
-                    Logger.Log($"[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
-                }
-                
-                //if(ModBank.Instance.GetMoney(Config.Instance.BotQQ) < allNeed)
-                //{
-                //    // 账上钱不够了
-                //    sb.Append($"{Config.Instance.BotName}账上钱不够了，这次先欠着!!!!!!!!!!");
-                //}
-                //else
-                {
+                    // 这里判断如果我苦账上钱不够了，则只把现有的钱有多少分多少瓜分给用户
+                    // 公式：   赢钱=[在赌中马上的投注*赔率+（所有人没中的钱数/赌中的总人数）]*95%
+                    BigInteger allNeed = 0;
                     foreach (var winner in winners)
                     {
-                        var money = (BigInteger)((winner.multi * (decimal)winner.betMoney + (decimal)loserMoneys / winners.Count) * (1 - rakeP));
-                        string msg;
-                        BigInteger res = ModBank.Instance.TransMoney(Config.Instance.BotQQ, winner.user.id, money, out msg);
-                        sb.Append($"{Config.Instance.UserInfo(winner.user.id).Name}赢了{money.ToHans()}枚{ModBank.unitName}！恭喜\n");
-                        if (res == 0)
-                        {
-                            // failed
-                            sb.Append($"{res}");
+                        allNeed += ((winner.betMoney * winner.multi + loserMoneys / winners.Count) * (100 - rakeP) / 100);
+                        Logger.Log($"赛马奖金：[{winner.user.id}]{allNeed}--{winner.multi}*{winner.betMoney} + {loserMoneys}/{winners.Count}");
+                    }
 
+                    //if(ModBank.Instance.GetMoney(Config.Instance.BotQQ) < allNeed)
+                    //{
+                    //    // 账上钱不够了
+                    //    sb.Append($"{Config.Instance.BotName}账上钱不够了，这次先欠着!!!!!!!!!!");
+                    //}
+                    //else
+                    {
+                        foreach (var winner in winners)
+                        {
+                            BigInteger money = ((winner.multi * winner.betMoney + loserMoneys / winners.Count) * (100 - rakeP) / 100);
+                            string msg;
+                            BigInteger res = ModBank.Instance.TransMoney(Config.Instance.BotQQ, winner.user.id, money, out msg);
+                            sb.Append($"{Config.Instance.UserInfo(winner.user.id).Name}赢了{money.ToHans()}枚{ModBank.unitName}！恭喜\n");
+                            if (res == 0)
+                            {
+                                // failed
+                                sb.Append($"{res}");
+
+                            }
                         }
                     }
                 }
+                sb.Append($"目前币池{ModBank.Instance.ShowBalance(Config.Instance.BotQQ).ToHans()}");
+                return sb.ToString();
             }
-            sb.Append($"目前币池{ModBank.Instance.ShowBalance(Config.Instance.BotQQ).ToHans()}");
-            return sb.ToString();
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
         }
        
         
