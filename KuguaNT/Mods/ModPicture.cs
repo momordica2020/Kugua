@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 图片处理

@@ -13,7 +13,7 @@ using System.Net;
 
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     class ModTranslate : Mod
     {

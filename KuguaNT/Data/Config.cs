@@ -40,6 +40,11 @@ namespace Kugua
 
         public long ErrorNum = 0;
 
+        const string emoji_likes_file = "emoji_likes.txt";
+        public Dictionary<string, EmojiTypeInfo> emojiTypeInfos=new Dictionary<string, EmojiTypeInfo>();
+
+        
+
         /// <summary>
         /// 用户总共群内调用次数
         /// </summary>
@@ -198,6 +203,23 @@ namespace Kugua
 
                 StartTime = DateTime.Now;
 
+                try
+                {
+                    // 读取emoji_likes
+                    emojiTypeInfos = new Dictionary<string, EmojiTypeInfo>();
+                    foreach (var line in LocalStorage.ReadResourceLines(emoji_likes_file))
+                    {
+                        var parts = line.Split('\t', StringSplitOptions.TrimEntries);
+                        if (parts.Length >= 3)
+                        {
+                            emojiTypeInfos[parts[1]] = new EmojiTypeInfo { type = parts[0], id = parts[1], name = parts[2] };
+                            if (parts.Length >= 4) emojiTypeInfos[parts[1]].desc = parts[3];
+                        }
+                    }
+                }catch(Exception ex)
+                {
+                    Logger.Log(ex);
+                }
 
 
 

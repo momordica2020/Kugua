@@ -315,17 +315,20 @@ namespace Kugua
 
             return "";
         }
-        public static async Task<string> PostAsync(string url, string paramString)
+        public static async Task<string> PostAsync(string url, string paramString, bool use_encode = false)
         {
-            var sp = System.Web.HttpUtility.UrlPathEncode(paramString);
+            var sp = paramString;
+            if (use_encode) sp = System.Web.HttpUtility.UrlPathEncode(paramString);
+           // var sp = System.Web.HttpUtility.UrlPathEncode(paramString);
             return await PostAsync(url, new StringContent(sp, Encoding.UTF8, "application/x-www-form-urlencoded"));
 
         }
 
 
-        public static async Task<string> PostJsonAsync(string url, string paramString)
+        public static async Task<string> PostJsonAsync(string url, string paramString, bool use_encode = true)
         {
-            var sp = System.Web.HttpUtility.UrlPathEncode(paramString);
+            var sp = paramString;
+            if(use_encode)  sp = System.Web.HttpUtility.UrlPathEncode(paramString);
             return await PostAsync(url, new StringContent(sp, Encoding.UTF8, "application/json"));
         }
     }

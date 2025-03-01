@@ -1,7 +1,7 @@
 ﻿using Kugua.Integrations.NTBot;
 using System.Text.RegularExpressions;
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 音频/音乐处理

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
     /// <summary>

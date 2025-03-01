@@ -4,7 +4,7 @@ using System.Text;
 using System.Timers;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     class RHMatch
     {

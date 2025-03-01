@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
 
@@ -35,11 +35,31 @@ namespace Kugua
             ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(.*)"), handleRecall2));
             ModCommands.Add(new ModCommand(new Regex(@"^群内搜索(.+)"), handleSearch));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
+            ModCommands.Add(new ModCommand(new Regex(@"^笑死$"), sendEmojiTest, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^吃点好的$"), sendMarketImage));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
             ModCommands.Add(new ModCommand(new Regex(@"^连接本地$"), handleLinkLocal));
 
             return true;
+        }
+
+        private string sendMarketImage(MessageContext context, string[] param)
+        {
+            context.SendBack([new MFace { 
+                emoji_id = "5e4d010e98d79f679823f99991fe3149",
+                emoji_package_id = "236841",
+                key="4dbea6017d4e07b2",
+                summary = "[不懂]"
+            }]);
+            //context.SendBack([new Image($"base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==")]);
+            return null;
+        }
+
+        private string sendEmojiTest(MessageContext context, string[] param)
+        {
+            context.client.SendEmojiLike(context.messageId, 128077);
+            return null;
         }
 
 
@@ -107,6 +127,7 @@ namespace Kugua
                 ModRoulette.Instance.Save();
                 ModRaceHorse.Instance.Save();
                 HistoryManager.Instance.SaveAllToLocal(true);
+                ModTransShit.Instance.Save();
 
                 return  $"配置文件以存档 {DateTime.Now.ToString("F")}";
             }

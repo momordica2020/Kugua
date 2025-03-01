@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
+
 namespace Kugua
 {
     public delegate void SendMsgDelegate(string msg);
@@ -25,7 +26,25 @@ namespace Kugua
     public static class StaticUtil
     {
 
-        
+        public static string ComputeHash(string input)
+        {
+            try
+            {
+                byte[] hashBytes = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                string hashHex = BitConverter.ToString(hashBytes)
+                                    .Replace("-", "")
+                                    .ToLower(); // 可选：小写格式
+                return hashHex;
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+
+        }
+
+
         #region Symbols & emojis
 
         /// <summary>

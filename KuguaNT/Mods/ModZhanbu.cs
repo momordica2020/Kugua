@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 占卜

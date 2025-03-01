@@ -2,6 +2,7 @@
 using System.Text;
 using System;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods;
 
 
 
@@ -94,6 +95,7 @@ namespace Kugua
                     new ModTimerTask(),
                     new ModNLP(),
                     new ModHongbao(),
+                    ModTransShit.Instance,
 
                     // 这个模块会用闲聊收尾
                     new ModRandomChat(),
@@ -327,13 +329,14 @@ namespace Kugua
             uinfo.Name = e.sender.nickname;
             var context = new MessageContext
             {
+                messageId=e.message_id,
                 userId = e.user_id,
                 groupId = "",
                 client = ClientX,
                 recvMessages = e.message,
                 IsAskme = true
             };
-            HistoryManager.Instance.Add(e.message_id, context.groupId, context.userId, e.raw_message);
+            HistoryManager.Instance.Add(context.messageId, context.groupId, context.userId, e.raw_message);
             HandlePrivateMessageReceiveMultiIO(context);
         }
 
@@ -396,12 +399,13 @@ namespace Kugua
 
             var context = new MessageContext
             {
+                messageId=e.message_id,
                 userId = e.user_id,
                 groupId = e.group_id,
                 client = ClientX,
                 recvMessages = e.message,
             };
-            HistoryManager.Instance.Add(e.message_id, context.groupId, context.userId, e.raw_message);
+            HistoryManager.Instance.Add(context.messageId, context.groupId, context.userId, e.raw_message);
             HandleGroupMessageReceiveMultiIO(context);
         }
 

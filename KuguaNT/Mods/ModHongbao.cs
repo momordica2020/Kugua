@@ -13,7 +13,7 @@ using Prophecy;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Timers;
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
     /// <summary>

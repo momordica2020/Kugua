@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 
 namespace Kugua.Integrations.NTBot
@@ -63,6 +64,22 @@ namespace Kugua.Integrations.NTBot
 
         public message_sender sender { get; set; } // 发送人信息
     }
+
+    /// <summary>
+    /// 转发消息的内部子节点获取到的结构
+    /// </summary>
+    public class forward_message_node : private_message_event
+    {
+        // = message_id
+        public string message_seq { get; set; }
+
+        // = message_id
+        public string real_id { get; set; }
+
+        // array
+        public string message_format { get; set; }  
+    }
+
     public class message_sender
     {
         public string user_id { get; set; }
@@ -344,6 +361,17 @@ namespace Kugua.Integrations.NTBot
         /// talkative / performer / emotion
         /// </summary>
         public string honor_type;
+    }
+
+
+    public class notify_group_msg_emoji_like : event_base
+    {
+        public string group_id;
+        public string user_id;
+        public string notice_type;
+        public string message_id;
+        //public JToken[] likes;
+
     }
     #endregion notice
 

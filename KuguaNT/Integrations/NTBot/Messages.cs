@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NvAPIWrapper.Native.GPU;
 
 namespace Kugua.Integrations.NTBot
@@ -20,7 +21,7 @@ namespace Kugua.Integrations.NTBot
                 data is Face ? "face" :
                 data is At ? "at" :
                 data is Video ? "video" :
-                data is  Rps? "rps" :
+                data is Rps? "rps" :
                 data is Dice ? "dice" :
                 //data is Shake ? "shake" :
                 data is Poke ? "poke" :
@@ -33,12 +34,32 @@ namespace Kugua.Integrations.NTBot
                 data is Record ? "record" :
                 data is XmlData ? "xml" :
                 data is JsonData ? "json" :
+                data is ForwardNodeExist ? "node" :
+                data is ForwardNodeNew ? "node" :
+                data is MFace ? "mface" :
                 "" );
 
 
             this.data = data;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public interface Message
     {
 
@@ -57,6 +78,35 @@ namespace Kugua.Integrations.NTBot
         {
             this.text = text;
         }
+    }
+
+    public class ImageRecvBasic : Message
+    {
+        public string file;
+        public string file_id;
+        public string url;
+        public string file_unique;
+        public string summary;
+    }
+
+    public class ImageRecvNormal : ImageRecvBasic
+    {
+        /// <summary>
+        /// [动画表情]值为1，其他0
+        /// </summary>
+        public int sub_type;
+        /// <summary>
+        /// 单位是byte
+        /// </summary>
+        public string file_size;
+    }
+
+    public class ImageRecvMarketFace : ImageRecvBasic
+    {
+        public string path;
+        public string key;
+        public string emoji_id;
+        public string emoji_package_id;
     }
 
     /// <summary>
@@ -109,6 +159,14 @@ namespace Kugua.Integrations.NTBot
         {
             this.id = id;
         }
+    }
+
+    public class MFace : Message
+    {
+        public string emoji_id;
+        public string emoji_package_id;
+        public string key;
+        public string summary;
     }
 
     /// <summary>
@@ -402,22 +460,64 @@ namespace Kugua.Integrations.NTBot
     }
 
     /// <summary>
-    /// 合并转发,需要get_forward_msg 获取节点
+    /// 合并转发已有节点，直接发messageid即可
     /// </summary>
-    public class ForwardMessage : Message
+    public class ForwardNodeExist : Message
     {
         public string id { get; set; }
+        [JsonIgnore]
+        public List<forward_message_node> content;
 
-        public ForwardMessage()
-        {
-        }
     }
 
-    public class ForwardNode : Message
+    /// <summary>
+    /// 合并转发的新造节点
+    /// </summary>
+    public class ForwardNodeNew : Message
     {
-        string user_id;
-        string nickname;
-        Message[] content;
+        public string user_id;
+        public string nickname;
+
+        /// <summary>
+        /// id content 二选一
+        /// </summary>
+        //public string id;
+        /// <summary>
+        /// content
+        /// </summary>
+        public List<MessageInfo> content;
+    }
+
+    /// <summary>
+    /// 接收到的转发消息详情
+    /// </summary>
+    public class ForwardContent
+    {
+        public string status;
+        public int retcode;
+        
+        public string message;
+        public string wording;
+        public string echo;
+
+        [JsonIgnore]
+        // 该名称与协议中不同，此处为省略嵌套后的处理结果。在协议json中为data->messages
+        public List<forward_message_node> datas;
+
+        [JsonIgnore]
+        public string group_id { get; set; }
+        [JsonIgnore]
+        public string user_id { get; set; }
+        [JsonIgnore]
+        public message_sender sender { get; set; }
+    }
+
+
+
+    public class ForwardSenderSingle
+    {
+        public string group_id;
+        public string message_id;
     }
 
     public class XmlData : Message

@@ -1,4 +1,4 @@
-﻿namespace Kugua
+﻿namespace Kugua.Mods
 {
     class ViterbiModel
     {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using ChatGPT.Net;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 银行

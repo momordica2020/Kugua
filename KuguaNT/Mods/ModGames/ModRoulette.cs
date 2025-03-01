@@ -10,7 +10,7 @@ using System.Text;
 using System.Numerics;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
 

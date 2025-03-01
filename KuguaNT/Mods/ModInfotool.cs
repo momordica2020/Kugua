@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 一些额外功能

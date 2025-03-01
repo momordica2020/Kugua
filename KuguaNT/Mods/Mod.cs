@@ -119,6 +119,19 @@ namespace Kugua
 
 
 
+    ///// <summary>
+    ///// 模组的可持久化资源，用于自动存取
+    ///// </summary>
+    //public class ModResource
+    //{
+        
+    //}
+
+    //public enum ModResourceType
+    //{
+    //    Dictionary
+    //}
+
     /// <summary>
     /// 模组的基础类型，根据正则匹配等方式调用模组内方法
     /// </summary>

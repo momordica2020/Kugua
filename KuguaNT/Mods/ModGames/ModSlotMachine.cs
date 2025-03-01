@@ -2,13 +2,12 @@
 
 using System.Text.RegularExpressions;
 
-using static Kugua.ModRoulette;
 using System.Text;
 using Kugua.Integrations.NTBot;
 using System.Numerics;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 老虎机模块

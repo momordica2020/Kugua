@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 自然语言相关模型
     /// </summary>
-    internal class ModNLP : Mod
+    public class ModNLP : Mod
     {
         ViterbiModel model;
         private List<string> pinyinMapping;

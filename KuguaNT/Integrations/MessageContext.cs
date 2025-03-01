@@ -9,6 +9,7 @@ namespace Kugua
     {
         public string userId { get; set; }
         public string groupId { get; set; }
+        public string messageId;
         public bool IsGroup
         {
             get
@@ -153,7 +154,7 @@ namespace Kugua
                 
                 List<string> msgStrings = new List<string>();
 
-                List<Message> sendMessagesOthers = new List<Message>();
+                List<Message> msgWithoutText = new List<Message>();
 
                 foreach (var item in _sendMessages)
                 {
@@ -178,7 +179,7 @@ namespace Kugua
                     }
                     else
                     {
-                        sendMessagesOthers.Add(item);
+                        msgWithoutText.Add(item);
                     }
                 }
                 bool firstFrame = true;
@@ -190,7 +191,7 @@ namespace Kugua
                     var pmsg = new List<MessageInfo>();
                     if (firstFrame)
                     {
-                        foreach (var item in sendMessagesOthers)
+                        foreach (var item in msgWithoutText)
                         {
                             pmsg.Add(new MessageInfo( item));
                         }
@@ -239,6 +240,8 @@ namespace Kugua
             }
             return "";
         }
+
+        
 
     }
 

@@ -8,7 +8,7 @@ using ZhipuApi;
 
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 定时任务有关

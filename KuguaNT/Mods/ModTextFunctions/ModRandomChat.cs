@@ -9,7 +9,7 @@ using Microsoft.VisualBasic;
 using SuperSocket.ClientEngine;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 随机回复，龚诗似的

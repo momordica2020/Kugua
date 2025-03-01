@@ -5,6 +5,10 @@ using System.Security.Cryptography;
 
 namespace Kugua.Integrations.NTBot
 {
+    
+
+
+
     public class SendPoke
     {
         public string group_id;
@@ -25,15 +29,15 @@ namespace Kugua.Integrations.NTBot
 
     }
 
-    public class SenderReplyAPI
-    {
+    //public class SenderReplyAPI
+    //{
 
-        public string status;
-        public int retcode;
-        [JsonIgnore]
-        public SenderReply data;
-        public string echo;
-    }
+    //    public string status;
+    //    public int retcode;
+    //    [JsonIgnore]
+    //    public SenderReply data;
+    //    public string echo;
+    //}
 
     public interface SenderReply
     {
@@ -74,6 +78,16 @@ namespace Kugua.Integrations.NTBot
             this.group_id = group_id;
             this.message = message;
         }
+    }
+
+    public class send_forward_msg : SenderData
+    {
+        public string group_id;
+        public List<MessageInfo> messages;
+        public string prompt;
+        public string summary;
+        public string source;
+        public List<string> news;
     }
 
     public class send_msg : SenderData
@@ -136,6 +150,19 @@ namespace Kugua.Integrations.NTBot
         {
             id = msg_id;
         }
+    }
+
+    public class fetch_emoji_like
+    {
+        public string message_id;
+        public string emojiId;
+        public string emojiType;
+    }
+    public class send_emoji_like
+    {
+        public string message_id;
+        public int emoji_id;
+        public bool set = true;
     }
 
     public class send_like : SenderData

@@ -1,7 +1,6 @@
 ﻿
 using System.Text.RegularExpressions;
 
-using static Kugua.ModRoulette;
 using System.Text;
 using NvAPIWrapper.Display;
 using System;
@@ -9,7 +8,7 @@ using Kugua.Integrations.NTBot;
 using System.Numerics;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
     /// <summary>
@@ -152,8 +151,8 @@ namespace Kugua
                     {
                         if (bi == val)
                         {
-                            decimal multi = (bet.Count == 1 ? 5 : 2);
-                            winMoney = (BigInteger)(multi * (decimal)money);
+                            BigInteger multi = (bet.Count == 1 ? 5 : 2);
+                            winMoney = multi * money;
                         }
                     }
                    // context.SendBack([

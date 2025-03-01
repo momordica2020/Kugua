@@ -3,7 +3,7 @@ using Prophecy.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Kugua
+namespace Kugua.Mods
 {
     public class ModCalendar : Mod
     {

@@ -139,6 +139,18 @@ namespace Kugua
         }
 
 
+        public static void WriteResource(string resourceName, string data)
+        {
+            try
+            {
+                string realPath = Config.Instance.FullPath(resourceName);
+                writeText(realPath, data);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+        }
 
         public static void writeText(string file, string text)
         {

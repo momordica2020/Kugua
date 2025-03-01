@@ -2,7 +2,7 @@
 using ImageMagick.Drawing;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
     /// <summary>
     /// 老虎机运行逻辑

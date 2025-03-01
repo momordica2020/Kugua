@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 
-namespace Kugua
+namespace Kugua.Mods
 {
 
     /// <summary>
