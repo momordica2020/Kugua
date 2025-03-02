@@ -83,9 +83,9 @@ namespace Kugua.Integrations.NTBot
     public class ImageRecvBasic : Message
     {
         public string file;
-        public string file_id;
+        //public string file_id;
         public string url;
-        public string file_unique;
+        //public string file_unique;
         public string summary;
     }
 
@@ -103,7 +103,7 @@ namespace Kugua.Integrations.NTBot
 
     public class ImageRecvMarketFace : ImageRecvBasic
     {
-        public string path;
+        //public string path;
         public string key;
         public string emoji_id;
         public string emoji_package_id;

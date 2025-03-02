@@ -1,6 +1,7 @@
 ﻿
 using ImageMagick;
 using Kugua.Integrations.NTBot;
+using System.Text;
 
 
 namespace Kugua
@@ -110,6 +111,153 @@ namespace Kugua
                
 
                 return null;
+            }
+        }
+
+        public List<Image> GetImages()
+        {
+            List<Image > images = new List<Image>();
+            if (recvMessages != null)
+            {
+                foreach (var it in recvMessages)
+                {
+                    if (it is Image img) images.Add(img);
+                }
+            }
+
+            return images;
+        }
+
+        public string GetTexts()
+        {
+            StringBuilder sb = new StringBuilder();
+            if (recvMessages != null)
+            {
+                foreach (var it in recvMessages)
+                {
+                    if (it is Text text) sb.Append(text.text);
+                }
+            }
+
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 获取qq市场表情
+        /// </summary>
+        /// <returns></returns>
+        public MFace MarketFace
+        {
+            get
+            {
+                if (recvMessages != null)
+                {
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is ImageRecvMarketFace img)
+                        {
+                            return new MFace
+                            {
+                                emoji_id = img.emoji_id,
+                                emoji_package_id = img.emoji_package_id,
+                                key = img.key,
+                                summary = img.summary
+                            };
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 消息里是不是有市场表情
+        /// </summary>
+        /// <returns></returns>
+        public bool HasMarketFace
+        {
+            get
+            {
+                return MarketFace != null;
+            }
+        }
+
+
+        /// <summary>
+        /// 是不是内含引用节点
+        /// </summary>
+        /// <returns></returns>
+        public bool HasForward
+        {
+            get
+            {
+                if (recvMessages != null)
+                {
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is ForwardNodeExist f) return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 是不是内含嵌套引用
+        /// </summary>
+        /// <returns></returns>
+        public bool HasMultiForward
+        {
+            get
+            {
+                try
+                {
+                    if (recvMessages != null)
+                    {
+                        foreach (var it in recvMessages)
+                        {
+                            if (it is ForwardNodeExist f)
+                            {
+                                foreach (var fnode in f.content)
+                                {
+                                    foreach (var fnodenode in fnode.message)
+                                    {
+                                        if (fnodenode is ForwardNodeExist) return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                return false;
+
+            }
+        }
+
+
+        /// <summary>
+        /// 向消息发送表情回应。传入表情的名字或者emoji字符，自动匹配
+        /// </summary>
+        /// <param name="name"></param>
+        public void SendReact(string name)
+        {
+
+            try
+            {
+                var emoji = EmojiReact.Instance.Get(name);
+
+                if (emoji != null) client?.SendEmojiLike(messageId, int.Parse(emoji.id));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
             }
         }
 

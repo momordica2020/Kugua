@@ -58,17 +58,17 @@ namespace Kugua.Mods
             return ($"{desc} {dicenum}d{facenum} = {resdesc}");
         }
 
-        public bool HandleText(long userId, long groupId, string message, List<string> results)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return false;
-            Regex reg = new Regex(@"^r(\d*)?d(\d*)?(.*)?$");
-            var result = reg.Match(message);
-            if (result.Success)
-            {
+        //public bool HandleText(long userId, long groupId, string message, List<string> results)
+        //{
+        //    if (string.IsNullOrWhiteSpace(message)) return false;
+        //    Regex reg = new Regex(@"^r(\d*)?d(\d*)?(.*)?$");
+        //    var result = reg.Match(message);
+        //    if (result.Success)
+        //    {
                 
-            }
-            return false;
-        }
+        //    }
+        //    return false;
+        //}
 
 
 

@@ -296,153 +296,169 @@ namespace Kugua.Mods
         {
             if (context.recvMessages == null || context.recvMessages.Count<=0) return false;
 
+            if (context.HasMarketFace)
+            {
+                var m = context.MarketFace;
+                switch (m.emoji_id)
+                {
+                    case "8680e85e8c1a9e3c95e8b7840002a71c"://摸摸头
+                        context.SendReact("爱心");
+                        return true;
+                    case "eb66d09af28f53518a4096efc10bd8a8"://俺寻思
+                        context.SendReact("疑问");
+                        return true;
+                    default:break;
+                }
+            }
+
+
             if(context.recvMessages.ToTextString() == "测试以下")
             {
-                Logger.Log($"{context.groupId} MMMM!");
-                var ccontext = new MessageContext
-                {
-                    groupId = context.groupId,
-                    client = clientQQ,
-                };
-                var r = ModRandomChat.getHistoryReact(ccontext);
-                foreach (var item in r)
-                {
-                    Logger.Log($"-{item.Length}!");
-                    ccontext.SendBackPlain(item);
-                }
+                //Logger.Log($"{context.groupId} MMMM!");
+                //var ccontext = new MessageContext
+                //{
+                //    groupId = context.groupId,
+                //    client = clientQQ,
+                //};
+                //var r = ModRandomChat.getHistoryReact(ccontext);
+                //foreach (var item in r)
+                //{
+                //    Logger.Log($"-{item.Length}!");
+                //    ccontext.SendBackPlain(item);
+                //}
             }
 
-            if (context.IsPrivate)
-            {
-                foreach (var msg in context.recvMessages)
-                {
-                    if (msg is Text plain)
-                    {
-                        var str = plain.text;
-                        if (str == "测试")
-                        {
-                            //new FriendMessage(s.id, [
-                            //new Voice(null,voice.url)
-                            //]).Send(client);
-                        }
-                        //string msg2 = StaticUtil.RemoveEmojis(plain.text);
-                        //if (string.IsNullOrWhiteSpace(msg2)) return false;
-                        //new FriendMessage(s.id, [
-                        //    new Plain(msg2)
-                        //    ]).Send(client);
-                        return false;
-                    }
-                    if (msg is Record voice)
-                    {
+            //if (context.IsPrivate)
+            //{
+            //    foreach (var msg in context.recvMessages)
+            //    {
+            //        if (msg is Text plain)
+            //        {
+            //            var str = plain.text;
+            //            if (str == "测试")
+            //            {
+            //                //new FriendMessage(s.id, [
+            //                //new Voice(null,voice.url)
+            //                //]).Send(client);
+            //            }
+            //            //string msg2 = StaticUtil.RemoveEmojis(plain.text);
+            //            //if (string.IsNullOrWhiteSpace(msg2)) return false;
+            //            //new FriendMessage(s.id, [
+            //            //    new Plain(msg2)
+            //            //    ]).Send(client);
+            //            return false;
+            //        }
+            //        if (msg is Record voice)
+            //        {
 
-                        //new FriendMessage(s.id, [
-                        //    new Voice(null,voice.url)
-                        //    ]).Send();
-                        return true;
-                    }
-                }
-            }
-            else if (context.IsGroup)
-            {
-                //if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
-                //{
-                //    List<string> imgPaths = new List<string>();
-                //    string cmd = context.recvMessages.ToTextString();
-                //    foreach (var item in context.recvMessages)
-                //    {
-                //        if (item is Image image)
-                //        {
-                //            //Logger.Log("img!");
-                //            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
-                //            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
-                //            //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
-                //            //WebLinker.DownloadImageAsync(image.url, imgPath);
-                //            var base64data = await Network.ConvertImageUrlToBase64(image.url);
-                //            imgPaths.Add(base64data);
-                //        }
-                //    }
-                //    //Logger.Log($"{imgPaths.Count}");
-                //    if (imgPaths.Count > 0)
-                //    {
-                //        GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
-                //        return true;
-                //    }
+            //            //new FriendMessage(s.id, [
+            //            //    new Voice(null,voice.url)
+            //            //    ]).Send();
+            //            return true;
+            //        }
+            //    }
+            //}
+            //else if (context.IsGroup)
+            //{
+            //    //if (Config.Instance.GroupInfo(context.groupId).Is("正常模式"))
+            //    //{
+            //    //    List<string> imgPaths = new List<string>();
+            //    //    string cmd = context.recvMessages.ToTextString();
+            //    //    foreach (var item in context.recvMessages)
+            //    //    {
+            //    //        if (item is Image image)
+            //    //        {
+            //    //            //Logger.Log("img!");
+            //    //            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}{Path.DirectorySeparatorChar}{userId}";
+            //    //            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+            //    //            //string imgPath = $"{userImgDict}{Path.DirectorySeparatorChar}{image.imageId}";
+            //    //            //WebLinker.DownloadImageAsync(image.url, imgPath);
+            //    //            var base64data = await Network.ConvertImageUrlToBase64(image.url);
+            //    //            imgPaths.Add(base64data);
+            //    //        }
+            //    //    }
+            //    //    //Logger.Log($"{imgPaths.Count}");
+            //    //    if (imgPaths.Count > 0)
+            //    //    {
+            //    //        GPT.Instance.AIReplyWithImage(context, imgPaths.ToArray());
+            //    //        return true;
+            //    //    }
 
-                //}
-
-
-                //// 
-                //foreach (var msg in context.recvMessages)
-                //{
-
-                //    if (msg is Text plain)
-                //    {
-                //        if (plain.text == "发语音")
-                //        {
-                //            //string inputwav = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\1106-173028_9.4s-seedseed_1694_restored_emb-covert.pt-temp0.11-top_p0.05-top_k15-len28-86146-0-0.wav";
-                //            //string inputpcm = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.pcm";
-                //            //string outputSilk = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.silk";
-                //            //string mp3file = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.mp3";
-                //            //string amrfile = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.amr";
-                //            ////SilkSharp.Encoder encoder = new();
-                //            ////encoder.EncodeAsync(inputpcm, outputSilk);
-                //            //new GroupMessage(s.group.id, [
-                //            //    new Voice(null,null,amrfile)
-                //            //    ]).Send(client);
-
-                //            //return true;
-                //        }
-                //    }
+            //    //}
 
 
+            //    //// 
+            //    //foreach (var msg in context.recvMessages)
+            //    //{
 
-                //}
+            //    //    if (msg is Text plain)
+            //    //    {
+            //    //        if (plain.text == "发语音")
+            //    //        {
+            //    //            //string inputwav = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\1106-173028_9.4s-seedseed_1694_restored_emb-covert.pt-temp0.11-top_p0.05-top_k15-len28-86146-0-0.wav";
+            //    //            //string inputpcm = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.pcm";
+            //    //            //string outputSilk = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.silk";
+            //    //            //string mp3file = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.mp3";
+            //    //            //string amrfile = @"D:\Projects\win-ChatTTS-ui-v1.0\static\wavs\test.amr";
+            //    //            ////SilkSharp.Encoder encoder = new();
+            //    //            ////encoder.EncodeAsync(inputpcm, outputSilk);
+            //    //            //new GroupMessage(s.group.id, [
+            //    //            //    new Voice(null,null,amrfile)
+            //    //            //    ]).Send(client);
+
+            //    //            //return true;
+            //    //        }
+            //    //    }
+
+
+
+            //    //}
                 
 
 
-                //string logstr = "";
-                //foreach (var msg in context.recvMessages)
-                //{
-                //    logstr += $",{msg.GetType()}";
-                //}
-                //Logger.Log(logstr);
+            //    //string logstr = "";
+            //    //foreach (var msg in context.recvMessages)
+            //    //{
+            //    //    logstr += $",{msg.GetType()}";
+            //    //}
+            //    //Logger.Log(logstr);
 
-                foreach (var msg in context.recvMessages)
-                {
-                    //if (msg is Voice voice)
-                    //{
-                    //    new GroupMessage(s.group.id, [
-                    //            new Voice(voice.voiceId)
-                    //            ]).Send(client);
+            //    foreach (var msg in context.recvMessages)
+            //    {
+            //        //if (msg is Voice voice)
+            //        //{
+            //        //    new GroupMessage(s.group.id, [
+            //        //            new Voice(voice.voiceId)
+            //        //            ]).Send(client);
 
-                    //    return true;
-                    //}
+            //        //    return true;
+            //        //}
 
-                    if (msg is Image itemImg)
-                    {
-                        //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{context.userId}";
-                        //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
-                        //Network.DownloadAsync(itemImg.url, $"{userImgDict}/{}.jpg");
-                    }
-                    //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
+            //        if (msg is Image itemImg)
+            //        {
+            //            //string userImgDict = $"{Config.Instance.ResourceFullPath("HistoryImagePath")}/{context.userId}";
+            //            //if (!Directory.Exists(userImgDict)) Directory.CreateDirectory(userImgDict);
+            //            //Network.DownloadAsync(itemImg.url, $"{userImgDict}/{}.jpg");
+            //        }
+            //        //ForwardMessage fm = new ForwardMessage([new ForwardMessage.Node(Config.Instance.App.Avatar.myQQ, DateTime.Now.Ticks, Config.Instance.App.Avatar.myName, e.Skip(1).ToArray(), source.id)]);
 
-                    //if (userId == Config.Instance.App.Avatar.adminQQ)
-                    //{
-                    //    //if (item is ForwardMessage gmsg)
-                    //    {
-                    //        // new MeowMiraiLib.Msg.GroupMessage(groupId, [
-                    //        //  new At(userId, ""),
-                    //        //new ForwardMessage()
-                    //        //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
-                    //        //new ForwardMessage.Node()
-                    //        //]).Send(client);
-                    //        //return true;
-                    //    }
-                    //}
-                }
+            //        //if (userId == Config.Instance.App.Avatar.adminQQ)
+            //        //{
+            //        //    //if (item is ForwardMessage gmsg)
+            //        //    {
+            //        //        // new MeowMiraiLib.Msg.GroupMessage(groupId, [
+            //        //        //  new At(userId, ""),
+            //        //        //new ForwardMessage()
+            //        //        //new Voice(null,null,@"D:\Projects\SummerTTS_VS-main\x64\Debug\out.wav")
+            //        //        //new ForwardMessage.Node()
+            //        //        //]).Send(client);
+            //        //        //return true;
+            //        //    }
+            //        //}
+            //    }
 
-                //return false;
-            }
+            //    //return false;
+            //}
 
 
 

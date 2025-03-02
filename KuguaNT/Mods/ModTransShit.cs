@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using NvAPIWrapper.DRS.SettingValues;
 using System.Data;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
@@ -21,7 +22,7 @@ namespace Kugua.Mods
         //List<ShitTransGroupInfo> transInfo=new List<ShitTransGroupInfo>();
         //string targetGroup = "833246207";
         string sfile = "ModTransShit/groupinfo.json";
-        bool open = false;
+        
 
         string configfile = "ModTransShit/config.json";
         public ShitConfig config = new ShitConfig();
@@ -57,6 +58,9 @@ namespace Kugua.Mods
         {
             try
             {
+                ModCommands.Add(new ModCommand(new Regex(@"^搬史(启动|停止)$", RegexOptions.Singleline), setState));
+
+
                 ModCommands.Add(new ModCommand(new Regex(@"^转发(\d+)", RegexOptions.Singleline), setTransSource));
                 ModCommands.Add(new ModCommand(new Regex(@"^转到(\d+)", RegexOptions.Singleline), setTransTarget));
 
@@ -78,7 +82,8 @@ namespace Kugua.Mods
                         min_score = 1,
                         historyMaxScore = 0,
                         historyMaxScoreDate = DateTime.Now,
-                        historyPublished = 0
+                        historyPublished = 0,
+                        open=false
                     };
                 }
 
@@ -116,6 +121,31 @@ namespace Kugua.Mods
                 Logger.Log(e);
             }
             return true;
+        }
+
+        private string setState(MessageContext context, string[] param)
+        {
+            try
+            {
+                if (!context.IsAdminUser) return "";
+                var state = param[1];
+                if(state == "启动")
+                {
+                    config.open = true;
+                    Save();
+                    return "搬史启动。";
+                }else if (state == "停止")
+                {
+                    config.open = false;
+                    Save();
+                    return "搬史停止。";
+                    
+                }
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return null;
         }
 
         private string showList(MessageContext context, string[] param)
@@ -405,7 +435,7 @@ namespace Kugua.Mods
         /// <param name="e"></param>
         private void TaskTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            if (!open) return;
+            if (!config.open) return;
             // 检查到期内容是否被点过很多赞，有的话就发送最高的几个
             var span = DateTime.Now - lastPublishDate;
             Logger.Log($"*** shit轮检中，目前{shits.Count}个没发，hash长度{shithash.Count}，均分{last_loop_ave_score:F2}，距上次推送{span.TotalMinutes:F2}min");
@@ -734,6 +764,7 @@ namespace Kugua.Mods
             if (string.IsNullOrWhiteSpace(ns.hash))
             {
                 // not shit
+                //Logger.Log($"[{context.groupId}] not shit.");
                 return null;
             }
             else if (shithash.ContainsKey(ns.hash))
@@ -780,47 +811,51 @@ namespace Kugua.Mods
         {
             try
             {
-                if (!open) return false;
-
-                bool tranit = false;
-                ForwardNodeExist forward = null;
-                List<string> targets = new List<string>();
-                foreach (var m in context.recvMessages)
+                //Logger.Log($"!config.open?{!config.open}");
+                if (config.open && ShitSource.ContainsKey(context.groupId))
                 {
-                    if (ShitSource.ContainsKey(context.groupId))
-                    {
-                        tranit = true;
-                        break;
-                    }
-                }
-                if (tranit)
-                {
-                    // add to prepare list
                     addNewShit(context);
-                    //if (m is ForwardNodeExist fnode)
-                    //{
-                    //    forward = fnode;
-
-                    //    break;
-                    //}
                 }
-
-
-
-
-
-                //var input = context.recvMessages.ToTextString();
-                //if (!context.IsAskme || !input.Contains('译')) return false;
-                //(string text, List<string> langs) = CutLanguages(input);
-                //if (langs.Count > 0 && !string.IsNullOrWhiteSpace(text))
+                //bool tranit = false;
+                ////ForwardNodeExist forward = null;
+                //List<string> targets = new List<string>();
+                //foreach (var m in context.recvMessages)
                 //{
-                //    var resAll = getTrans(text, langs);
-                //    if (!string.IsNullOrWhiteSpace(resAll))
+                //    if (ShitSource.ContainsKey(context.groupId))
                 //    {
-                //        context.SendBackPlain(resAll, true);
-                //        return true;
+                //        tranit = true;
+                //        break;
                 //    }
                 //}
+                ////Logger.Log($"tranit?{tranit}");
+                //if (tranit)
+                //{
+                //    // add to prepare list
+                //    addNewShit(context);
+                //    //if (m is ForwardNodeExist fnode)
+                //    //{
+                //    //    forward = fnode;
+
+                    //    //    break;
+                    //    //}
+                    //}
+
+
+
+
+
+                    //var input = context.recvMessages.ToTextString();
+                    //if (!context.IsAskme || !input.Contains('译')) return false;
+                    //(string text, List<string> langs) = CutLanguages(input);
+                    //if (langs.Count > 0 && !string.IsNullOrWhiteSpace(text))
+                    //{
+                    //    var resAll = getTrans(text, langs);
+                    //    if (!string.IsNullOrWhiteSpace(resAll))
+                    //    {
+                    //        context.SendBackPlain(resAll, true);
+                    //        return true;
+                    //    }
+                    //}
 
             }
             catch (Exception ex)
@@ -968,8 +1003,8 @@ namespace Kugua.Mods
         public int del_old_span_min = 60;//minutes
         public int once_maxnum = 5;
         public int min_score = 1;
+        public bool open = false;
 
-        
         public long historyPublished = 0;
         public long historyMaxScore = 0;
         public DateTime historyMaxScoreDate;

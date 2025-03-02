@@ -24,9 +24,17 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^帮助$"), getWelcomeString));
             ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned));
+           // ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)群(\d+)"), handleBannedGroup));
             ModCommands.Add(new ModCommand(new Regex(@"^解封(\d+)"), handleUnBanned));
+
+
+           // ModCommands.Add(new ModCommand(new Regex(@"^设置群(\d*)\+(\S+)"), handleAddTagGroup));
+            //ModCommands.Add(new ModCommand(new Regex(@"^设置群(\d*)\-(\S+)"), handleRemoveTagGroup));
+
             ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\+(\S+)"), handleAddTag));
             ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\-(\S+)"), handleRemoveTag));
+
+
             ModCommands.Add(new ModCommand(new Regex(@"^设置清空(\s*)"), handleClearTag));
             ModCommands.Add(new ModCommand(new Regex(@"^状态$"),handleShowState));
             ModCommands.Add(new ModCommand(new Regex(@"^(存档|保存)$"), handleSave));
@@ -177,6 +185,25 @@ namespace Kugua.Mods
         }
 
 
+        //private string handleBannedGroup(MessageContext context, string[] param)
+        //{
+        //    if (!context.IsAdminUser) return "";
+        //    string message = param[1];
+        //    var targetGroupId = 0;
+        //    if (string.IsNullOrWhiteSpace(message) || !int.TryParse(message, out targetGroupId))
+        //    {
+        //        return $"请在指令后接群号";
+        //    }
+        //    else
+        //    {
+        //        var targetGroup = Config.Instance.GroupInfo(targetGroupId.ToString());
+        //        targetGroup.Tags.Add("黑名单"); // 临时性拉黑，没有加type设置
+        //        return $"已屏蔽群{targetGroup.Name}({targetGroupId})的响应";
+        //    }
+        //}
+
+
+
         private string handleBanned(MessageContext context, string[] param)
         {
             if (!context.IsAdminUser) return "";
@@ -212,6 +239,59 @@ namespace Kugua.Mods
                 return $"已解除屏蔽{targetUser.Name}({targetUserId})";
             }
         }
+
+
+        //private string handleAddTagGroup(MessageContext context, string[] param)
+        //{
+        //    string groupid = param[1];
+        //    string message = param[2];
+        //    if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
+        //    if (!context.IsAdminUser) return "";
+
+        //    var user = Config.Instance.UserInfo(context.userId);
+        //    var group = Config.Instance.GroupInfo(groupid);
+        //    if (user == null || group == null || string.IsNullOrWhiteSpace(message))
+        //    {
+        //        return $"请在指令后接tag名称";
+        //    }
+        //    if (context.IsGroup)
+        //    {
+        //        group.Tags.Add(message);
+        //        return $"群{groupid}已添加tag：{message}";
+        //    }
+        //    else
+        //    {
+        //        user.Tags.Add(message);
+        //        return $"私聊已添加tag：{message}";
+        //    }
+        //}
+
+
+        //private string handleRemoveTagGroup(MessageContext context, string[] param)
+        //{
+        //    string groupid = param[1];
+        //    string message = param[2];
+        //    if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
+        //    if (!context.IsAdminUser) return "";
+
+        //    var user = Config.Instance.UserInfo(context.userId);
+        //    var group = Config.Instance.GroupInfo(groupid);
+        //    if (user == null || group == null || string.IsNullOrWhiteSpace(message))
+        //    {
+        //        return $"请在指令后接tag名称";
+        //    }
+        //    if (context.IsGroup)
+        //    {
+        //        group.Tags.Remove(message);
+        //        return $"群{groupid}已移除tag：{message}";
+        //    }
+        //    else
+        //    {
+        //        user.Tags.Remove(message);
+        //        return $"私聊已移除tag：{message}";
+        //    }
+        //}
+
 
         private string handleAddTag(MessageContext context, string[] param)
         {

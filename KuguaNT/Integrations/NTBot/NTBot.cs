@@ -243,19 +243,27 @@ namespace Kugua.Integrations.NTBot
 
         }
 
+        /// <summary>
+        /// 发送对特定消息的表情回应。
+        /// </summary>
+        /// <param name="msg_id"></param>
+        /// <param name="emoji_id"></param>
+        /// <param name="set"></param>
         public void SendEmojiLike(string msg_id, int emoji_id, bool set=true)
         {
             try
             {
                 string uri = Config.Instance.App.Net.QQHTTP + "/set_msg_emoji_like";
-                string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new send_emoji_like
-                {
-                    message_id = msg_id,
-                    emoji_id = emoji_id,
-                    set = set
-                })).Result;
-                Logger.Log(json);
-                JObject jo = JObject.Parse(json);
+                string json = Network.PostJsonAsync(
+                    uri, JsonConvert.SerializeObject(
+                    new send_emoji_like
+                    {
+                        message_id = msg_id,
+                        emoji_id = emoji_id,
+                        set = set
+                    })).Result;
+                //Logger.Log(json);
+                //JObject jo = JObject.Parse(json);
             }
             catch(Exception ex)
             {
@@ -407,19 +415,21 @@ namespace Kugua.Integrations.NTBot
                         {
                             case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(data)); break;
                             case "image":
-                                var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
-                                if(imageBasic.summary== "marketface")
+                                //var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
+                                if (mj["data"]["emoji_id"]!=null)// .summary== "marketface")
                                 {
                                     // 市场表情，打印出来以便使用喵
                                     var mi = JsonConvert.DeserializeObject<ImageRecvMarketFace>(data);
                                     Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
+                                    msgs.Add(JsonConvert.DeserializeObject<ImageRecvMarketFace>(data));
                                 }
                                 else
                                 {
                                     // 普通发图，也可能是[动画表情]
                                     var ni = JsonConvert.DeserializeObject<ImageRecvNormal>(data);
+                                    msgs.Add(JsonConvert.DeserializeObject<Image>(data));
                                 }
-                                msgs.Add(JsonConvert.DeserializeObject<Image>(data)); 
+                                
                                 //Logger.Log(data); 
                                 break;
                             case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
@@ -704,7 +714,7 @@ namespace Kugua.Integrations.NTBot
                                         // [{"emoji_id":"10068","count":1}]
                                         var emoji_id = likes.First()["emoji_id"].ToString();
                                         Logger.Log(emoji_id);
-                                        Config.Instance.emojiTypeInfos.TryGetValue(emoji_id, out var emoji);
+                                        var emoji = EmojiReact.Instance.GetById(emoji_id);//  EmojiReact.Instance.emojiTypeInfos.TryGetValue(emoji_id, out var emoji);
                                         if (emoji != null)
                                         {
                                             Logger.Log($"[消息响应][群{data.group_id}]{data.user_id}给{data.message_id}点了个{emoji.name}");

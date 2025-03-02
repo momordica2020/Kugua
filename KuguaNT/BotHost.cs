@@ -337,6 +337,8 @@ namespace Kugua
                 IsAskme = true
             };
             HistoryManager.Instance.Add(context.messageId, context.groupId, context.userId, e.raw_message);
+            if (!Config.Instance.AllowPlayer(e.user_id)) return; // 黑名单
+
             HandlePrivateMessageReceiveMultiIO(context);
         }
 
@@ -392,7 +394,6 @@ namespace Kugua
         {
             if (e == null) return;
             Logger.Log($"[{e.message_id}]群({e.group_id})信息 [qq:{e.user_id},昵称:{e.sender.nickname}] \n内容:{e.raw_message}", LogType.Debug);
-            if (!Config.Instance.AllowPlayer(e.user_id) || !Config.Instance.AllowGroup(e.group_id)) return; // 黑名单
 
             var uinfo = Config.Instance.UserInfo(e.user_id);
             uinfo.Name = e.sender.nickname;
@@ -406,6 +407,10 @@ namespace Kugua
                 recvMessages = e.message,
             };
             HistoryManager.Instance.Add(context.messageId, context.groupId, context.userId, e.raw_message);
+            if (!Config.Instance.AllowPlayer(e.user_id) || !Config.Instance.AllowGroup(e.group_id)) return; // 黑名单
+
+
+
             HandleGroupMessageReceiveMultiIO(context);
         }
 
