@@ -403,3 +403,4 @@ FodyWeavers.xsd
 *.sln.iml
 /output/_BK
 /KuguaNT/Integrations/AI/Zhipu.cs
+/TelegramManager
