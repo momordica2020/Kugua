@@ -3,6 +3,7 @@ using System.Text;
 using System;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods;
+using Kugua.Integrations.AI;
 
 
 
@@ -60,7 +61,6 @@ namespace Kugua
                 Logger.Instance.OnBroadcastLogEvent += sendLog;
                 Logger.Log("开始初始化配置文件。");
 
-                ;
                 bool isValid = Config.Instance.Load();
                 if (!isValid)
                 {
@@ -175,7 +175,7 @@ namespace Kugua
                 }
 
                 Logger.Log($"启用GPT相关接口...");
-                GPT.Instance.Init();
+                LLM.Instance.Init();
                 if (!string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri))
                 {
                     Logger.Log($"TTS连接至：{Config.Instance.App.Net.TTSUri}");

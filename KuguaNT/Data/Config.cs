@@ -23,7 +23,6 @@ namespace Kugua
         private static readonly Lazy<Config> instance = new Lazy<Config>(() => new Config());
         private Config()
         {
-
             isLoaded = false;
         }
 
@@ -111,12 +110,14 @@ namespace Kugua
         /// <returns></returns>
         public bool Load()
         {
+            Logger.Log($"1");
             if (isLoaded) return true;
             lock (loadMutex)
             {
                 if (isLoaded) return true;
                 try
                 {
+                    Logger.Log($"2");
                     configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}{configFileName}";
                     Logger.Log($"配置文件路径是{configFile}");
                     if (!File.Exists(configFile))
@@ -374,7 +375,8 @@ namespace Kugua
             {
                 
                 //if (id == App.Avatar.myQQ) return false;   // 不许套娃
-                var u = UserInfo(id);
+                Player u = UserInfo(id);
+                if (UserHasAdminAuthority(id)) return true;
                 if (u.Type == PlayerType.Blacklist || u.Is("黑名单")) return false;
                 
                 // 默认皆可应答

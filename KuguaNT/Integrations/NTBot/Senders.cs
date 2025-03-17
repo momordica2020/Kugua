@@ -177,6 +177,16 @@ namespace Kugua.Integrations.NTBot
         }
     }
 
+    public class send_get_group_list: SenderData
+    {
+        public string next_token = "";
+
+        public send_get_group_list()
+        {
+            next_token = "null";
+        }
+    }
+
     public class set_group_kick : SenderData
     {
         public string group_id;

@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Integrations.AI;
+using Kugua.Integrations.NTBot;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods
@@ -141,7 +142,7 @@ namespace Kugua.Mods
             string speakSentence = param[1];
             if (string.IsNullOrWhiteSpace(speakSentence)) return "";
 
-            GPT.Instance.AITalk(context, $"{speakSentence}");
+            LLM.Instance.Talk(context, $"{speakSentence}");
 
 
             return null;

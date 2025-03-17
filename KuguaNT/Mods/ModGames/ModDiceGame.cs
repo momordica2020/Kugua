@@ -121,31 +121,35 @@ namespace Kugua.Mods
                     //var val = MyRandom.Next(1, 7);// = 1~6
                  
                         var bet = new List<int>();
-                        if (betDesc == "单")
+                    if (betDesc.StartsWith("单"))
+                    {
+                        bet.AddRange(new int[] { 1, 3, 5 });
+                    }
+                    else if (betDesc.StartsWith("双"))
+                    {
+                        bet.AddRange(new int[] { 2, 4, 6 });
+                    }
+                    else if (betDesc.StartsWith("大"))
+                    {
+                        bet.AddRange(new int[] { 4, 5, 6 });
+                    }
+                    else if (betDesc.StartsWith("小"))
+                    {
+                        bet.AddRange(new int[] { 1, 2, 3 });
+                    }
+                    else
+                    {
+                        int nn = 0;
+                        int.TryParse(betDesc, out nn);
+                        if (nn >= 1 && nn <= 6)
                         {
-                            bet.AddRange(new int[] { 1, 3, 5 });
-                        }
-                        else if (betDesc == "双")
-                        {
-                            bet.AddRange(new int[] { 2, 4, 6 });
-                        }
-                        else if (betDesc == "大")
-                        {
-                            bet.AddRange(new int[] { 4, 5, 6 });
-                        }
-                        else if (betDesc == "小")
-                        {
-                            bet.AddRange(new int[] { 1, 2, 3 });
+                            bet.Add(nn);
                         }
                         else
                         {
-                            int nn = 0;
-                            int.TryParse(betDesc, out nn);
-                            if (nn >= 1 && nn <= 6)
-                            {
-                                bet.Add(nn);
-                            }
-
+                            // 识别失败
+                            return $"识别失败，请输入单/双/大/小/1/2/3/4/5/6 其中一项喵";
+                        }                    
                     }
                     foreach (var bi in bet)
                     {

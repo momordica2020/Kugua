@@ -1,9 +1,9 @@
 ﻿using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Linq;
 
-namespace Kugua
+namespace Kugua.Integrations.AI
 {
-    public partial class GPT
+    public partial class LLM
     {
         #region 说话模块
 
@@ -13,7 +13,7 @@ namespace Kugua
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public string[] AITalkPre(string input)
+        public string[] TalkPre(string input)
         {
             string filterdInput = StaticUtil.RemoveEmojis(input);
             if (string.IsNullOrWhiteSpace(filterdInput)) return null;
@@ -61,7 +61,7 @@ namespace Kugua
         }
 
 
-        public async Task AITalkSingle(MessageContext context, string input)
+        public async Task TalkSingle(MessageContext context, string input)
         {
             try
             {
@@ -136,15 +136,15 @@ namespace Kugua
 
 
 
-        public async void AITalk(MessageContext context, string sentense)
+        public async void Talk(MessageContext context, string sentense)
         {
             if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri)) return;
-            var inputs = AITalkPre(sentense);
+            var inputs = TalkPre(sentense);
             if (inputs != null)
             {
                 foreach (var ipt in inputs)
                 {
-                    await AITalkSingle(context, ipt);
+                    await TalkSingle(context, ipt);
                 }
             }
         }

@@ -38,12 +38,86 @@ namespace Kugua
                 {
                     foreach (var msg in recvMessages)
                     {
-                        if (msg is Image) return true;
+                        if (msg is ImageBasic) return true;
                     }
                 }
                 return false;
             }
         }
+
+
+        public bool OnlyImage
+        {
+            get
+            {
+                bool hasImage = false;
+                if (recvMessages?.Count > 0)
+                {
+                    foreach (var msg in recvMessages)
+                    {
+                        if (msg is ImageBasic)
+                        {
+                            hasImage = true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return hasImage;
+            }
+        }
+
+        
+
+        public bool OnlyVideo
+        {
+            get
+            {
+                bool hasVideo = false;
+                if (recvMessages?.Count > 0)
+                {
+                    foreach (var msg in recvMessages)
+                    {
+                        if (msg is Video)
+                        {
+                            hasVideo = true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return hasVideo;
+            }
+        }
+
+        public bool OnlyText
+        {
+            get
+            {
+                bool hasText = false;
+                if (recvMessages?.Count > 0)
+                {
+                    foreach (var msg in recvMessages)
+                    {
+                        if (msg is Text)
+                        {
+                            hasText = true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return hasText;
+            }
+        }
+       
+
 
         public bool IsAdminUser
         {
@@ -87,11 +161,11 @@ namespace Kugua
         {
             get
             {
-                if(recvMessages?.Count > 0 && IsImage)
+                if(IsImage)
                 {
-                    foreach (var it in recvMessages)
+                    foreach (var it in Images)
                     {
-                        if (it is Image img)
+                        if (it is ImageBasic img)
                         {
                             var currentFrame = Network.DownloadImage(img.url).First();
                             using (MemoryStream ms = new MemoryStream())
@@ -114,33 +188,41 @@ namespace Kugua
             }
         }
 
-        public List<Image> GetImages()
+        public List<ImageBasic> Images
         {
-            List<Image > images = new List<Image>();
-            if (recvMessages != null)
+            get
             {
-                foreach (var it in recvMessages)
+                List<ImageBasic> images = new List<ImageBasic>();
+                if (recvMessages != null)
                 {
-                    if (it is Image img) images.Add(img);
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is ImageBasic img) images.Add(img);
+                    }
                 }
-            }
 
-            return images;
+                return images;
+            }
         }
 
-        public string GetTexts()
+        public string Texts
         {
-            StringBuilder sb = new StringBuilder();
-            if (recvMessages != null)
+            get
             {
-                foreach (var it in recvMessages)
+
+
+                StringBuilder sb = new StringBuilder();
+                if (recvMessages != null)
                 {
-                    if (it is Text text) sb.Append(text.text);
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is Text text) sb.Append(text.text);
+                    }
                 }
+
+
+                return sb.ToString();
             }
-
-
-            return sb.ToString();
         }
 
         /// <summary>
@@ -293,9 +375,52 @@ namespace Kugua
 
             return 0;
         }
+
+
+
+        public async Task<string> SendBackImageBase64(string base64, string desc = "")
+        {
+            List<Message> msgs = new List<Message>();
+            if (!string.IsNullOrWhiteSpace(base64)) msgs.Add(new ImageSend($"base64://{base64}"));
+            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            else return "";
+        }
+
+        public async Task<string> SendBackImage(string imagePath, string desc = "")
+        {
+            List<Message> msgs = new List<Message>();
+            if (!string.IsNullOrWhiteSpace(imagePath)) msgs.Add(new ImageSend($"file://{imagePath}"));
+            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            else return "";
+        }
+
+
+        public async Task<string> SendBackImage(MagickImageCollection image, string desc = "")
+        {
+            
+            List<Message> msgs = new List<Message>();
+            if (image!=null) msgs.Add(new ImageSend(image));
+            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            else return "";
+        }
+
+
+        public async Task<string> SendBackImage(MagickImage image, string desc = "")
+        {
+            List<Message> msgs = new List<Message>();
+            if (image != null) msgs.Add(new ImageSend(image));
+            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            else return "";
+        }
+
+
         public async Task<string> SendBack(Message[] _sendMessages, bool isFilter = false)
         {
-            if (_sendMessages != null)
+            if (_sendMessages != null && _sendMessages.Length > 0)
             {
                 if (client == null) return "";
 
@@ -362,10 +487,18 @@ namespace Kugua
                         //else
                         if (IsGroup)
                         {
-                            var group = Config.Instance.GroupInfo(groupId);
-                            if (group != null) group.UseTimes += 1;
-                            var user = Config.Instance.UserInfo(userId);
-                            if(user!=null)user.UseTimes += 1;
+                            var delay = 0;
+                            if (Config.Instance.GroupInfo(groupId) is Playgroup group)
+                            {
+                                group.UseTimes += 1;
+                                delay = group.delayMs;
+                            }
+                            if (Config.Instance.UserInfo(userId) is Player user)
+                            {
+                                user.UseTimes += 1;
+                            }
+                            //Logger.Log($"delay={delay}ms");
+                            await Task.Delay(delay);
                             var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add( messageId);
@@ -373,8 +506,14 @@ namespace Kugua
                         }
                         else
                         {
-                            var user = Config.Instance.UserInfo(userId);
-                            if (user != null) user.UseTimes += 1;
+                            var delay = 0;
+                            if (Config.Instance.UserInfo(userId) is Player user)
+                            {
+                                user.UseTimes += 1;
+                                delay = user.delayMs;
+                            }
+                            //Logger.Log($"delay={delay}ms");
+                            await Task.Delay(delay);
                             var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
                             if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
                             msgIds.Add( messageId);

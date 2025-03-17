@@ -3,13 +3,13 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 
-namespace Kugua 
+namespace Kugua.Integrations.AI
 {
 
     /// <summary>
     /// Ollama
     /// </summary>
-    public partial class GPT
+    public partial class LLM
     {
 
 
@@ -221,7 +221,7 @@ namespace Kugua
                         }
                     }
                 }
-
+                
                 if (!string.IsNullOrWhiteSpace(functionResponse))
                 {
                     messages.Add(new { role = "tool", content = functionResponse });

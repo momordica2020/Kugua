@@ -1,5 +1,8 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Integrations.AI;
+using Kugua.Integrations.NTBot;
 using System.Numerics;
+using System.Runtime.InteropServices.Marshalling;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
@@ -17,6 +20,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
             ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
+            ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
+            ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,false));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
@@ -28,7 +33,44 @@ namespace Kugua.Mods
             return true;
         }
 
- 
+        private string showColor(MessageContext context, string[] param)
+        {
+            string colorCode = param[0];
+            context.SendBack([new ImageSend(ImageUtil.GetColorSample(colorCode))]);
+            return null;
+        }
+
+
+        /// <summary>
+        /// 提取图片色卡
+        /// 取色[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getColorCode(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+                var colors = ImageUtil.ImageColorExtract(Network.DownloadImage(context.Images.First().url), 3);
+                List<string> colorCodes = new List<string>();
+                foreach(var color in colors)
+                {
+                    colorCodes.Add(color.ToHexString());
+                }
+                context.SendBack([
+                    new ImageSend(ImageUtil.GetColorSamples(colorCodes)),
+                    new Text(string.Join("   ", colorCodes)),
+                ]);
+                findImg = true;
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"取色(\S*)", RegexOptions.Singleline), getColorCode));
+            return null;
+        }
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
@@ -74,14 +116,10 @@ namespace Kugua.Mods
                 foreach (var item in context.recvMessages)
                 {
                     //Logger.Log(item.type);
-                    if (item is Image itemImg)
+                    if (item is ImageBasic itemImg)
                     {
                         var oriImg = Network.DownloadImage(itemImg.url);
-                        var newImgbase64 = ImageUtil.ImgSetGifSpeed(oriImg, speed);
-                        context.SendBack([
-                            //new At(context.userId, null),
-                            new Image($"base64://{newImgbase64}"),
-                        ]);
+                        context.SendBackImage(ImageUtil.ImgSetGifSpeed(oriImg, speed));
                         findImg = true;
                     }
                 }
@@ -116,16 +154,11 @@ namespace Kugua.Mods
             foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if (item is Image itemImg)
+                if (item is ImageBasic itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
                     //Logger.Log("? == " + oriImg.Count);
-                    var newImgbase64 = ImageUtil.ImgGreen(oriImg, (int)(50 * (1 - quality)), quality);
-                    //Logger.Log("?2,img=" + newImgbase64.Substring(0,100));
-                    context.SendBack([
-                        //new At(context.userId, null),
-                        new Image($"base64://{newImgbase64}"),
-                        ]);
+                    context.SendBackImage(ImageUtil.ImgGreen(oriImg, (int)(50 * (1 - quality)), quality));
                     findImg = true;
                 }
             }
@@ -155,7 +188,7 @@ namespace Kugua.Mods
                     var fff = Directory.GetFiles(Config.Instance.FullPath($"emojitg/"), $"*{emoji.Replace("u", "")}*.gif");
                     if (fff.Length > 0)
                     {
-                        msgs.Add(new Image($"file://{fff[MyRandom.Next(fff.Length)]}"));
+                        msgs.Add(new ImageSend($"file://{fff[MyRandom.Next(fff.Length)]}"));
                     }
 
                 }
@@ -183,7 +216,7 @@ namespace Kugua.Mods
             {
                 // 以图生图
 
-                desc += GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
+                desc += LLM.Instance.HSGetImgDesc(context.PNG1Base64, "请用200字以内的文字描述这张图的内容，务必注意细节。注意强调艺术风格、肢体动作、表情、物品的位置等。", "png");
                 context.SendBackPlain(desc);
                 if (desc.Contains("ERROR")) return null;
             }
@@ -195,18 +228,18 @@ namespace Kugua.Mods
             
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                if(ModBank.Instance.GetPay(context.userId, GPT.ImgMoneyCost))
+                if(ModBank.Instance.GetPay(context.userId, LLM.ImgMoneyCost))
                 {
-                    if(!GPT.Instance.ZPImage(context, desc))
+                    if(!LLM.Instance.ZPImage(context, desc))
                     {
                         // fail
-                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, GPT.ImgMoneyCost, out _);
+                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, LLM.ImgMoneyCost, out _);
                     }
                     return null;
                 }
                 else
                 {
-                    return $"{ModBank.unitName}不够，每次需{GPT.ImgMoneyCost.ToHans()}";
+                    return $"{ModBank.unitName}不够，每次需{LLM.ImgMoneyCost.ToHans()}";
                 } 
             }
 
@@ -230,7 +263,7 @@ namespace Kugua.Mods
             {
                 // 以图生图
 
-                desc += GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
+                desc += LLM.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
                 desc = ModTranslate.getTrans(desc, lang);
                 context.SendBackPlain(desc);
 
@@ -247,19 +280,19 @@ namespace Kugua.Mods
             {
                 if (!string.IsNullOrWhiteSpace(desc))
                 {
-                    if (ModBank.Instance.GetPay(context.userId, GPT.ImgMoneyCost))
+                    if (ModBank.Instance.GetPay(context.userId, LLM.ImgMoneyCost))
                     {
                         desc = ModTranslate.getTrans(desc, lang);
-                        if (!GPT.Instance.ZPImage(context, desc))
+                        if (!LLM.Instance.ZPImage(context, desc))
                         {
                             // fail
-                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, GPT.ImgMoneyCost, out _);
+                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, LLM.ImgMoneyCost, out _);
                         }
                         return null;
                     }
                     else
                     {
-                        return $"{ModBank.unitName}不够，每次需{GPT.ImgMoneyCost.ToHans()}";
+                        return $"{ModBank.unitName}不够，每次需{LLM.ImgMoneyCost.ToHans()}";
                     }
                 }
 
@@ -280,8 +313,7 @@ namespace Kugua.Mods
             string text = param[1].Trim();
             if (!string.IsNullOrWhiteSpace(text))
             {
-                var imgbase64 = ImageUtil.ImgGenerateCaptcha(text);
-                context.SendBack([new Image($"base64://{imgbase64}")]);
+                context.SendBackImage(ImageUtil.ImgGenerateCaptcha(text));
             }
 
             return null;
@@ -304,14 +336,10 @@ namespace Kugua.Mods
             foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if (item is Image itemImg)
+                if (item is ImageBasic itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    var newImgbase64 = ImageUtil.ImgRotate(oriImg, ro);
-                    context.SendBack([
-                        //new At(context.userId, null),
-                        new Image($"base64://{newImgbase64}"),
-                    ]);
+                    context.SendBackImage(ImageUtil.ImgRotate(oriImg, ro));
                     findImg = true;
 
                 }
@@ -336,19 +364,20 @@ namespace Kugua.Mods
             foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if (item is Image itemImg)
+                if (item is ImageBasic itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    var newImgbase64 = ImageUtil.ImgRemoveBackgrounds(oriImg);
-                    if (string.IsNullOrWhiteSpace(newImgbase64))
-                    {
-                        // fail
-                        return "";
-                    }
-                    context.SendBack([
-                        //new At(context.userId, null),
-                        new Image($"base64://{newImgbase64}"),
-                    ]);
+                    context.SendBackImage(ImageUtil.ImgRemoveBackgrounds(oriImg));
+
+                    //if (string.IsNullOrWhiteSpace(newImgbase64))
+                    //{
+                    //    // fail
+                    //    return "";
+                    //}
+                    //context.SendBack([
+                    //    //new At(context.userId, null),
+                    //    new ImageSend($"base64://{newImgbase64}"),
+                    //]);
                     findImg = true;
 
                 }
@@ -377,14 +406,10 @@ namespace Kugua.Mods
             foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if (item is Image itemImg)
+                if (item is ImageBasic itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
-                    var newImgbase64 = ImageUtil.ImgMirror(oriImg, degree);
-                    context.SendBack([
-                        //new At(context.userId, null),
-                        new Image($"base64://{newImgbase64}"),
-                    ]);
+                    context.SendBackImage(ImageUtil.ImgMirror(oriImg, degree));
                     findImg = true;
                 }
             }
@@ -408,7 +433,7 @@ namespace Kugua.Mods
                     if (fres.Count > 1) Logger.Log($"{fres.Count} => {emojiA}*{emojiB}*.png");
                     _ = context.SendBack([
                         new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
-                        new Image($"file://{fres.First()}"),
+                        new ImageSend($"file://{fres.First()}"),
                     ]);
                     return true;
                 }
@@ -426,7 +451,7 @@ namespace Kugua.Mods
                         var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f", "").Replace("-u200d", "");
                         _ = context.SendBack([
                             new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
-                            new Image($"file://{getf}"),
+                            new ImageSend($"file://{getf}"),
                         ]);
                         return true;
                     }
@@ -515,7 +540,7 @@ namespace Kugua.Mods
                     {
                         context.SendBack([
                         new Text($"{StaticUtil.UnicodePointsToEmoji(f[0])} + {StaticUtil.UnicodePointsToEmoji(f[1])} = "),
-                        new Image($"file://{fname}"),
+                        new ImageSend($"file://{fname}"),
                         ]);
                     }
                     return null;
@@ -564,10 +589,7 @@ namespace Kugua.Mods
                 if (files != null)
                 {
                     string fname = files[MyRandom.Next(files.Length)];
-                    var msg = new Message[] {
-                        new Image($"file://{fname}"),
-                    };
-                    context.SendBack(msg);
+                    context.SendBackImage(fname);
                     return null;
                 }
             }

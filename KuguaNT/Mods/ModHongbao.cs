@@ -143,22 +143,13 @@ namespace Kugua.Mods
                         // good
                         hongbaos.Add(($"{context.groupId}_{context.userId}_{MyRandom.Next(1000, 2000)}", new Hongbao(num, money)));
 
-                        var imgbase64 = ImageUtil.GetHongbao(text);
-                        context.SendBack([
-                               //new At(context.userId, null),
-                               new Image($"base64://{imgbase64}"),
-                        ]);
+                        context.SendBackImage(ImageUtil.GetHongbao(text));
                     }
                 }
                 else
                 {
                     return $"没钱了，账上余额{Config.Instance.UserInfo(context.userId).Money.ToHans()}";
                 }
-                
-                    
-
-
-
             }
             catch(Exception e)
             {

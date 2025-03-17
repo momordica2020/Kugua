@@ -50,7 +50,7 @@ namespace Kugua
                 int imgNum = 0;
                 foreach(var  item in context.recvMessages)
                 {
-                    if(item is Image img)
+                    if(item is ImageBasic img)
                     {
                         imgNum++;
                         //param.Add(img.url);

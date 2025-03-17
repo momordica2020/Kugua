@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 
 using System.Text;
 using System.Text.RegularExpressions;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Microsoft.VisualBasic;
 using SuperSocket.ClientEngine;
@@ -273,7 +274,7 @@ namespace Kugua.Mods
         private string setPrompt(MessageContext context, string[] param)
         {
             string prompt = param[1].Trim();
-            GPT.Instance.AISetPrompt(context.groupId, context.userId, prompt);
+            LLM.Instance.SetPrompt(context.groupId, context.userId, prompt);
             return $"*以更新AI模式的prompt，并重置了记忆！开始对话吧";
         }
 
@@ -356,8 +357,8 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string clearMemory(MessageContext context, string[] param)
         {
-            GPT.Instance.AIClearMemory(context.groupId, context.userId);
-            GPT.Instance.AISaveMemory();
+            LLM.Instance.ClearMemory(context.groupId, context.userId);
+            LLM.Instance.SaveMemory();
             return $"*以清空AI模式下与你的聊天历史记录，并恢复默认prompt";
         }
 
@@ -444,7 +445,7 @@ namespace Kugua.Mods
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         //GPT.Instance.OllamaReply(context);
-                        var res = GPT.Instance.ZPChat(context);
+                        var res = LLM.Instance.HSChat(context);
                         if (!string.IsNullOrWhiteSpace(res))
                         {
                             context.SendBackPlain(res, true, true);
@@ -485,12 +486,12 @@ namespace Kugua.Mods
                             sendString += rs + "。";
                             if (sendString.Length > 50)
                             {
-                                GPT.Instance.AITalk(context, sendString);
+                                LLM.Instance.Talk(context, sendString);
                                 sendString = "";
                             }
 
                         }
-                        if (sendString.Length > 0) GPT.Instance.AITalk(context, sendString);
+                        if (sendString.Length > 0) LLM.Instance.Talk(context, sendString);
                         break;
                     default:
                         answer.Add(mode.getRandomSentence());
@@ -514,7 +515,7 @@ namespace Kugua.Mods
 
             if (context.IsImage)
             {
-                res = GPT.Instance.ZPGetImgDesc(context.PNG1Base64, "详细描述此图，并解释其深层含义和意图");
+                res = LLM.Instance.HSGetImgDesc(context.PNG1Base64, "详细描述此图，并解释其深层含义和意图", "png");
             }
             if (!string.IsNullOrWhiteSpace(res))
             {

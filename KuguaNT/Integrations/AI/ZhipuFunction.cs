@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Nodes;
 using ZhipuApi.Modules;
 
-namespace Kugua
+namespace Kugua.Integrations.AI
 {
-    public partial class GPT
+    public partial class LLM
     {
         string speak_sentense(string chatid, string param)
         {
@@ -12,7 +12,7 @@ namespace Kugua
                 string speakWords = (string)(JsonObject.Parse(param)["sentense"]);
                 if (ChatMessageContext[chatid] != null)
                 {
-                    AITalk(ChatMessageContext[chatid], speakWords);
+                    Talk(ChatMessageContext[chatid], speakWords);
                     return "语音发送成功";
                 }
 

@@ -110,8 +110,13 @@ namespace Kugua
 
             }
         }
+
+
+        
         public static MagickImageCollection DownloadImage(string imageUrl)
         {//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
+
+            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
             HttpClientHandler handler = new HttpClientHandler
             {
                 UseProxy = false,
@@ -159,7 +164,7 @@ namespace Kugua
         }
 
         // 从网络图片 URL 转换为 Base64 编码字符串
-        public static async Task<string> ConvertImageUrlToBase64(string imageUrl)
+        public static async Task<string> DownloadImageUrlToBase64(string imageUrl)
         {
             HttpClientHandler handler = new HttpClientHandler
             {

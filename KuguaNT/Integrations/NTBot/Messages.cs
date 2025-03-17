@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
+﻿using ImageMagick;
+using ImageMagick.Formats;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NvAPIWrapper.Native.GPU;
@@ -17,7 +19,7 @@ namespace Kugua.Integrations.NTBot
         {
             this.type = ( 
                 data is Text?"text":
-                data is Image?"image":
+                data is ImageBasic ? "image":
                 data is Face ? "face" :
                 data is At ? "at" :
                 data is Video ? "video" :
@@ -80,16 +82,45 @@ namespace Kugua.Integrations.NTBot
         }
     }
 
-    public class ImageRecvBasic : Message
+    public class ImageBasic : Message
     {
         public string file;
         //public string file_id;
         public string url;
         //public string file_unique;
         public string summary;
+
+        /// <summary>
+        /// 用于在线api的文件后缀名，默认是jpeg
+        /// </summary>
+        [JsonIgnore]
+        public string ext
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(file)) return "jpeg";
+                else
+                {
+                    try
+                    {
+                        switch (file.Split('.',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Last())
+                        {
+                            case "jpg":
+                            case "jpeg":return "jpeg";
+                            case "png": return "png";
+                            case "gif": return "gif";
+                            case "webp": return "webp";
+                            default:return "jpeg";
+                        }
+                    }
+                    catch (Exception) { }
+                }
+                return "jpeg";
+            }
+        }
     }
 
-    public class ImageRecvNormal : ImageRecvBasic
+    public class ImageRecvNormal : ImageBasic
     {
         /// <summary>
         /// [动画表情]值为1，其他0
@@ -101,7 +132,7 @@ namespace Kugua.Integrations.NTBot
         public string file_size;
     }
 
-    public class ImageRecvMarketFace : ImageRecvBasic
+    public class ImageRecvMarketFace : ImageBasic
     {
         //public string path;
         public string key;
@@ -112,7 +143,7 @@ namespace Kugua.Integrations.NTBot
     /// <summary>
     /// 图片消息
     /// </summary>
-    public class Image : Message
+    public class ImageSend : ImageBasic
     {
  
         /// <summary>
@@ -121,30 +152,48 @@ namespace Kugua.Integrations.NTBot
         /// http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg
         /// base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==
         /// </summary>
-        public string file { get; set; }
+        //public string file { get; set; }
         public string type { get; set; }  // 可选项，flash表示闪照
-        public string? url { get; set; }   // 图片 URL
+        //public string? url { get; set; }   // 图片 URL
         public int? cache { get; set; }   // 图片缓存标志
         public int? proxy { get; set; }   // 是否使用代理
         public int? timeout { get; set; } // 下载超时时间
 
-        public Image()
+        public ImageSend()
         {
 
         }
 
-        public Image(string file)
+        public ImageSend(string file)
         {
             this.file = file;
         }
 
-        public Image(string file, string type, int cache=1, int proxy=0, int timeout = 3)
+        public ImageSend(string file, string type, int cache=1, int proxy=0, int timeout = 3)
         {
             this.file =file;
             this.type =type;
             this.cache =cache;
             this.proxy =proxy;
             this.timeout =timeout;
+        }
+
+        public ImageSend(MagickImage image)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                image.Write(ms);
+                this.file = $"base64://{Convert.ToBase64String(ms.ToArray())}";
+            }
+        }
+
+        public ImageSend(MagickImageCollection images)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                images.Write(ms);
+                this.file = $"base64://{Convert.ToBase64String(ms.ToArray())}";
+            }
         }
     }
 

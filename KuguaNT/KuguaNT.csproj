@@ -30,6 +30,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
+    <PackageReference Include="Prophecy" Version="1.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.1" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
@@ -38,9 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Prophecy">
-      <HintPath>..\..\Prophecy\Prophecy\bin\Debug\net8.0\Prophecy.dll</HintPath>
-    </Reference>
     <Reference Include="ZhipuApi">
       <HintPath>..\..\..\zhipuai-sdk-csharp-v4\bin\Debug\net8.0\ZhipuApi.dll</HintPath>
     </Reference>

@@ -12,7 +12,7 @@ namespace Kugua
         public string linkUri;
         
         public static WebSocket4Net.WebSocket localSocket = null;
-        public LocalClient(string _type):base("wss://localhost", -1)
+        public LocalClient(string _type):base("wss://localhost")
         {
             
         }

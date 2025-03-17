@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Integrations.AI;
+using Kugua.Integrations.NTBot;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,9 +24,9 @@ namespace Kugua.Mods
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^帮助$"), getWelcomeString));
-            ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned));
-           // ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)群(\d+)"), handleBannedGroup));
-            ModCommands.Add(new ModCommand(new Regex(@"^解封(\d+)"), handleUnBanned));
+           // ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)(\d+)"), handleBanned));
+           //// ModCommands.Add(new ModCommand(new Regex(@"^(拉黑|屏蔽)群(\d+)"), handleBannedGroup));
+           // ModCommands.Add(new ModCommand(new Regex(@"^解封(\d+)"), handleUnBanned));
 
 
            // ModCommands.Add(new ModCommand(new Regex(@"^设置群(\d*)\+(\S+)"), handleAddTagGroup));
@@ -33,9 +34,8 @@ namespace Kugua.Mods
 
             ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\+(\S+)"), handleAddTag));
             ModCommands.Add(new ModCommand(new Regex(@"^设置(\d*)\-(\S+)"), handleRemoveTag));
+            //ModCommands.Add(new ModCommand(new Regex(@"^设置清空(\s*)"), handleClearTag));
 
-
-            ModCommands.Add(new ModCommand(new Regex(@"^设置清空(\s*)"), handleClearTag));
             ModCommands.Add(new ModCommand(new Regex(@"^状态$"),handleShowState));
             ModCommands.Add(new ModCommand(new Regex(@"^(存档|保存)$"), handleSave));
 
@@ -43,6 +43,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^帮我撤回(.*)"), handleRecall2));
             ModCommands.Add(new ModCommand(new Regex(@"^群内搜索(.+)"), handleSearch));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
+
             ModCommands.Add(new ModCommand(new Regex(@"^笑死$"), sendEmojiTest, false));
             ModCommands.Add(new ModCommand(new Regex(@"^吃点好的$"), sendMarketImage));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
@@ -131,13 +132,23 @@ namespace Kugua.Mods
             if (context.IsAdminUser)
             {
                 Config.Instance.Save();
-                GPT.Instance.AISaveMemory();
+                LLM.Instance.SaveMemory();
                 ModRoulette.Instance.Save();
                 ModRaceHorse.Instance.Save();
                 HistoryManager.Instance.SaveAllToLocal(true);
                 ModTransShit.Instance.Save();
 
+
+
+                // 刷新群名
+                context.client.UpdateGroupInfo();
+
+
+
                 return  $"配置文件以存档 {DateTime.Now.ToString("F")}";
+
+
+                
             }
 
             return "";
@@ -295,94 +306,89 @@ namespace Kugua.Mods
 
         private string handleAddTag(MessageContext context, string[] param)
         {
-            string groupid = param[1];
-            string message = param[2];
-            if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
             if (!context.IsAdminUser) return "";
 
-            var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(groupid);
-            if (user == null || group == null || string.IsNullOrWhiteSpace(message))
+            string id = param[1];
+            string message = param[2];
+            if (string.IsNullOrWhiteSpace(message))
             {
-                return $"请在指令后接tag名称";
+                return $"标签内容不能为空";
             }
+
             if (context.IsGroup)
             {
-                group.Tags.Add(message);
-                return $"群{groupid}已添加tag：{message}";
+                if(string.IsNullOrWhiteSpace(id))id=context.groupId;
+                var group = Config.Instance.GroupInfo(id);
+                if (group != null)
+                {
+                    group.Tags.Add(message);
+                    return $"群 {group.Name}({id})已添加tag：{message}";
+                }
             }
             else
             {
-                user.Tags.Add(message);
-                return $"私聊已添加tag：{message}";
+                if (string.IsNullOrWhiteSpace(id)) id = context.userId;
+                var user = Config.Instance.UserInfo(id);
+                if (user != null)
+                {
+                    user.Tags.Add(message);
+                    return $"用户 {user.Name}({id})已添加tag：{message}";
+                }
             }
+            return "";
         }
 
 
         private string handleRemoveTag(MessageContext context, string[] param)
         {
-            string groupid = param[1];
-            string message = param[2];
-            if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
             if (!context.IsAdminUser) return "";
 
-            var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(groupid);
-            if (user == null || group == null || string.IsNullOrWhiteSpace(message))
-            {
-                return $"请在指令后接tag名称";
-            }
+            string id = param[1];
+            string message = param[2];
+
+
             if (context.IsGroup)
             {
-                group.Tags.Remove(message);
-                return $"群{groupid}已移除tag：{message}";
-            }
-            else
-            {
-                user.Tags.Remove(message);
-                return $"私聊已移除tag：{message}";
-            }
-        }
-
-
-        private string handleClearTag(MessageContext context, string[] param)
-        {
-            string message = param[1];
-            if (!context.IsAdminUser) return "";
-
-            var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(context.groupId);
-            if (user == null || group == null) return "";
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                if (context.IsGroup)
+                if (string.IsNullOrWhiteSpace(id)) id = context.groupId;
+                var group = Config.Instance.GroupInfo(id);
+                if (group != null)
                 {
-                    group.Tags.Clear();
-                    return $"本群已清空所有tag";
-
-                }
-                else
-                {
-                    user.Tags.Clear();
-                    return $"私聊已清空所有tag";
-
+                    if (string.IsNullOrWhiteSpace(message))
+                    {
+                        group.Tags.Clear();
+                        return $"群 {group.Name}({id})已清空全部tag";
+                    }
+                    else
+                    {
+                        group.Tags.Remove(message);
+                        return $"群 {group.Name}({id})已移除tag：{message}";
+                    }
                 }
             }
             else
             {
-                if (context.IsGroup)
+                if (string.IsNullOrWhiteSpace(id)) id = context.userId;
+                var user = Config.Instance.UserInfo(id);
+                if (user != null)
                 {
-                    group.Tags.RemoveWhere(tag => tag.Contains(message));
-                    return  $"本群已删除所有带{message}tag";
-                }
-                else
-                {
-                    user.Tags.RemoveWhere(tag => tag.Contains(message));
-                    return  $"私聊已删除所有带{message}tag";
+                    if (string.IsNullOrWhiteSpace(message))
+                    {
+                        user.Tags.Clear();
+                        return $"用户 {user.Name}({id})已清空全部tag";
+                    }
+                    else
+                    {
+                        user.Tags.Remove(message);
+                        return $"用户 {user.Name}({id})已移除tag：{message}";
+                    }
+                        
                 }
             }
+            return "";
         }
 
+
+    
 
         /// <summary>
         /// 让bot拍拍你

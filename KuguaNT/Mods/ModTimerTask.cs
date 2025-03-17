@@ -230,7 +230,8 @@ namespace Kugua.Mods
                     // 随机触发自言自语
                     if (g.Value.Is("自言自语") && MyRandom.NextDouble() > (1 - 1.0 / 360))
                     {
-                        Logger.Log($"{g.Key} MMMM!");
+                        
+                        Logger.Log($"自言自语 ===> {g.Value.Name}({g.Key})");
                         var context = new MessageContext
                         {
                             groupId = g.Key,
@@ -239,7 +240,7 @@ namespace Kugua.Mods
                         var r = ModRandomChat.getHistoryReact(context);
                         foreach (var item in r)
                         {
-                            Logger.Log($"-{item.Length}!");
+                            //Logger.Log($"length = {item.Length}");
                             context.SendBackPlain(item);
                         }
                     }
@@ -306,6 +307,9 @@ namespace Kugua.Mods
                         return true;
                     case "eb66d09af28f53518a4096efc10bd8a8"://俺寻思
                         context.SendReact("疑问");
+                        return true;
+                    case "a1ea7bf3a8e8d305958368151ab1de9c"://沉默了
+                        context.SendReact("emm");
                         return true;
                     default:break;
                 }

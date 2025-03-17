@@ -194,7 +194,7 @@ namespace Kugua.Integrations.VTubeStudio
                         switch (typename)
                         {
                             case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(mj["data"].ToString())); break;
-                            case "image": msgs.Add(JsonConvert.DeserializeObject<Image>(mj["data"].ToString())); break;
+                            case "image": msgs.Add(JsonConvert.DeserializeObject<ImageBasic>(mj["data"].ToString())); break;
                             case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(mj["data"].ToString())); break;
                             case "at": msgs.Add(JsonConvert.DeserializeObject<At>(mj["data"].ToString())); break;
                             case "video": msgs.Add(JsonConvert.DeserializeObject<Video>(mj["data"].ToString())); break;

@@ -3,12 +3,12 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace Kugua
+namespace Kugua.Integrations.AI
 {
     /// <summary>
     ///  函数
     /// </summary>
-    public partial class GPT
+    public partial class LLM
     {
         #region 功能函数
 
@@ -194,7 +194,7 @@ namespace Kugua
 
                 if (ChatMessageContext[chatid] != null)
                 {
-                    AITalk(ChatMessageContext[chatid], speakWords);
+                    Talk(ChatMessageContext[chatid], speakWords);
                     return "语音发送成功";
                 }
 
@@ -221,10 +221,10 @@ namespace Kugua
                     if (IsValidUrl(imageUrl))
                     {
                         Logger.Log(imageUrl);
-                        var base64data = await Network.ConvertImageUrlToBase64(imageUrl);
+                        var base64data = await Network.DownloadImageUrlToBase64(imageUrl);
                         if (base64data.Length > 0)
                         {
-                            ChatMessageContext[chatid].SendBack([new Image($"base64://{base64data}")]);
+                            ChatMessageContext[chatid].SendBackImageBase64(base64data);
                             return "图片发送成功！";
                         }
                     }

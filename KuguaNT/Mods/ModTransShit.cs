@@ -1,9 +1,11 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Integrations.AI;
+using Kugua.Integrations.NTBot;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.DRS.SettingValues;
+using System;
 using System.Data;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
@@ -61,11 +63,11 @@ namespace Kugua.Mods
                 ModCommands.Add(new ModCommand(new Regex(@"^搬史(启动|停止)$", RegexOptions.Singleline), setState));
 
 
-                ModCommands.Add(new ModCommand(new Regex(@"^转发(\d+)", RegexOptions.Singleline), setTransSource));
-                ModCommands.Add(new ModCommand(new Regex(@"^转到(\d+)", RegexOptions.Singleline), setTransTarget));
+                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转发(\d+)$", RegexOptions.Singleline), setTransSource));
+                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转到(\d+)$", RegexOptions.Singleline), setTransTarget));
 
-                ModCommands.Add(new ModCommand(new Regex(@"^别转发(\d*)", RegexOptions.Singleline), setTransSourceStop));
-                ModCommands.Add(new ModCommand(new Regex(@"^别转到(\d+)", RegexOptions.Singleline), setTransTargetStop));
+                ModCommands.Add(new ModCommand(new Regex(@"^别转发(\d*)$", RegexOptions.Singleline), setTransSourceStop));
+                ModCommands.Add(new ModCommand(new Regex(@"^别转到(\d+)$", RegexOptions.Singleline), setTransTargetStop));
                 ModCommands.Add(new ModCommand(new Regex(@"^转发情况$", RegexOptions.Singleline), showList));
 
                 // ModCommands.Add(new ModCommand(new Regex(@"^转发每次(\d)条$", RegexOptions.Singleline), showList));
@@ -78,7 +80,7 @@ namespace Kugua.Mods
                     {
                         deal_score_span_min = 5,
                         del_old_span_min = 10,
-                        once_maxnum = 5,
+                        once_maxnum = 1,
                         min_score = 1,
                         historyMaxScore = 0,
                         historyMaxScoreDate = DateTime.Now,
@@ -110,7 +112,7 @@ namespace Kugua.Mods
 
 
 
-                TaskTimer = new(1000 * 30); // 30s
+                TaskTimer = new(1000 * 60); //ms
                 TaskTimer.AutoReset = true;
                 TaskTimer.Start();
                 TaskTimer.Elapsed += TaskTimer_Elapsed;
@@ -151,10 +153,10 @@ namespace Kugua.Mods
         private string showList(MessageContext context, string[] param)
         {
             string sourceList = $"来源{ShitSource.Count}个群：";
-            foreach (var s in ShitSource) sourceList = sourceList + $"\r\n{Config.Instance.GroupInfo(s.Value.sourceId)?.Name} {s.Value.sourceId}";
+            foreach (var s in ShitSource) sourceList = sourceList + $"\r\n{Config.Instance.GroupInfo(s.Value.sourceId)?.Name} {s.Value.sourceId} {s.Value.tags}";
             string targetList = $"发到{ShitTarget.Count}个群：";
-            foreach (var s in ShitTarget) targetList = targetList + $"\r\n{Config.Instance.GroupInfo(s.targetId)?.Name} {s.targetId}";
-            string storage = $"搬过{config.historyPublished}条，库存{shits.Count}，哈希规模{shithash.Count}";
+            foreach (var s in ShitTarget) targetList = targetList + $"\r\n{Config.Instance.GroupInfo(s.targetId)?.Name} {s.targetId} {s.tags}";
+            string storage = $"搬过{config.historyPublished}条，库存{shits.Count}，哈希数{shithash.Count}+{oldHash.Count}";
             string history = $"历史最高分{config.historyMaxScore}，出现于{config.historyMaxScoreDate}";
             var res = new List<Message>
             {
@@ -206,8 +208,9 @@ namespace Kugua.Mods
         {
             long nowBestScore = 0;
             Shit nowBestShit = null;
-            foreach (var s in shits)
+            for(int i=0;i<shits.Count;i++)
             {
+                var s = shits[i];
                 // 总分=人工分+（AI分*AI权重）
                 var realscore = s.score + Math.Max(0, s.AIscore - 3 + (last_loop_ave_score < 0.1 ? 1 : last_loop_ave_score > 1 ? -1 : 0));
                 if (exists.Contains(s)
@@ -232,22 +235,86 @@ namespace Kugua.Mods
             return nowBestShit;
         }
 
-        public long getScore(Shit shit)
+
+        public List<Shit> getBestShits()
         {
+            // find bests
+            List<Shit> bestShits = new List<Shit>();
+            int bestNumMax = config.once_maxnum;
+            for (int i = 0; i < bestNumMax; i++)
+            {
+                var best = getMaxScoreUnPublicShit(bestShits);
+                if (best == null) break;
+                bestShits.Add(best);
+            }
+            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
+            return bestShits;
+        }
+
+
+
+
+        /// <summary>
+        /// 从shit中取出尚未发表的里面AI得分最高的一个
+        /// </summary>
+        /// <param name="exists"></param>
+        /// <returns></returns>
+        private Shit getMaxScoreUnPublicAIShit(List<Shit> exists)
+        {
+            long nowBestScore = 0;
+            Shit nowBestShit = null;
+            for(int i = 0; i < shits.Count; i++)
+            {
+                var s = shits[i];
+                if (exists.Contains(s)
+                    || s.publishedAI
+                    || s.AIscore <=3
+                //|| DateTime.Now - s.createTime < new TimeSpan(0, config.deal_score_span_min, 0) 
+                ) continue;
+
+                if (s.AIscore > nowBestScore)
+                {
+                    nowBestScore = s.AIscore;
+                    nowBestShit = s;
+                }
+            }
+            return nowBestShit;
+        }
+
+
+        public List<Shit> getBestAIShits()
+        {
+            // find bests
+            List<Shit> bestShits = new List<Shit>();
+            int bestNumMax = config.once_maxnum;
+            for (int i = 0; i < bestNumMax; i++)
+            {
+                var best = getMaxScoreUnPublicAIShit(bestShits);
+                if (best == null) break;
+                bestShits.Add(best);
+            }
+            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
+            return bestShits;
+        }
+
+
+        public void getScore(Shit shit)
+        {
+
             long score = 0;
 
             List<EmojiTypeInfo> goods = new List<EmojiTypeInfo> {
-                new EmojiTypeInfo{id="4", type="1"},//得意
+              //  new EmojiTypeInfo{id="4", type="1"},//得意
                 new EmojiTypeInfo{id="5", type="1"},//流泪
               //  new EmojiTypeInfo{id="8", type="1"},//睡
                 new EmojiTypeInfo{id="9", type="1"},//大哭
                 new EmojiTypeInfo{id="10", type="1"},//尴尬
-                new EmojiTypeInfo{id="12", type="1"},//调皮
-                new EmojiTypeInfo{id="14", type="1"},//微笑
+               // new EmojiTypeInfo{id="12", type="1"},//调皮
+              //  new EmojiTypeInfo{id="14", type="1"},//微笑
               //  new EmojiTypeInfo{id="16", type="1"},//酷
                 new EmojiTypeInfo{id="21", type="1"},//可爱
-                new EmojiTypeInfo{id="23", type="1"},//傲慢
-                new EmojiTypeInfo{id="24", type="1"},//饥饿
+              //  new EmojiTypeInfo{id="23", type="1"},//傲慢
+              //  new EmojiTypeInfo{id="24", type="1"},//饥饿
               //  new EmojiTypeInfo{id="25", type="1"},//困
 
               //  new EmojiTypeInfo{id="27", type="1"},//流汗
@@ -258,11 +325,11 @@ namespace Kugua.Mods
               //  new EmojiTypeInfo{id="33", type="1"},//嘘
               //  new EmojiTypeInfo{id="34", type="1"},//晕
 
-                new EmojiTypeInfo{id="39", type="1"},//再见
+              //  new EmojiTypeInfo{id="39", type="1"},//再见
               //  new EmojiTypeInfo{id="41", type="1"},//发抖
-                new EmojiTypeInfo{id="42", type="1"},//爱情
-                new EmojiTypeInfo{id="43", type="1"},//跳跳
-                new EmojiTypeInfo{id="49", type="1"},//拥抱
+              //  new EmojiTypeInfo{id="42", type="1"},//爱情
+              //  new EmojiTypeInfo{id="43", type="1"},//跳跳
+              //  new EmojiTypeInfo{id="49", type="1"},//拥抱
               //  new EmojiTypeInfo{id="53", type="1"},//蛋糕
               //  new EmojiTypeInfo{id="60", type="1"},//咖啡
               //  new EmojiTypeInfo{id="63", type="1"},//玫瑰
@@ -271,15 +338,15 @@ namespace Kugua.Mods
                // new EmojiTypeInfo{id="75", type="1"},//月亮
                 new EmojiTypeInfo{id="76", type="1"},//赞
               //  new EmojiTypeInfo{id="78", type="1"},//握手
-                new EmojiTypeInfo{id="79", type="1"},//胜利
+              //  new EmojiTypeInfo{id="79", type="1"},//胜利
                 new EmojiTypeInfo{id="85", type="1"},//飞吻
               //  new EmojiTypeInfo{id="89", type="1"},//西瓜
-                new EmojiTypeInfo{id="96", type="1"},//冷汗
-                new EmojiTypeInfo{id="97", type="1"},//擦汗
+              //  new EmojiTypeInfo{id="96", type="1"},//冷汗
+              //  new EmojiTypeInfo{id="97", type="1"},//擦汗
               //  new EmojiTypeInfo{id="98", type="1"},//抠鼻
                 new EmojiTypeInfo{id="99", type="1"},//鼓掌
-                new EmojiTypeInfo{id="100", type="1"},//糗大了
-                new EmojiTypeInfo{id="101", type="1"},//坏笑
+              //  new EmojiTypeInfo{id="100", type="1"},//糗大了
+              //  new EmojiTypeInfo{id="101", type="1"},//坏笑
               //  new EmojiTypeInfo{id="102", type="1"},//左哼哼
                // new EmojiTypeInfo{id="103", type="1"},//右哼哼
               //  new EmojiTypeInfo{id="104", type="1"},//哈欠
@@ -298,19 +365,19 @@ namespace Kugua.Mods
               //  new EmojiTypeInfo{id="147", type="1"},//棒棒糖
               //  new EmojiTypeInfo{id="171", type="1"},//茶
                 new EmojiTypeInfo{id="173", type="1"},//泪奔
-                new EmojiTypeInfo{id="174", type="1"},//无奈
-                new EmojiTypeInfo{id="175", type="1"},//卖萌
+              //  new EmojiTypeInfo{id="174", type="1"},//无奈
+              //  new EmojiTypeInfo{id="175", type="1"},//卖萌
               //  new EmojiTypeInfo{id="176", type="1"},//小纠结
-                new EmojiTypeInfo{id="179", type="1"},//doge
-                new EmojiTypeInfo{id="180", type="1"},//惊喜
-                new EmojiTypeInfo{id="181", type="1"},//骚扰
+               // new EmojiTypeInfo{id="179", type="1"},//doge
+              //  new EmojiTypeInfo{id="180", type="1"},//惊喜
+               // new EmojiTypeInfo{id="181", type="1"},//骚扰
                 new EmojiTypeInfo{id="182", type="1"},//笑哭
-                new EmojiTypeInfo{id="183", type="1"},//我最美
+              //  new EmojiTypeInfo{id="183", type="1"},//我最美
                 new EmojiTypeInfo{id="201", type="1"},//点赞
                 new EmojiTypeInfo{id="203", type="1"},//托脸
-                new EmojiTypeInfo{id="212", type="1"},//托腮
+              //  new EmojiTypeInfo{id="212", type="1"},//托腮
                 new EmojiTypeInfo{id="214", type="1"},//啵啵
-                new EmojiTypeInfo{id="219", type="1"},//蹭一蹭
+              //  new EmojiTypeInfo{id="219", type="1"},//蹭一蹭
                 new EmojiTypeInfo{id="222", type="1"},//抱抱
                 new EmojiTypeInfo{id="227", type="1"},//拍手
               //  new EmojiTypeInfo{id="232", type="1"},//佛系
@@ -366,12 +433,12 @@ namespace Kugua.Mods
               //  new EmojiTypeInfo{id="127836", type="2"},//🍜	拉面
               //  new EmojiTypeInfo{id="127838", type="2"},//🍞	面包
               //  new EmojiTypeInfo{id="127847", type="2"},//🍧	刨冰
-                new EmojiTypeInfo{id="127866", type="2"},//🍺	啤酒
-                new EmojiTypeInfo{id="127867", type="2"},//🍻	干杯
-                new EmojiTypeInfo{id="127881", type="2"},//🎉	庆祝
+              //  new EmojiTypeInfo{id="127866", type="2"},//🍺	啤酒
+              //  new EmojiTypeInfo{id="127867", type="2"},//🍻	干杯
+              //  new EmojiTypeInfo{id="127881", type="2"},//🎉	庆祝
                 new EmojiTypeInfo{id="128027", type="2"},//🐛	虫
                 new EmojiTypeInfo{id="128046", type="2"},//🐮	牛
-               // new EmojiTypeInfo{id="128051", type="2"},//🐳	鲸鱼
+                new EmojiTypeInfo{id="128051", type="2"},//🐳	鲸鱼
                 new EmojiTypeInfo{id="128053", type="2"},//🐵	猴
                // new EmojiTypeInfo{id="128074", type="2"},//👊	拳头
                 new EmojiTypeInfo{id="128076", type="2"},//👌	好的
@@ -388,22 +455,22 @@ namespace Kugua.Mods
               //  new EmojiTypeInfo{id="128170", type="2"},//💪	肌肉
                // new EmojiTypeInfo{id="128235", type="2"},//📫	邮箱
                 new EmojiTypeInfo{id="128293", type="2"},//🔥	火
-                new EmojiTypeInfo{id="128513", type="2"},//😁	呲牙
-                new EmojiTypeInfo{id="128514", type="2"},//😂	激动
-                new EmojiTypeInfo{id="128516", type="2"},//😄	高兴
-                new EmojiTypeInfo{id="128522", type="2"},//😊	嘿嘿
+                //new EmojiTypeInfo{id="128513", type="2"},//😁	呲牙
+                //new EmojiTypeInfo{id="128514", type="2"},//😂	激动
+                //new EmojiTypeInfo{id="128516", type="2"},//😄	高兴
+                //new EmojiTypeInfo{id="128522", type="2"},//😊	嘿嘿
                // new EmojiTypeInfo{id="128524", type="2"},//😌	羞涩
-                new EmojiTypeInfo{id="128527", type="2"},//😏	哼哼
-                new EmojiTypeInfo{id="128530", type="2"},//😒	不屑
+                //new EmojiTypeInfo{id="128527", type="2"},//😏	哼哼
+                //new EmojiTypeInfo{id="128530", type="2"},//😒	不屑
                 new EmojiTypeInfo{id="128531", type="2"},//😓	汗
-                new EmojiTypeInfo{id="128532", type="2"},//😔	失落
-                new EmojiTypeInfo{id="128536", type="2"},//😘	飞吻
-                new EmojiTypeInfo{id="128538", type="2"},//😚	亲亲
+               // new EmojiTypeInfo{id="128532", type="2"},//😔	失落
+               // new EmojiTypeInfo{id="128536", type="2"},//😘	飞吻
+               // new EmojiTypeInfo{id="128538", type="2"},//😚	亲亲
                // new EmojiTypeInfo{id="128540", type="2"},//😜	淘气
               //  new EmojiTypeInfo{id="128541", type="2"},//😝	吐舌
                 new EmojiTypeInfo{id="128557", type="2"},//😭	大哭
                 
-                new EmojiTypeInfo{id="128563", type="2"},//😳	瞪眼
+                //new EmojiTypeInfo{id="128563", type="2"},//😳	瞪眼
 
             };
 
@@ -416,17 +483,119 @@ namespace Kugua.Mods
             //    new EmojiTypeInfo{id="128560", type="2"},//😰	紧张
             //};
 
-            foreach (var emoji in goods) score += shit.contexts.First().client.getEmojiLikeNumber(shit.contexts.First().messageId, emoji.id, emoji.type);
+            try
+            {
+                //// 暂时不计人工分了，没什么意义
+                //foreach (var context in shit.contexts)
+                //{
+                //    foreach (var emoji in goods)
+                //    {
+                //        var emoji_score = context.client.getEmojiLikeNumber(context.messageId, emoji.id, emoji.type);
+                //        if (emoji_score < 0)
+                //        {
+                //            // 失败，说明该message id已失效
+                //            break;
+                //        }
+                //        else
+                //        {
+                //            score += emoji_score;
+                //        }
+                //    }
+                //}
+
+                //foreach (var emoji in bads) score -= context.client.getEmojiLikeNumber(context.messageId, emoji.id, emoji.type);
 
 
+                //shit.score = score;
 
 
-            //foreach (var emoji in bads) score -= context.client.getEmojiLikeNumber(context.messageId, emoji.id, emoji.type);
+                // generate ai score if nessary
+                if (//shit.score < config.min_score &&
+                    !string.IsNullOrWhiteSpace(shit.imgBase64)
+                    && shit.AIscore == 0)
+                {
+                    shit.AIscore = LLM.Instance.HSGetImgScore(shit.imgBase64, shit.imgType);
+                    if (shit.AIscore <= 0) shit.AIscore = 1;
+                }
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+           
 
-            return score;
+
         }
 
+        private void UpdateScores()
+        {
+            if (shits == null) return;
+            lock (shitMutex)
+            {
+                for (int i = 0; i < shits.Count; i++)
+                {
+                    var shit = shits[i];
+                    if (shit.published == false
+                        && shit.score == 0
+                        && enough_time(shit)// 足够久远
+                    )
+                    {
+                        Task.Run(()=> getScore(shit));
+                        //shit.score = shit.score + shit.AIscore;
+                        //if (shit.score == 0) shit.score = -1;// drop
+                    }
+                }
+            }
 
+        }
+        /// <summary>
+        /// 根据已统计的部分看平均人工打分数值
+        /// 用来判断当前时段人工打分活跃程度，及需不需要提升AI打分权重
+        /// </summary>
+        private void CheckScore()
+        {
+            //double allscore = 0;
+            double allnum = 1;
+            lock (shitMutex)
+            {
+                for (int i = 0; i < shits.Count; i++)
+                {
+                    var shit = shits[i];
+                    if (enough_time(shit))
+                    {
+                        //allscore += shit.score;
+                        allnum += 1;
+                    }
+                }
+            }
+
+            //last_loop_ave_score = allscore / allnum;
+
+            var span = DateTime.Now - lastPublishDate;
+            Logger.Log($"*** shit轮检中，目前{shit_not_published}/{shits.Count}个没发，hash={shithash.Count}/{oldHash.Count}，距上次推送{span.TotalMinutes:F2}min");
+
+        }
+
+        private bool enough_time(Shit shit)
+        {
+            return DateTime.Now - shit.createTime > new TimeSpan(0, config.deal_score_span_min, 0);
+        }
+
+        private int shit_not_published
+        {
+            get
+            {
+                int num = 0;
+                if (shits == null) return 0;
+                foreach(var shit in shits)
+                {
+                    if(shit.published==false && enough_time(shit))
+                    {
+                        num++;
+                    }
+                }
+                return num;
+            }
+        }
 
         /// <summary>
         /// 定期巡查发送
@@ -437,111 +606,108 @@ namespace Kugua.Mods
         {
             if (!config.open) return;
             // 检查到期内容是否被点过很多赞，有的话就发送最高的几个
-            var span = DateTime.Now - lastPublishDate;
-            Logger.Log($"*** shit轮检中，目前{shits.Count}个没发，hash长度{shithash.Count}，均分{last_loop_ave_score:F2}，距上次推送{span.TotalMinutes:F2}min");
+            
 
 
-            // update score
+            UpdateScores();
 
-            for (int i = 0; i < shits.Count; i++)
+
+            CheckScore();
+
+            //foreach (var shit in getBestShits())
+            //{
+            //    if (shit == null || shit.published) continue;
+            //    shit.published = true;
+            //    string msgid = shit.contexts.First().messageId;
+            //    Logger.Log($"[{shit.score}(+{Math.Max(0,shit.AIscore-3)})分]=>=>=>=> shit{msgid}");
+
+            //    //var nodes = getNodeTree(shit.context);
+            //    foreach (var target in ShitTarget)
+            //    {
+            //        if (!string.IsNullOrWhiteSpace(target.tags) && target.tags.Contains("AI")) continue;
+            //        // 不重构，直接搬运原文
+            //        //Logger.Log($"shit[{msgid}] => {target.targetId}");
+            //        foreach (var context in shit.contexts)
+            //        {
+            //            if (!context.HasForward)
+            //            {
+            //                // directly sendout msgs
+            //                context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
+            //                break;
+            //            }
+            //            else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
+            //            {
+            //                break;
+            //            }
+            //        }
+            //        //shit.contexts.First().client.SendForwardToGroupSimply(target.targetId, msgid);
+            //        //    if (nodes == null)
+            //        //    {
+            //        //        // 不重构，直接搬运原文
+            //        //        context.client.SendForwardToGroupSimply(targetId, context.messageId);
+            //        //    }
+            //        //    else
+            //        //    {
+            //        //        context.client.SendForwardMessageToGroup(targetId, nodes);
+            //        //    }
+
+            //    }
+                
+            //    lastPublishDate = DateTime.Now;
+            //    config.historyPublished++;
+            //}
+
+
+            foreach (var shit in getBestAIShits())
             {
-                var shit = shits[i];
-                if (shit.published == false
-                    && shit.score == 0
-                    && DateTime.Now - shit.createTime > new TimeSpan(0, config.deal_score_span_min, 0)// 足够久远
-                )
+                if (shit == null || shit.published) continue;
+                shit.publishedAI = true;
+                string msgid = shit.contexts.First().messageId;
+                Logger.Log($"[AI:{shit.AIscore}分]=>=>=>=> shit{msgid}");
+                foreach (var target in ShitTarget)
                 {
-                    // human score
-                    shit.score = 0;
+                    if (string.IsNullOrWhiteSpace(target.tags) || !target.tags.Contains("AI")) continue;
+                    //Logger.Log($"shit[{msgid}] => {target.targetId}");
                     foreach (var context in shit.contexts)
                     {
-                        shit.score += getScore(shit);
+                        if (!context.HasForward)
+                        {
+                            context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
+                            break;
+                        }
+                        else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
+                        {
+                            break;
+                        }
                     }
-
-                    // ai score if nessary
-                    if (shit.score < config.min_score
-                        && !string.IsNullOrWhiteSpace(shit.imgBase64)
-                        && shit.AIscore == 0)
-                    {
-                        shit.AIscore = GPT.Instance.ZPGetImgScore(shit.imgBase64);
-                        if (shit.AIscore == 0) shit.AIscore = -1;//避免重复运算
-                    }
-                    //shit.score = shit.score + shit.AIscore;
-
-                    //if (shit.score == 0) shit.score = -1;// drop
-
                 }
-            }
-
-            // 根据已统计的部分看平均人工打分数值
-            // 用来判断当前时段人工打分活跃程度，及需不需要提升AI打分权重
-            double allscore = 0;
-            double allnum = 1;
-            for (int i = 0; i < shits.Count; i++)
-            {
-                var shit = shits[i];
-                if (DateTime.Now - shit.createTime > new TimeSpan(0, config.deal_score_span_min, 0)// 足够久远
-                )
-                {
-                    allscore += shit.score;
-                    allnum += 1;
-                }
-            }
-            last_loop_ave_score = allscore / allnum;
-
-
-
-            // find bests
-            List<Shit> bestShits = new List<Shit>();
-            int bestNumMax = config.once_maxnum;
-            for (int i = 0; i < bestNumMax; i++)
-            {
-                var best = getMaxScoreUnPublicShit(bestShits);
-                if (best != null)
-                {
-                    bestShits.Add(best);
-                }
-            }
-            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
-            if (bestShits.Count > 0)
-            {
-                foreach (var shit in bestShits)
-                {
-                    string msgid = shit.contexts.First().messageId;
-                    Logger.Log($"[{shit.score}分!] shit{msgid}");
-
-                    //var nodes = getNodeTree(shit.context);
-                    foreach (var target in ShitTarget)
-                    {
-                        // 不重构，直接搬运原文
-                        Logger.Log($"shit[{msgid}] => {target.targetId}");
-                        shit.contexts.First().client.SendForwardToGroupSimply(target.targetId, msgid);
-                        //    if (nodes == null)
-                        //    {
-                        //        // 不重构，直接搬运原文
-                        //        context.client.SendForwardToGroupSimply(targetId, context.messageId);
-                        //    }
-                        //    else
-                        //    {
-                        //        context.client.SendForwardMessageToGroup(targetId, nodes);
-                        //    }
-
-                    }
-                    shit.published = true;
-                    lastPublishDate = DateTime.Now;
-                    config.historyPublished++;
-                }
+                lastPublishDate = DateTime.Now;
+                config.historyPublished++;
             }
 
 
+            RemoveOldShits();
+
+
+
+            Save();
+
+        }
+
+
+        /// <summary>
+        /// 将非常旧的扔出队列。当然hash列表保留着
+        /// </summary>
+        private void RemoveOldShits()
+        {
             lock (shitMutex)
             {
-                // 将非常旧的扔出队列。当然hash列表保留着
                 for (int i = shits.Count - 1; i >= 0; i--)
                 {
-                    if (shits[i].published == true
-                        || DateTime.Now - shits[i].createTime > new TimeSpan(0, config.del_old_span_min, 0))
+                    var s = shits[i];
+                    if (DateTime.Now - s.createTime > new TimeSpan(0, config.del_old_span_min, 0))
                     {
+                        if (!oldHash.Contains(s.hash)) oldHash.Add(s.hash);
                         shits.RemoveAt(i);
                     }
                 }
@@ -556,14 +722,7 @@ namespace Kugua.Mods
                 //}
 
             }
-
-
-
-            Save();
-
         }
-
-
 
         public override void Save()
         {
@@ -632,7 +791,8 @@ namespace Kugua.Mods
                 if (!context.IsAdminUser) return "";
                 else if (!context.IsGroup) return "";
 
-                string tid = param[1];
+                string tag = param[1];
+                string tid = param[2];
                 string sid = context.groupId;
                 bool exist = false;
                 foreach (var g in ShitTarget)
@@ -640,11 +800,12 @@ namespace Kugua.Mods
                     if (g.targetId == tid)
                     {
                         exist = true;
+                        if (!string.IsNullOrWhiteSpace(tag)) g.tags = tag;
                         break;
                     }
                 }
-                if (!exist) ShitTarget.Add(new ShitTransGroupInfo() { targetId = tid });
-                return $"已增加转发目标 {tid}";
+                if (!exist) ShitTarget.Add(new ShitTransGroupInfo() { targetId = tid,tags=tag });
+                return $"已增加{(string.IsNullOrWhiteSpace(tag)?"":tag)}转发目标 {tid}";
             }
             catch (Exception e)
             {
@@ -660,12 +821,17 @@ namespace Kugua.Mods
                 if (!context.IsAdminUser) return "";
                 else if (!context.IsGroup) return "";
 
-                string sid = param[1];
+                string tag = param[1];
+                string sid = param[2];
                 string tid = context.groupId;
 
                 if (!ShitSource.ContainsKey(sid)) ShitSource.Add(sid, new ShitTransGroupInfo() { sourceId = sid });
+                if (!string.IsNullOrWhiteSpace(tag))
+                {
+                    ShitSource[sid].tags = tag;
+                }
 
-                return $"已增加转发来源 {sid}";
+                return $"已增加{(string.IsNullOrWhiteSpace(tag) ? "" : tag)}转发来源 {sid}";
             }
             catch (Exception e)
             {
@@ -758,9 +924,11 @@ namespace Kugua.Mods
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        Shit addNewShit(MessageContext context)
+        Shit addNewShit(MessageContext context, int ori_score = 0)
         {
             var ns = new Shit(context);
+            if (ori_score != 0) ns.score = ori_score;
+
             if (string.IsNullOrWhiteSpace(ns.hash))
             {
                 // not shit
@@ -773,7 +941,7 @@ namespace Kugua.Mods
                 var existShit = shithash[ns.hash];
                 var timespan = DateTime.Now - existShit.createTime;
                 Logger.Log($"shit发过了，最初来自群{existShit.createGroup}({timespan.TotalMinutes:F2}分钟前)[id={existShit.contexts.First().messageId}]");
-                if (!oldHash.Contains(ns.hash)) oldHash.Add(ns.hash);
+                if (ori_score != 0) existShit.score = ori_score;
                 existShit.contexts.Add(ns.contexts.First());
                 return existShit;
             }
@@ -790,7 +958,7 @@ namespace Kugua.Mods
                     shithash[ns.hash] = ns;
                     shits.Add(ns);
                     Logger.Log($"shit新鲜的，来自群{ns.createGroup}[id={ns.contexts.First().messageId}]");
-
+                    
 
                     //if (!string.IsNullOrWhiteSpace(ns.imgBase64))
                     //{
@@ -806,15 +974,69 @@ namespace Kugua.Mods
         }
 
 
+        public void Test(MessageContext context)
+        {
+
+            string infoTypes = "";
+
+            
+            //foreach (var item in context.recvMessages)
+            //{
+            //    if (item is Video video)
+            //    {
+            //        string localPath = $"Temp/{video.file}";
+            //        if (ImageUtil.CaptureFirstFrame(video.url, Config.Instance.FullPath(localPath)))
+            //        {
+            //            var base64 = Convert.ToBase64String(File.ReadAllBytes(localPath));
+            //            var hash = ImageSimilar.GetHashFromBase64(base64);
+            //            Logger.Log($"VIDEO HASH={hash}");
+            //            break;
+
+            //        }
+            //        break;
+            //    }
+            //}
+            
+
+            foreach(var item in context.recvMessages)
+            {
+                infoTypes += item.GetType().Name.ToString()+" ";
+            }
+            var shit = new Shit(context);
+            foreach(var hash in shit._hashs)
+            {
+                Logger.Log($"HASH={hash}");
+            }
+            //Logger.Log($"[{context.messageId}]HASH={shit.hash}");
+
+            Logger.Log(infoTypes);
+        }
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
             try
             {
+                if(context.IsGroup&& context.groupId== "1001021948")
+                {
+                    // test
+                    Test(context);
+                    return false;
+                }
+
+
                 //Logger.Log($"!config.open?{!config.open}");
                 if (config.open && ShitSource.ContainsKey(context.groupId))
                 {
-                    addNewShit(context);
+                    var source = ShitSource[context.groupId];
+                    if (!string.IsNullOrWhiteSpace(source.tags)&&  source.tags.Contains("全转"))
+                    {
+                        addNewShit(context, config.min_score + 1);
+                    }
+                    else
+                    {
+                        addNewShit(context);
+                    }
+                    
                 }
                 //bool tranit = false;
                 ////ForwardNodeExist forward = null;
@@ -879,14 +1101,20 @@ namespace Kugua.Mods
         public DateTime createTime;
         public string createGroup;
         public string createUser;
+
         public long score;
-        public long AIscore;
         public bool published;
+
+        public long AIscore;
+        public bool publishedAI;
+
         public bool isForward = false;
         public string imgBase64;
+        public string imgType;
 
         //string _hashtext;
         string _hash;
+        public List<string> _hashs;
         public string hash { get
             {
                 return _hash;
@@ -901,6 +1129,7 @@ namespace Kugua.Mods
             score = 0;
             AIscore = 0;
             published = false;
+            publishedAI = false;
             isForward = false;
             
             calHash();
@@ -931,19 +1160,37 @@ namespace Kugua.Mods
         {
             try
             {
-                if (item is Image img)
+                if (item is ImageBasic img && !string.IsNullOrWhiteSpace(img.url))
                 {
                     //Logger.Log($"<hashimg>{img.file}");
-                    _hash = StaticUtil.ComputeHash(_hash + img.file);
+                    
+                    var imgb64 = Network.DownloadImageUrlToBase64(img.url).Result;
+                    var imghash = ImageSimilar.GetHashFromBase64(imgb64);
+                    //StaticUtil.ComputeHash(imgb64)
+                    _hashs.Add(imghash);
+                    _hash = StaticUtil.ComputeHash(_hash + imghash);
                     if (string.IsNullOrWhiteSpace(imgBase64))
                     {
-                        imgBase64 = Network.ConvertImageUrlToBase64(img.url).Result;
+                        imgBase64 = imgb64;
+                        imgType = img.ext;
                     }
 
                 }
                 else if (item is Video video)
                 {
+                    
+                    //string localPath = $"Temp/{video.file.Replace(".mp4",".jpg")}";
+                    //if (ImageUtil.CaptureFirstFrame(video.url, Config.Instance.FullPath(localPath)))
+                    //{
+                    //    var base64 = Convert.ToBase64String(File.ReadAllBytes(localPath));
+                    //    var hash = ImageSimilar.GetHashFromBase64(base64);
+                    //    Logger.Log($"VIDEO HASH={hash}");
+                    //    //break;
+
+                    //}
+
                     //Logger.Log($"<hashvideo>{video.file}");
+                    _hashs.Add(StaticUtil.ComputeHash(video.file));
                     _hash = StaticUtil.ComputeHash(_hash + video.file);
 
                 }
@@ -963,14 +1210,14 @@ namespace Kugua.Mods
                         //_hash = StaticUtil.ComputeHash(_hash + c.message);
                     }
 
-                }else if(item is Text text)
+                }else if(isForward && item is Text text)
                 {
-                    if (isForward)
-                    {
-                        // text in forward
-                        //Logger.Log($"<hashtext>{text.text}");
-                        _hash = StaticUtil.ComputeHash(_hash + text.text);
-                    }
+
+                    // text in forward
+                    //Logger.Log($"<hashtext>{text.text}");
+                    _hashs.Add(StaticUtil.ComputeHash(text.text));
+                    _hash = StaticUtil.ComputeHash(_hash + text.text);
+                    
                 }
 
             }
@@ -979,10 +1226,18 @@ namespace Kugua.Mods
                 Logger.Log(ex);
             }
         }
+
+
+        /// <summary>
+        /// 计算本消息的hash，只取决于图片/视频/转发messageid
+        /// </summary>
         void calHash()
         {
+            _hashs = new List<string>();
             _hash = "";
             //bool hasNextForwardLevel = false;
+            var context = contexts.First();
+            //if(context.IsOnlyImage)
             foreach(var item in contexts.First().recvMessages)
             {
                 calHashSingleItem(item);
@@ -999,14 +1254,14 @@ namespace Kugua.Mods
     }
     public class ShitConfig
     {
-        public int deal_score_span_min = 5;//minutes
-        public int del_old_span_min = 60;//minutes
-        public int once_maxnum = 5;
-        public int min_score = 1;
-        public bool open = false;
+        public int deal_score_span_min;//minutes
+        public int del_old_span_min;//minutes
+        public int once_maxnum;
+        public int min_score;
+        public bool open;
 
-        public long historyPublished = 0;
-        public long historyMaxScore = 0;
+        public long historyPublished;
+        public long historyMaxScore;
         public DateTime historyMaxScoreDate;
     }
 }

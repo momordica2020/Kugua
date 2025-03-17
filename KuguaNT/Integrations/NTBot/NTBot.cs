@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Text.Json.Nodes;
 using WebSocket4Net;
+using ZhipuApi;
 using static System.Net.WebRequestMethods;
 
 namespace Kugua.Integrations.NTBot
@@ -19,12 +20,15 @@ namespace Kugua.Integrations.NTBot
 
         public Dictionary<string, SenderAPI> sessions=new Dictionary<string, SenderAPI>();
         public Dictionary<string, string> session_messageid = new Dictionary<string, string>();
-
+        JsonSerializerSettings parseSettings = new JsonSerializerSettings
+        {
+            MaxDepth = 128 // 设置更大的深度限制
+        };
 
         //
         // 摘要:
         //     重连标识
-        public int reconnect { get; private set; }
+        public bool reconnecting { get; private set; }
         public Action<private_message_event> OnPrivateMessageReceive { get; internal set; }
         public Action<group_message_event> OnGroupMessageReceive { get; internal set; }
 
@@ -36,50 +40,60 @@ namespace Kugua.Integrations.NTBot
         public string url;
 
 
+        private CancellationTokenSource _reconnectCts = new CancellationTokenSource();
 
 
 
-
-        public NTBot(string url, int reconnect = -1)
+        public NTBot(string url)
         {
             NTBot client = this;
             this.url = url;
-            this.reconnect = reconnect;
+            this.reconnecting = false;
             ws = new WebSocket(url);
             ws.Opened += delegate (object? s, EventArgs e)
             {
-                Logger.Log("[SocketWatchdog] - Socket Opened -");
+                Logger.Log("[NT Socket] - Socket 已连接 -");
                 //client._OnServeiceConnected?.Invoke(e.ToString());
             };
             ws.Error += delegate (object? s, SuperSocket.ClientEngine.ErrorEventArgs e)
             {
-                //client._OnServeiceError?.Invoke(e.Exception);
-                Logger.Log("[SocketWatchdog] - Socket Error , Running to Close or Reconnect -");
-                Logger.Log($"{e.Exception}");
-                client.ws.Close();
-            };
-            ws.Closed += delegate (object? s, EventArgs e)
-            {
-                //client._OnServiceDropped?.Invoke(e.ToString());
-                Logger.Log("[SocketWatchdog] - Socket Closed -");
-                while (reconnect == -1 || reconnect-- > 0)
+                //client._OnServeiceError?.Invoke(e.Exception);  
+                Logger.Log($"{e.Exception}", LogType.Debug);
+                //Logger.Log("[NT Socket] - Socket报错，自动重连之 -");
+                if (!reconnecting)
                 {
-                    if (client.ws.State == WebSocketState.Open)
-                    {
-                        Logger.Log("[SocketWatchdog] - Reconnect Complete-");
-                        break;
-                    }
-
-                    WebSocketState state = client.ws.State;
-                    if (state != 0 && state != WebSocketState.Closing)
-                    {
-                        Logger.Log("[SocketWatchdog] - Tryin Reconnecting");
-                        client.ws.Open();
-                    }
-
-                    Logger.Log("[SocketWatchdog] - Trying To Reconnect (in 5 second)-");
-                    Task.Delay(5000).GetAwaiter().GetResult();
+                    client.ws.Close();
                 }
+                
+            };
+            ws.Closed += async delegate (object? s, EventArgs e)
+            {
+                reconnecting = true;
+                //Logger.Log("[NT Socket] - 连接已断开...");
+                await InfiniteReconnectAsync(_reconnectCts.Token);
+
+
+                ////client._OnServiceDropped?.Invoke(e.ToString());
+                //Logger.Log("[NT Socket] - Socket Closed -");
+                //while (reconnect == -1 || reconnect-- > 0)
+                //{
+                //    if (client.ws.State == WebSocketState.Open)
+                //    {
+                //        Logger.Log("[NT Socket] - Reconnect Complete-");
+                //        //reconnect = 0;
+                //        break;
+                //    }
+
+                //    WebSocketState state = client.ws.State;
+                //    if (state != 0 && state != WebSocketState.Closing)
+                //    {
+                //        Logger.Log("[NT Socket] - Tryin Reconnecting");
+                //        client.ws.Open();
+                //    }
+
+                //    Logger.Log("[NT Socket] - Trying To Reconnect (in 5 second)-");
+                //    Task.Delay(5000).GetAwaiter().GetResult();
+                //}
             };
             ws.MessageReceived += (s, e) =>
             {
@@ -88,6 +102,53 @@ namespace Kugua.Integrations.NTBot
                     OnMessageReceived(s,e);
                 });
             };
+        }
+
+
+        // 无限重连核心逻辑
+        private async Task InfiniteReconnectAsync(CancellationToken ct)
+        {
+            const int baseDelay = 5000;    // 重试间隔
+
+            while (!ct.IsCancellationRequested) 
+            {
+                try
+                {
+                    // 检查是否已经手动重连成功
+                    if (ws.State == WebSocketState.Open) break;
+
+                    // 仅在关闭/异常状态下尝试重连
+                    if (ws.State == WebSocketState.Closed)
+                    {
+                        Logger.Log($"[NT Socket] - 尝试重新连接 (间隔: {baseDelay}ms)", LogType.Debug);
+                        await ws.OpenAsync(); 
+
+                        //Logger.Log("[NT Socket] - 重连成功");
+                        reconnecting = false;
+                        break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.Log("[NT Socket] - 重连已取消", LogType.Debug);
+                    reconnecting = false;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"[NT Socket] - 重连失败: {ex.Message}", LogType.Debug);
+                }
+
+                // 指数退避策略：失败后等待时间逐渐增加，但不超过最大值
+                await Task.Delay(baseDelay, ct);
+            }
+        }
+
+        // 程序退出时调用此方法停止重连
+        public void StopReconnect()
+        {
+            _reconnectCts.Cancel();
+            Logger.Log("[NT Socket] - 已停止自动重连");
         }
 
 
@@ -157,12 +218,22 @@ namespace Kugua.Integrations.NTBot
         /// </summary>
         /// <param name="group"></param>
         /// <param name="mid"></param>
-        public async void SendForwardToGroupSimply(string group, string mid)
+        public bool SendForwardToGroupSimply(string group, string mid)
         {
             string uri = Config.Instance.App.Net.QQHTTP + "/forward_group_single_msg";
             var sender = new ForwardSenderSingle { group_id = group, message_id = mid };
-            string json = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(sender), false);
+            string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(sender), false).Result;
+
             //Logger.Log(json);
+            var jo = JObject.Parse(json);
+            if (jo["status"].ToString() != "ok")
+            {
+                //failed
+                Logger.Log("发送失败捏");
+                Logger.Log(json);
+                return false;
+            }
+            return true;
         }
 
 
@@ -196,8 +267,8 @@ namespace Kugua.Integrations.NTBot
                     //summary = "test1",
                     //source= "https://multimedia.nt.qq.com.cn/download?appid=1407&fileid=EhRz0xy_F9a5b5satPHlrCzvbKfL_xjINyD_CiiLpoywoeWLAzIEcHJvZFCAvaMBWhDimL5BPcELXG9QGWSHmUMy&rkey=CAESKBkcro_MGujoMv-TbDIUJ9Yn8vCSgH8FD1D9McsN6pkMLVQkHgi5-s0",
                 };
-                Logger.Log($"转发消息到{group}，长度{senderMessages.Count}");
-                Logger.Log($"{JsonConvert.SerializeObject(sender)}");
+                //Logger.Log($"转发消息到{group}，长度{senderMessages.Count}");
+                //Logger.Log($"{JsonConvert.SerializeObject(sender)}");
 
                 string json = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(sender),false);
                 //Logger.Log(json);
@@ -221,20 +292,24 @@ namespace Kugua.Integrations.NTBot
         /// <returns></returns>
         public int getEmojiLikeNumber(string msg_id, string emoji_id, string emoji_type)
         {
-            string uri = Config.Instance.App.Net.QQHTTP + "/fetch_emoji_like";
-            string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new fetch_emoji_like { 
-                message_id=msg_id, 
-                emojiId=emoji_id, 
-                emojiType=emoji_type
-            })).Result;
-            //Logger.Log(json);
-            var r = JObject.Parse(json);
             try
             {
+                string uri = Config.Instance.App.Net.QQHTTP + "/fetch_emoji_like";
+                string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new fetch_emoji_like
+                {
+                    message_id = msg_id,
+                    emojiId = emoji_id,
+                    emojiType = emoji_type
+                })).Result;
+                //Logger.Log(json);
+                var r = JObject.Parse(json);
+
                 return r["data"]["emojiLikesList"].Count();
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
-                Logger.Log(ex);
+                //Logger.Log(ex);
+                return -1;
             }
             return 0;
             // {"status":"ok","retcode":0,"data":{"result":0,"errMsg":"","emojiLikesList":[{"tinyId":"287859992","nickName":"","headUrl":""}],"cookie":"","isLastPage":true,"isFirstPage":true},"message":"","wording":"","echo":null}
@@ -283,6 +358,36 @@ namespace Kugua.Integrations.NTBot
             //Logger.Log(uri);
             string res = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new SendPoke { group_id=groupId, user_id=userId }));
             Logger.Log(res);
+        }
+
+
+        /// <summary>
+        /// 更新群列表信息，主要是群号和群名
+        /// </summary>
+        public void UpdateGroupInfo()
+        {
+            try
+            {
+                string uri = Config.Instance.App.Net.QQHTTP + "/get_group_list";
+                string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new send_get_group_list()),false).Result;
+                //Logger.Log(json);
+                JObject jo = JObject.Parse(json);
+                if (jo["status"].ToString() == "ok")
+                {
+                    foreach(var item in jo["data"].ToArray())
+                    {
+                        string gid = item["group_id"].ToString();
+                        string gname = item["group_name"].ToString();
+                        Config.Instance.GroupInfo(gid).Name = gname;
+                        Logger.Log($"更新群状态[{gid}]{gname}({item["member_count"]}/{item["max_member_count"]})");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
         }
 
 
@@ -421,20 +526,24 @@ namespace Kugua.Integrations.NTBot
                                     // 市场表情，打印出来以便使用喵
                                     var mi = JsonConvert.DeserializeObject<ImageRecvMarketFace>(data);
                                     Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
-                                    msgs.Add(JsonConvert.DeserializeObject<ImageRecvMarketFace>(data));
+                                    msgs.Add(mi);
                                 }
                                 else
                                 {
                                     // 普通发图，也可能是[动画表情]
                                     var ni = JsonConvert.DeserializeObject<ImageRecvNormal>(data);
-                                    msgs.Add(JsonConvert.DeserializeObject<Image>(data));
+                                    msgs.Add(ni);
                                 }
                                 
                                 //Logger.Log(data); 
                                 break;
                             case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
                             case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
-                            case "video": msgs.Add(JsonConvert.DeserializeObject<Video>(data)); break;
+                            case "video":
+                                Logger.Log($"{data}");
+                                msgs.Add(JsonConvert.DeserializeObject<Video>(data)); 
+                                break;
+
                             case "rps": msgs.Add(JsonConvert.DeserializeObject<Rps>(data)); break;
                             case "dice": msgs.Add(JsonConvert.DeserializeObject<Dice>(data)); break;
                             //case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(data)); break;
