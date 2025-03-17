@@ -19,6 +19,22 @@ namespace Kugua
             }
         }
 
+        public Player User {
+            get
+            {
+                return Config.Instance.UserInfo(userId);
+            }
+        }
+
+        public Playgroup Group
+        {
+            get
+            {
+                if (!IsGroup) return null;
+                return Config.Instance.GroupInfo(groupId);
+            }
+        }
+
         public bool IsTemp = false;
 
         public bool IsPrivate
@@ -34,14 +50,7 @@ namespace Kugua
         {
             get
             {
-                if (recvMessages?.Count > 0)
-                {
-                    foreach (var msg in recvMessages)
-                    {
-                        if (msg is ImageBasic) return true;
-                    }
-                }
-                return false;
+                return this.Images.Count > 0;
             }
         }
 
@@ -198,11 +207,39 @@ namespace Kugua
                     foreach (var it in recvMessages)
                     {
                         if (it is ImageBasic img) images.Add(img);
+                        else if(it is ForwardNodeExist forward)
+                        {
+                            images.AddRange(getImageFromForward(forward));
+                        }
                     }
                 }
 
                 return images;
             }
+        }
+
+        List<ImageBasic> getImageFromForward(ForwardNodeExist node)
+        {
+            List<ImageBasic> res = new List<ImageBasic>();
+
+            if (node == null) return res;
+            foreach(var n in node.content)
+            {
+                foreach(var msg in n.message)
+                {
+                    if(msg is ImageBasic img)
+                    {
+                        res.Add(img);
+                    }
+                    else if(msg is ForwardNodeExist forward)
+                    {
+                        res.AddRange(getImageFromForward(forward));
+                    }
+                }
+                
+            }
+
+            return res;
         }
 
         public string Texts
@@ -324,18 +361,32 @@ namespace Kugua
         }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// 向消息发送表情回应。传入表情的名字或者emoji字符，自动匹配
         /// </summary>
-        /// <param name="name"></param>
-        public void SendReact(string name)
+        /// <param name="name">emoji或qq自带表情的描述名，如“爱心”</param>
+        public void SendReact(string name, string msgId = "")
         {
 
             try
             {
+                if (string.IsNullOrWhiteSpace(msgId)) msgId = this.messageId;
                 var emoji = EmojiReact.Instance.Get(name);
 
-                if (emoji != null) client?.SendEmojiLike(messageId, int.Parse(emoji.id));
+                if (emoji != null) client?.SendEmojiLike(msgId, int.Parse(emoji.id));
             }
             catch (Exception ex)
             {
@@ -343,16 +394,20 @@ namespace Kugua
             }
         }
 
-        public async Task<string> SendBackPlain(string message, bool isAt = false, bool isFilter=false)
+        public async Task<string> SendBackText(string text, bool isAt=false, bool isFilter = false)
         {
-            if (IsGroup)
+            return await SendText(text,  IsGroup ? groupId : userId, IsGroup, isAt, isFilter);
+        }
+
+        public async Task<string> SendText(string message, string targetId, bool isGroup, bool isAt = false,  bool isFilter=false)
+        {
+            if (IsGroup && isAt)
             {
-                if (isAt) return SendBack([new At(userId), new Text(message)], isFilter).Result;
-                else return SendBack([new Text(message)], isFilter).Result;
+                return Send([new At(userId), new Text(message)], targetId,isGroup, isFilter).Result;
             }
             else
             {
-                return SendBack([new Text(message)], isFilter).Result;
+                return Send([new Text(message)], targetId, isGroup, isFilter).Result;
             }
         }
 
@@ -378,154 +433,200 @@ namespace Kugua
 
 
 
-        public async Task<string> SendBackImageBase64(string base64, string desc = "")
+        //public async Task<string> SendImageBase64(string base64, string targetId = "", bool isGroup = false, string desc = "")
+        //{
+        //    List<Message> msgs = new List<Message>();
+        //    if (!string.IsNullOrWhiteSpace(base64)) msgs.Add(new ImageSend($"base64://{base64}"));
+        //    if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+        //    if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
+        //    else return "";
+        //}
+
+        //public async Task<string> SendImage(string imagePath, string targetId = "", bool isGroup = false, string desc = "")
+        //{
+        //    List<Message> msgs = new List<Message>();
+        //    if (!string.IsNullOrWhiteSpace(imagePath)) msgs.Add(new ImageSend($"file://{imagePath}"));
+        //    if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+        //    if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
+        //    else return "";
+        //}
+
+
+        public async Task<string> SendBackImage(MagickImageCollection images,  string desc = "")
         {
-            List<Message> msgs = new List<Message>();
-            if (!string.IsNullOrWhiteSpace(base64)) msgs.Add(new ImageSend($"base64://{base64}"));
-            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
-            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
-            else return "";
+            return await SendImage(images, IsGroup ? groupId : userId, IsGroup, desc);
         }
 
-        public async Task<string> SendBackImage(string imagePath, string desc = "")
+        public async Task<string> SendBackImage(MagickImage image, string desc = "")
         {
-            List<Message> msgs = new List<Message>();
-            if (!string.IsNullOrWhiteSpace(imagePath)) msgs.Add(new ImageSend($"file://{imagePath}"));
-            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
-            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
-            else return "";
+            return await SendImage(image, IsGroup ? groupId : userId, IsGroup, desc);
         }
 
 
-        public async Task<string> SendBackImage(MagickImageCollection image, string desc = "")
+        public async Task<string> SendImage(MagickImageCollection image, string targetId, bool isGroup, string desc = "")
         {
             
             List<Message> msgs = new List<Message>();
             if (image!=null) msgs.Add(new ImageSend(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
-            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";
         }
 
 
-        public async Task<string> SendBackImage(MagickImage image, string desc = "")
+        public async Task<string> SendImage(MagickImage image, string targetId, bool isGroup,  string desc = "")
         {
             List<Message> msgs = new List<Message>();
             if (image != null) msgs.Add(new ImageSend(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
-            if (msgs.Count > 0) return await SendBack(msgs.ToArray());
+            if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";
         }
 
 
-        public async Task<string> SendBack(Message[] _sendMessages, bool isFilter = false)
+        public async Task<string> SendBack(Message[] _sendMessages,  bool isFilter = false)
         {
-            if (_sendMessages != null && _sendMessages.Length > 0)
+            return await Send(_sendMessages, IsGroup ? groupId : userId, IsGroup, isFilter);
+        }
+
+        public async Task<string> Send(Message[] _sendMessages, string targetId, bool isGroup, bool isFilter = false)
+        {
+            if (client == null) return string.Empty;
+            if (_sendMessages == null && _sendMessages.Length <= 0) return string.Empty;
+            if (string.IsNullOrWhiteSpace(targetId)) targetId = (isGroup ? groupId : userId);
+                
+
+                
+            List<string> msgStrings = new List<string>();
+
+            List<Message> msgWithoutText = new List<Message>();
+
+            foreach (var item in _sendMessages)
             {
-                if (client == null) return "";
-
-                
-                List<string> msgStrings = new List<string>();
-
-                List<Message> msgWithoutText = new List<Message>();
-
-                foreach (var item in _sendMessages)
+                if (item is Text itemPlain)
                 {
-                    if (item is Text itemPlain)
+                    // filtered
+                    if (isFilter)
                     {
-                        // filtered
-                        if (isFilter)
-                        {
-                            itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
-                        }
+                        itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
+                    }
                         
                         
 
-                        int index = 0;
-                        int maxlen = 1500;
+                    int index = 0;
+                    int maxlen = 1500;
 
-                        while(index < itemPlain.text.Length)
-                        {
-                            msgStrings.Add(itemPlain.text.Substring(index, Math.Min(maxlen, itemPlain.text.Length - index)));
-                            index += maxlen;
-                        }
-                    }
-                    else
+                    while(index < itemPlain.text.Length)
                     {
-                        msgWithoutText.Add(item);
+                        msgStrings.Add(itemPlain.text.Substring(index, Math.Min(maxlen, itemPlain.text.Length - index)));
+                        index += maxlen;
                     }
                 }
-                bool firstFrame = true;
-                if (msgStrings.Count <= 0) msgStrings.Add("");
-
-                List<string> msgIds = new List<string>();
-                foreach(var s in msgStrings)
+                else
                 {
-                    var pmsg = new List<MessageInfo>();
-                    if (firstFrame)
-                    {
-                        foreach (var item in msgWithoutText)
-                        {
-                            pmsg.Add(new MessageInfo( item));
-                        }
-                        //pmsg.AddRange(sendMessagesOthers);
-                        firstFrame = false;
-                    }
-                    if(!string.IsNullOrWhiteSpace(s)) pmsg.Add(new MessageInfo(new Text(s)));
-                    
-                    if (client is LocalClient lc)
-                    {
-                        lc.HandleMessage(userId, Config.Instance.UserInfo(userId).Name, pmsg);
-                    }
-                    else
-                    {
-                        //if (isTemp)
-                        //{
-                        //    new TempMessage(userId, groupId, pmsg.ToArray()).Send(client);
-                        //    Config.Instance.GroupInfo(userId).UseTimes += 1;
-                        //}
-                        //else
-                        if (IsGroup)
-                        {
-                            var delay = 0;
-                            if (Config.Instance.GroupInfo(groupId) is Playgroup group)
-                            {
-                                group.UseTimes += 1;
-                                delay = group.delayMs;
-                            }
-                            if (Config.Instance.UserInfo(userId) is Player user)
-                            {
-                                user.UseTimes += 1;
-                            }
-                            //Logger.Log($"delay={delay}ms");
-                            await Task.Delay(delay);
-                            var messageId = client.Send(new send_group_msg(groupId, pmsg)).Result;
-                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, groupId, Config.Instance.BotQQ, pmsg.ToTextString());
-                            msgIds.Add( messageId);
-                            
-                        }
-                        else
-                        {
-                            var delay = 0;
-                            if (Config.Instance.UserInfo(userId) is Player user)
-                            {
-                                user.UseTimes += 1;
-                                delay = user.delayMs;
-                            }
-                            //Logger.Log($"delay={delay}ms");
-                            await Task.Delay(delay);
-                            var messageId = client.Send(new send_private_msg(userId, pmsg)).Result;
-                            if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
-                            msgIds.Add( messageId);
-
-                        }
-                    }
+                    msgWithoutText.Add(item);
                 }
-                if (msgIds.Count > 0) return msgIds.Last();
-
-                
             }
+            bool firstFrame = true;
+            if (msgStrings.Count <= 0) msgStrings.Add("");
+
+            List<string> msgIds = new List<string>();
+            foreach(var s in msgStrings)
+            {
+                var pmsg = new List<MessageInfo>();
+                if (firstFrame)
+                {
+                    foreach (var item in msgWithoutText)
+                    {
+                        pmsg.Add(new MessageInfo( item));
+                    }
+                    //pmsg.AddRange(sendMessagesOthers);
+                    firstFrame = false;
+                }
+                if(!string.IsNullOrWhiteSpace(s)) pmsg.Add(new MessageInfo(new Text(s)));
+                    
+                if (client is LocalClient lc)
+                {
+                    lc.HandleMessage(userId, Config.Instance.UserInfo(userId).Name, pmsg);
+                }
+                else
+                {
+                    //if (isTemp)
+                    //{
+                    //    new TempMessage(userId, groupId, pmsg.ToArray()).Send(client);
+                    //    Config.Instance.GroupInfo(userId).UseTimes += 1;
+                    //}
+                    //else
+                    if (isGroup)
+                    {
+                        var delay = 0;
+                        if (Config.Instance.GroupInfo(targetId) is Playgroup group)
+                        {
+                            group.UseTimes += 1;
+                            delay = group.delayMs;
+                        }
+                        if (Config.Instance.UserInfo(targetId) is Player user)
+                        {
+                            user.UseTimes += 1;
+                        }
+                        //Logger.Log($"delay={delay}ms");
+                        await Task.Delay(delay);
+                        var messageId = client.Send(new send_group_msg(targetId, pmsg)).Result;
+                        if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, targetId, Config.Instance.BotQQ, pmsg.ToTextString());
+                        msgIds.Add( messageId);
+                            
+                    }
+                    else
+                    {
+                        var delay = 0;
+                        if (Config.Instance.UserInfo(targetId) is Player user)
+                        {
+                            user.UseTimes += 1;
+                            delay = user.delayMs;
+                        }
+                        //Logger.Log($"delay={delay}ms");
+                        await Task.Delay(delay);
+                        var messageId = client.Send(new send_private_msg(targetId, pmsg)).Result;
+                        if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
+                        msgIds.Add( messageId);
+
+                    }
+                }
+            }
+            if (msgIds.Count > 0) return msgIds.Last();
+
+                
+            
             return "";
+        }
+
+
+
+        /// <summary>
+        /// 发送伪造的转发消息
+        /// </summary>
+        /// <param name="_messages"></param>
+        /// <param name="group"></param>
+        public void SendForward(Message[] _messages, string group = "")
+        {
+            if (string.IsNullOrWhiteSpace(group)) group = groupId;
+            if (client == null) return;
+
+            List<Message> nodes = new List<Message>();
+            foreach(var msg in _messages)
+            {
+                nodes.Add(new ForwardNodeNew
+                {
+                    user_id = Config.Instance.BotQQ,
+                    nickname = Config.Instance.BotName,
+                    content = new List<MessageInfo>()
+                    {
+                        new MessageInfo(msg)
+                    }
+                });
+            }
+
+            client.SendForwardMessageToGroup(group, nodes);
         }
 
         

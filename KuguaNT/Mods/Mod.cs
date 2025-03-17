@@ -69,7 +69,7 @@ namespace Kugua
                     //if (context.isGroup) sendMessage.Add(new At(context.userId));
                     //sendMessage.Add(new Text(res));
 
-                    context.SendBackPlain(res, context.IsGroup);
+                    context.SendBackText(res, context.IsGroup);
                     return true;
                 }                        
             }

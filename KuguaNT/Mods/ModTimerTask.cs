@@ -241,7 +241,7 @@ namespace Kugua.Mods
                         foreach (var item in r)
                         {
                             //Logger.Log($"length = {item.Length}");
-                            context.SendBackPlain(item);
+                            context.SendBackText(item);
                         }
                     }
                 }
@@ -257,7 +257,7 @@ namespace Kugua.Mods
                     var t = tasks[i];
                     if (DateTime.Now >= t.Time)
                     {
-                        t.context.SendBackPlain($"{DateTime.Now.ToString("HH:mm")}到了{(string.IsNullOrEmpty(t.Message) ? "" : $"，{t.Message}，请")}", true);
+                        t.context.SendBackText($"{DateTime.Now.ToString("HH:mm")}到了{(string.IsNullOrEmpty(t.Message) ? "" : $"，{t.Message}，请")}", true);
 
                         tasks.Remove(t);
                     }

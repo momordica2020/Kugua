@@ -396,12 +396,12 @@ namespace Kugua.Mods
             {
                 if (handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
                 {
-                    if (chatResult.Count() == 1) context.SendBackPlain(chatResult.First(), true, true);
+                    if (chatResult.Count() == 1) context.SendBackText(chatResult.First(), true, true);
                     else
                     {
                         foreach (var s in chatResult)
                         {
-                            context.SendBackPlain(s, false, true);
+                            context.SendBackText(s, false, true);
                         }
                     }
 
@@ -448,7 +448,7 @@ namespace Kugua.Mods
                         var res = LLM.Instance.HSChat(context);
                         if (!string.IsNullOrWhiteSpace(res))
                         {
-                            context.SendBackPlain(res, true, true);
+                            context.SendBackText(res, true, true);
                         }
                         else
                         {

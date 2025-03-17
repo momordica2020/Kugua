@@ -790,56 +790,90 @@ namespace Kugua
 
         #region 洗牌算法们
 
-        public static void FisherYates(char[] input)
+        /// <summary>
+        /// 将结果放在新的List<typeparamref name="T"/>里返回
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static List<T> FisherYates2<T>(IList<T> input)
         {
-            // Fisher-Yates 洗牌算法，完全打乱
-            for (int i = input.Length - 1; i > 0; i--)
-            {
-                int j = MyRandom.Next(0, i + 1); // 生成随机索引
-                                                 // 交换
-                char temp = input[i];
-                input[i] = input[j];
-                input[j] = temp;
-            }
+            List<T> res = new List<T>(input);
+            FisherYates(res);
+            return res;
         }
 
-        public static void FisherYates(List<bool> input)
+
+        /// <summary>
+        /// 原位替换
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        public static void FisherYates<T>(IList<T> input)
         {
             // Fisher-Yates 洗牌算法，完全打乱
+            Random random = new Random();
             for (int i = input.Count - 1; i > 0; i--)
             {
-                int j = MyRandom.Next(0, i + 1); // 生成随机索引
-                                                 // 交换
-                var temp = input[i];
+                int j = random.Next(0, i + 1); // 生成随机索引
+                                               // 交换
+                T temp = input[i];
                 input[i] = input[j];
                 input[j] = temp;
             }
         }
 
-        public static void FisherYates(string[] input)
-        {
-            // Fisher-Yates 洗牌算法，完全打乱
-            for (int i = input.Length - 1; i > 0; i--)
-            {
-                int j = MyRandom.Next(0, i + 1); // 生成随机索引
-                                                 // 交换
-                string temp = input[i];
-                input[i] = input[j];
-                input[j] = temp;
-            }
-        }
-        public static void FisherYates(bool[] input)
-        {
-            // Fisher-Yates 洗牌算法，完全打乱
-            for (int i = input.Length - 1; i > 0; i--)
-            {
-                int j = MyRandom.Next(0, i + 1); // 生成随机索引
-                                                 // 交换
-                bool temp = input[i];
-                input[i] = input[j];
-                input[j] = temp;
-            }
-        }
+
+        //public static void FisherYates(char[] input)
+        //{
+        //    // Fisher-Yates 洗牌算法，完全打乱
+        //    for (int i = input.Length - 1; i > 0; i--)
+        //    {
+        //        int j = MyRandom.Next(0, i + 1); // 生成随机索引
+        //                                         // 交换
+        //        char temp = input[i];
+        //        input[i] = input[j];
+        //        input[j] = temp;
+        //    }
+        //}
+
+        //public static void FisherYates(List<bool> input)
+        //{
+        //    // Fisher-Yates 洗牌算法，完全打乱
+        //    for (int i = input.Count - 1; i > 0; i--)
+        //    {
+        //        int j = MyRandom.Next(0, i + 1); // 生成随机索引
+        //                                         // 交换
+        //        var temp = input[i];
+        //        input[i] = input[j];
+        //        input[j] = temp;
+        //    }
+        //}
+
+        //public static void FisherYates(string[] input)
+        //{
+        //    // Fisher-Yates 洗牌算法，完全打乱
+        //    for (int i = input.Length - 1; i > 0; i--)
+        //    {
+        //        int j = MyRandom.Next(0, i + 1); // 生成随机索引
+        //                                         // 交换
+        //        string temp = input[i];
+        //        input[i] = input[j];
+        //        input[j] = temp;
+        //    }
+        //}
+        //public static void FisherYates(bool[] input)
+        //{
+        //    // Fisher-Yates 洗牌算法，完全打乱
+        //    for (int i = input.Length - 1; i > 0; i--)
+        //    {
+        //        int j = MyRandom.Next(0, i + 1); // 生成随机索引
+        //                                         // 交换
+        //        bool temp = input[i];
+        //        input[i] = input[j];
+        //        input[j] = temp;
+        //    }
+        //}
         /// <summary>
         /// 洗牌算法
         /// </summary>

@@ -224,7 +224,7 @@ namespace Kugua.Integrations.AI
                         var base64data = await Network.DownloadImageUrlToBase64(imageUrl);
                         if (base64data.Length > 0)
                         {
-                            ChatMessageContext[chatid].SendBackImageBase64(base64data);
+                            ChatMessageContext[chatid].SendBack([new ImageSend("base64://{base64data}")]);
                             return "图片发送成功！";
                         }
                     }

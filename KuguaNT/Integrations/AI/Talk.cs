@@ -114,10 +114,8 @@ namespace Kugua.Integrations.AI
 
                 //Logger.Log($"=> {amrFile}");
                 //var resInc = StaticUtil.WavInc(res);
-                Message[] msg = [
-                        new Record($"file://{res}")
-               ];
-                context.SendBack(msg);
+
+                context.SendBack([new Record($"file://{res}")]);
                 Thread.Sleep(3000);
                 //System.IO.File.Delete(amrf);
                 //System.IO.File.Delete(resInc);

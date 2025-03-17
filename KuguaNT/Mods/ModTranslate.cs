@@ -145,7 +145,7 @@ namespace Kugua.Mods
                     var resAll = getTrans(text, langs);
                     if (!string.IsNullOrWhiteSpace(resAll))
                     {
-                        context.SendBackPlain(resAll, true);
+                        context.SendBackText(resAll, true);
                         return true;
                     }
                 }

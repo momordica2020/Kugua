@@ -1,8 +1,7 @@
-﻿using Kugua.Integrations.AI;
+﻿using ImageMagick;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
-using System.Numerics;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text;
+using NvAPIWrapper.Native.GPU;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
@@ -22,6 +21,9 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,false));
+            ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
@@ -31,6 +33,100 @@ namespace Kugua.Mods
             
 
             return true;
+        }
+
+        private string randGif(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+                MagickImageCollection images = new MagickImageCollection();
+                foreach (var img in context.Images)
+                {
+                    var thisimgs = Network.DownloadImage(img.url);
+                    thisimgs.Coalesce();
+                    foreach (var thisimg in thisimgs)
+                    {
+                        thisimg.Format = MagickFormat.Gif;
+                        images.Add(thisimg);
+                    }
+                }
+                var randImgs = StaticUtil.FisherYates2(images);
+                images.Clear();
+                foreach (var img in randImgs) images.Add(img);
+                images.OptimizeTransparency();
+                context.SendBackImage(images);
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
+            return null;
+        }
+
+        private string zipGif(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+                MagickImageCollection images = new MagickImageCollection();
+                uint minH = 400;
+                uint minW = 400;
+                foreach(var img in context.Images)
+                {
+                    var thisimgs = Network.DownloadImage(img.url);
+                    thisimgs.Coalesce();
+                    foreach (var thisimg in thisimgs)
+                    {
+                        thisimg.Format = MagickFormat.Gif;
+                        thisimg.AnimationDelay = 5;
+                        thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+                        if (thisimg.Height < thisimg.Width)
+                        {
+                            uint targetWidth = (uint)((double)thisimg.Width / thisimg.Height * minH);
+                            thisimg.Resize(targetWidth, minH);
+                        }
+                        else
+                        {
+                            uint targetHeight = (uint)((double)thisimg.Height / thisimg.Width * minW);
+                            thisimg.Resize(minW, targetHeight);
+                        }
+                            
+                        images.Add(thisimg);
+                    }
+                }
+
+                images.OptimizeTransparency();
+                context.SendBackImage(images,$"一共{images.Count}帧");
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
+            return null;
+        }
+
+        private string unzipGif(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+                var imgs = Network.DownloadImage(context.Images.First().url);
+                imgs.Coalesce();
+                List<Message> msgs = new List<Message>();
+                
+                foreach(var img in imgs)
+                {
+                    msgs.Add(new ImageSend((MagickImage)img));
+                }
+
+                context.SendForward(msgs.ToArray());
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
+            return null;
         }
 
         private string showColor(MessageContext context, string[] param)
@@ -64,7 +160,6 @@ namespace Kugua.Mods
                     new ImageSend(ImageUtil.GetColorSamples(colorCodes)),
                     new Text(string.Join("   ", colorCodes)),
                 ]);
-                findImg = true;
             }
 
 
@@ -88,6 +183,23 @@ namespace Kugua.Mods
                     return DealEmojiMix(context, elist);
                 }
                 
+            }
+            
+            if(context.IsGroup && context.Group.Is("存图") && context.IsAdminUser)
+            {
+                // save image
+                var imgs = context.Images;
+                if (imgs.Count <= 0) return false;
+                string dirName = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}";
+                string fullPath = Config.Instance.FullPath($"save/{dirName}");
+                Directory.CreateDirectory(fullPath);
+                foreach (var img in imgs)
+                {
+                    var mimg = Network.DownloadImage(img.url);
+                    mimg.Write($"{fullPath}/{img.file}");
+                }
+                context.SendBackText($"已存{imgs.Count}张图片，路径是{fullPath}");
+                return true;
             }
 
             return false;
@@ -217,7 +329,7 @@ namespace Kugua.Mods
                 // 以图生图
 
                 desc += LLM.Instance.HSGetImgDesc(context.PNG1Base64, "请用200字以内的文字描述这张图的内容，务必注意细节。注意强调艺术风格、肢体动作、表情、物品的位置等。", "png");
-                context.SendBackPlain(desc);
+                context.SendBackText(desc);
                 if (desc.Contains("ERROR")) return null;
             }
             else if (string.IsNullOrWhiteSpace(desc))
@@ -265,7 +377,7 @@ namespace Kugua.Mods
 
                 desc += LLM.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
                 desc = ModTranslate.getTrans(desc, lang);
-                context.SendBackPlain(desc);
+                context.SendBackText(desc);
 
                 if (desc.Contains("ERROR")) return null;
             }
@@ -526,7 +638,7 @@ namespace Kugua.Mods
                     files = Directory.GetFiles($"{Config.Instance.RootPath}/xiangsheng", "*.*");
                     string fname = files[MyRandom.Next(files.Length)];
                     var fdesc = fname.Split('-')[1].Trim();
-                    context.SendBackPlain($"▶ {fdesc}", true);
+                    context.SendBackText($"▶ {fdesc}", true);
                     context.SendBack([
                         new Record($"file://{fname}"),
                         ]);
@@ -580,7 +692,7 @@ namespace Kugua.Mods
                             }
                         }
                         //LocalStorage.writeLines(Config.Instance.ResourceFullPath("news.txt"), news.Select(v => $"{DateTime.Now.ToString("yyyyMMdd")}\t{v.title}\t{v.desc}\t{v.url}"));
-                        context.SendBackPlain(res);
+                        context.SendBackText(res);
                         return null;
                     }
                 }
@@ -589,7 +701,7 @@ namespace Kugua.Mods
                 if (files != null)
                 {
                     string fname = files[MyRandom.Next(files.Length)];
-                    context.SendBackImage(fname);
+                    context.SendBack([new ImageSend($"file://{fname}")]);
                     return null;
                 }
             }

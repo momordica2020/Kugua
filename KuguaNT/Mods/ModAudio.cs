@@ -72,13 +72,13 @@ namespace Kugua.Mods
 
                 if (!string.IsNullOrWhiteSpace(infoDesc))
                 {
-                    context.SendBackPlain(infoDesc, true);
+                    context.SendBackText(infoDesc, true);
                 }
                 if (!string.IsNullOrWhiteSpace(localPath) && System.IO.File.Exists(localPath))
                 {
-                    context.SendBack(new Message[] {
-                                new Record($"file://{localPath}")
-                            });
+                    context.SendBack([
+                        new Record($"file://{localPath}")
+                            ]);
                     //var amrb64 = StaticUtil.Mp32AmrBase64(localPath);
                     //if (!string.IsNullOrWhiteSpace(amrb64))
                     //{

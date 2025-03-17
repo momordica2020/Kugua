@@ -191,7 +191,7 @@ namespace Kugua.Mods
                     result = $"很遗憾，，，";
                 }
                
-                context.SendBackPlain(result, true);
+                context.SendBackText(result, true);
                 return null;
                 
             }

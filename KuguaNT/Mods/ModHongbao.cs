@@ -90,10 +90,10 @@ namespace Kugua.Mods
                                 var from = bitems[1];
                                 var fname = Config.Instance.UserInfo(from).Name;
                                 ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, getMoney, out _);
-                                context.SendBackPlain($"你领了{fname}的红包：{getMoney.ToHans()}{ModBank.unitName}", true);
+                                context.SendBackText($"你领了{fname}的红包：{getMoney.ToHans()}{ModBank.unitName}", true);
                                 if (b.left <= 0)
                                 {
-                                    context.SendBackPlain($"{fname}的{b.getFinish()}", false);
+                                    context.SendBackText($"{fname}的{b.getFinish()}", false);
 
                                     hongbaos.Remove(bb);
 

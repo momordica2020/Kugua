@@ -129,7 +129,7 @@ namespace Kugua.Mods
                 if(money < 0)
                 {
                     var res =  g.Start(context.userId, money);
-                    context.SendBackPlain(res, false);
+                    context.SendBackText(res, false);
                 }
                 
             }
@@ -156,7 +156,7 @@ namespace Kugua.Mods
             {
                 var g = info[context.groupId];
                 var res = g.ShootOther(context.userId);
-                context.SendBackPlain(res, false);
+                context.SendBackText(res, false);
             }
 
 
@@ -177,7 +177,7 @@ namespace Kugua.Mods
             {
                 var g = info[context.groupId];
                 var res = g.ShootSelf(context.userId);
-                context.SendBackPlain(res, false);
+                context.SendBackText(res, false);
             }
 
             return null;

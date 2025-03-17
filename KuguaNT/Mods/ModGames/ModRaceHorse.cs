@@ -99,7 +99,7 @@ namespace Kugua.Mods
                     var u = users[context.userId];
                     string result = matchInfo.bet(u, roadnum, money);
                     if (string.IsNullOrWhiteSpace(result)) return "";
-                    context.SendBackPlain(result, true);
+                    context.SendBackText(result, true);
                     return null;
                 }
             }

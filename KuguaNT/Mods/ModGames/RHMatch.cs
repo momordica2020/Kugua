@@ -422,7 +422,7 @@ namespace Kugua.Mods
                 {
                     message += $"{road.num}号：{road.horse.emoji} {road.horse.name}\r\n";
                 }
-                context.SendBackPlain(message);
+                context.SendBackText(message);
             }
             else
             {
@@ -440,15 +440,15 @@ namespace Kugua.Mods
         {
             if (nowF == 0)
             {
-                context.SendBackPlain("赛🐎比赛正式开始！！");
-                context.SendBackPlain(getMatchScene());
+                context.SendBackText("赛🐎比赛正式开始！！");
+                context.SendBackText(getMatchScene());
                 nowF = 1;
                 return;
             }
             else if (nowF >= turnWaitTime)
             {
                 nextLoop();
-                context.SendBackPlain(getMatchScene());
+                context.SendBackText(getMatchScene());
 
                 if (winnerRoad > 0)
                 {
@@ -461,8 +461,8 @@ namespace Kugua.Mods
 
         private void HandleFinishing()
         {
-            context.SendBackPlain($"比赛结束！{winnerRoad}号马赢了！");
-            context.SendBackPlain(calBetResult(winnerRoad));
+            context.SendBackText($"比赛结束！{winnerRoad}号马赢了！");
+            context.SendBackText(calBetResult(winnerRoad));
             // Reset for the next race
 
             winnerRoad = -1;
