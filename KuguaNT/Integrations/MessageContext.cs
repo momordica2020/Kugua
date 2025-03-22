@@ -360,7 +360,19 @@ namespace Kugua
             }
         }
 
+        public ReactLike React
+        {
+            get
+            {
+                foreach(var msg in recvMessages)
+                {
+                    if (msg is ReactLike like) return like;
+                }
+                return null;
+            }
+        }
 
+        public bool IsReact { get { return React != null; } }
 
 
 

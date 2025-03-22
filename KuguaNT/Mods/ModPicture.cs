@@ -1,9 +1,11 @@
 ﻿using ImageMagick;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using ZhipuApi.Modules;
 
 namespace Kugua.Mods
 {
@@ -22,6 +24,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,false));
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^删帧(.+)$", RegexOptions.Singleline), removeGifFrame));
+            ModCommands.Add(new ModCommand(new Regex(@"^拆序列帧$", RegexOptions.Singleline), unzipGifFrameImg));
             ModCommands.Add(new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
@@ -35,6 +39,70 @@ namespace Kugua.Mods
             return true;
         }
 
+
+
+        /// <summary>
+        /// 从gif的特定帧数起，删掉n帧
+        /// 删帧 -1 [图片]/ 删帧 1,3 [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string removeGifFrame(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+
+            if (context.IsImage)
+            {
+                findImg = true;
+                var thisimgs = Network.DownloadImage(context.Images.FirstOrDefault().url);
+                thisimgs.Coalesce();
+
+                int beginFrame = 0;
+                int sumFrame = 0;
+                if (string.IsNullOrWhiteSpace(param[1])) return "";
+                var frameParams = param[1].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                if(frameParams.Length >=1) int.TryParse(frameParams[0], out beginFrame);
+                if (frameParams.Length >= 2) int.TryParse(frameParams[1], out sumFrame);
+                if (beginFrame < 0) beginFrame = thisimgs.Count - (Math.Abs(beginFrame) % thisimgs.Count) ;
+                if (sumFrame == 0) sumFrame = 1;
+                else if(sumFrame < 0)
+                {
+                    // 反向删帧
+                    sumFrame = Math.Abs(sumFrame) % thisimgs.Count;
+                    beginFrame = beginFrame - sumFrame;
+                }
+                List<IMagickImage<ushort>> removes = new List<IMagickImage<ushort>>();
+                for(int i = 0; i < thisimgs.Count; i++)
+                {
+                    if(i + 1 >= beginFrame)
+                    {
+                        removes.Add(thisimgs[i]);
+                        if (removes.Count > sumFrame) break;
+                    }
+                }
+                foreach (var removeFrame in removes) thisimgs.Remove(removeFrame);
+                //thisimgs.OptimizeTransparency();
+                thisimgs.Optimize();
+                context.SendBackImage(thisimgs, $"剩余{thisimgs.Count}帧");
+                return null;
+
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^删帧([\-0-9]+)(\.\.)?([\-0-9]*)", RegexOptions.Singleline), removeGifFrame));
+            return null;
+        }
+
+
+
+        /// <summary>
+        /// 乱序gif
+        /// 乱序 [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string randGif(MessageContext context, string[] param)
         {
             bool findImg = false;
@@ -64,6 +132,39 @@ namespace Kugua.Mods
             return null;
         }
 
+
+
+        /// <summary>
+        /// 拆序列帧
+        /// 拆序列帧 [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string unzipGifFrameImg(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+                var imgs = Network.DownloadImage(context.Images.First().url);
+                var res = ImageUtil.GetGifFrames(imgs);
+                context.SendBackImage(res, $"一共{imgs.Count}帧");
+            }
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆序列帧$", RegexOptions.Singleline), unzipGifFrameImg));
+            return null;
+        }
+
+
+
+        /// <summary>
+        /// 合并图片序列到一个gif里
+        /// 合 [图片1][图片2]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string zipGif(MessageContext context, string[] param)
         {
             bool findImg = false;
@@ -106,6 +207,14 @@ namespace Kugua.Mods
             return null;
         }
 
+
+        /// <summary>
+        /// 拆解gif图片成为一组图片
+        /// 拆 [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string unzipGif(MessageContext context, string[] param)
         {
             bool findImg = false;
@@ -118,6 +227,7 @@ namespace Kugua.Mods
                 
                 foreach(var img in imgs)
                 {
+                    img.Format = MagickFormat.Png;
                     msgs.Add(new ImageSend((MagickImage)img));
                 }
 
@@ -193,10 +303,12 @@ namespace Kugua.Mods
                 string dirName = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}";
                 string fullPath = Config.Instance.FullPath($"save/{dirName}");
                 Directory.CreateDirectory(fullPath);
+                int imgIndex = 1;
                 foreach (var img in imgs)
                 {
                     var mimg = Network.DownloadImage(img.url);
-                    mimg.Write($"{fullPath}/{img.file}");
+                    string imgName = $"{dirName}_{imgIndex++:D3}{Path.GetExtension(img.file)}";
+                    mimg.Write($"{fullPath}/{imgName}");
                 }
                 context.SendBackText($"已存{imgs.Count}张图片，路径是{fullPath}");
                 return true;

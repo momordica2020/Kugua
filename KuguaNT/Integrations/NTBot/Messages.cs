@@ -17,13 +17,13 @@ namespace Kugua.Integrations.NTBot
 
         public MessageInfo(Message data)
         {
-            this.type = ( 
-                data is Text?"text":
-                data is ImageBasic ? "image":
+            this.type = (
+                data is Text ? "text" :
+                data is ImageBasic ? "image" :
                 data is Face ? "face" :
                 data is At ? "at" :
                 data is Video ? "video" :
-                data is Rps? "rps" :
+                data is Rps ? "rps" :
                 data is Dice ? "dice" :
                 //data is Shake ? "shake" :
                 data is Poke ? "poke" :
@@ -39,7 +39,7 @@ namespace Kugua.Integrations.NTBot
                 data is ForwardNodeExist ? "node" :
                 data is ForwardNodeNew ? "node" :
                 data is MFace ? "mface" :
-                "" );
+                "");
 
 
             this.data = data;
@@ -103,14 +103,14 @@ namespace Kugua.Integrations.NTBot
                 {
                     try
                     {
-                        switch (file.Split('.',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Last())
+                        switch (file.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Last())
                         {
                             case "jpg":
-                            case "jpeg":return "jpeg";
+                            case "jpeg": return "jpeg";
                             case "png": return "png";
                             case "gif": return "gif";
                             case "webp": return "webp";
-                            default:return "jpeg";
+                            default: return "jpeg";
                         }
                     }
                     catch (Exception) { }
@@ -145,7 +145,7 @@ namespace Kugua.Integrations.NTBot
     /// </summary>
     public class ImageSend : ImageBasic
     {
- 
+
         /// <summary>
         /// 图片路径格式：
         /// file://C:\\Users\Richard\Pictures\1.png
@@ -169,13 +169,13 @@ namespace Kugua.Integrations.NTBot
             this.file = file;
         }
 
-        public ImageSend(string file, string type, int cache=1, int proxy=0, int timeout = 3)
+        public ImageSend(string file, string type, int cache = 1, int proxy = 0, int timeout = 3)
         {
-            this.file =file;
-            this.type =type;
-            this.cache =cache;
-            this.proxy =proxy;
-            this.timeout =timeout;
+            this.file = file;
+            this.type = type;
+            this.cache = cache;
+            this.proxy = proxy;
+            this.timeout = timeout;
         }
 
         public ImageSend(MagickImage image)
@@ -224,8 +224,8 @@ namespace Kugua.Integrations.NTBot
     public class Record : Message
     {
         public string file { get; set; }
-        public int magic {  get; set; }
-        public string? url {  get; set; }
+        public int magic { get; set; }
+        public string? url { get; set; }
 
         public int? cache { get; set; }
 
@@ -235,7 +235,7 @@ namespace Kugua.Integrations.NTBot
 
         public Record()
         {
-            
+
         }
 
         //public Record(string file, int magic = 0)
@@ -268,7 +268,7 @@ namespace Kugua.Integrations.NTBot
         public int? timeout { get; set; } // 下载超时时间
         public Video()
         {
-            
+
         }
         public Video(string file)
         {
@@ -339,7 +339,7 @@ namespace Kugua.Integrations.NTBot
     //    //public object type = null;
     //    public Shake()
     //    {
-            
+
     //    }
 
     //}
@@ -419,7 +419,7 @@ namespace Kugua.Integrations.NTBot
 
         public Contact(string type, string id)
         {
-            this.type= type;
+            this.type = type;
             this.id = id;
         }
     }
@@ -437,11 +437,11 @@ namespace Kugua.Integrations.NTBot
         public Location()
         {
         }
-        public Location(string lat, string lon,string title, string content)
-        {  
-            this.lat = lat; 
-            this.lon = lon; 
-            this.title= title;
+        public Location(string lat, string lon, string title, string content)
+        {
+            this.lat = lat;
+            this.lon = lon;
+            this.title = title;
             this.content = content;
         }
     }
@@ -457,13 +457,13 @@ namespace Kugua.Integrations.NTBot
         //[JsonProperty("type")]
         public string type { get; set; }
 
-       // [JsonProperty("id")]
+        // [JsonProperty("id")]
         public string id { get; set; }
 
         //[JsonProperty("url")]
         public string? url { get; set; }
 
-       // [JsonProperty("audio")]
+        // [JsonProperty("audio")]
         public string? audio { get; set; }
 
         //[JsonProperty("title")]
@@ -544,7 +544,7 @@ namespace Kugua.Integrations.NTBot
     {
         public string status;
         public int retcode;
-        
+
         public string message;
         public string wording;
         public string echo;
@@ -574,8 +574,21 @@ namespace Kugua.Integrations.NTBot
         public string data;
     }
 
-    public class JsonData: Message
+    public class JsonData : Message
     {
         public string data;
+    }
+
+    /// <summary>
+    /// 群消息的动画表情回应
+    /// </summary>
+    public class ReactLike : Message
+    {
+        public EmojiTypeInfo emoji;
+
+        public ReactLike(EmojiTypeInfo emoji)
+        {
+            this.emoji = emoji;
+        }
     }
 }

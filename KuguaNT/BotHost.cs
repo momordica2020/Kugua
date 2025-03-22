@@ -95,6 +95,7 @@ namespace Kugua
                     new ModTimerTask(),
                     new ModNLP(),
                     new ModHongbao(),
+                    new ModKuguaOL(),
                     ModTransShit.Instance,
 
                     // 这个模块会用闲聊收尾

@@ -107,9 +107,10 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getWelcomeString(MessageContext context, string[] param)
         {
-            return 
+            context.SendForward([new Text(
                 $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" 
-                + BotHost.Instance.ModsDesc();
+                + BotHost.Instance.ModsDesc())]);
+            return null;
             //return "" +
             //    $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
             //    "以下是群常用功能。\r\n" +

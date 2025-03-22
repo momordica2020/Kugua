@@ -217,7 +217,7 @@ namespace Kugua
 
                 //if (string.IsNullOrWhiteSpace(message)) return false;
 
-                // 处理模块中正在等待回应的指令
+                // 如果处理模块中存在正在等待回应的指令，进行匹配
                 
                 string uid = $"{context.groupId}_{context.userId}";
                 bool isWaiting = false;

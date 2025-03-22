@@ -50,7 +50,16 @@
 
         public EmojiTypeInfo GetById(string id)
         {
-            if (emojiTypeInfos.ContainsKey(id)) return emojiTypeInfos[id];
+            foreach(var emoji in emojiTypeInfos)
+            {
+                if (emoji.Value.id == id) return emoji.Value;
+            }
+            return null;
+        }
+
+        public EmojiTypeInfo GetByName(string name)
+        {
+            if (emojiTypeInfos.ContainsKey(name)) return emojiTypeInfos[name];
             return null;
         }
 

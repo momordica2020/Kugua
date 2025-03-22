@@ -52,6 +52,50 @@ namespace Kugua
 
 
 
+        public static MagickImage GetGifFrames(MagickImageCollection gif, int totalCols = 1)
+        {
+            if (totalCols <= 0) totalCols = 1;
+            int totalRows = (int)Math.Ceiling((double)gif.Count / totalCols);
+            gif.Coalesce();
+            // 加载所有图片
+            var images = new List<MagickImage>();
+            foreach (var path in gif)
+            {
+                images.Add(new MagickImage(path));
+            }
+
+            // 计算每个图像的宽度和高度
+            var imageWidth = images[0].Width;
+            var imageHeight = images[0].Height;
+
+            // 计算拼接图像的总宽度和高度
+            var totalWidth = imageWidth * totalCols;
+            var totalHeight = imageHeight * totalRows;
+
+            // 创建一个新的空白图片用于存放拼接后的图像
+            var result = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), (uint)totalWidth, (uint)totalHeight);
+
+            // 拼接图像
+            for (int col = 0; col < totalCols; col++)
+            {
+                for (int row = 0; row < totalRows; row++)
+                {
+                    int x = (int)(col * imageWidth);  // 水平偏移
+                    int y = (int)(row * imageHeight); // 垂直偏移
+
+                    // 将当前图片放置到拼接图像中
+                    var findex = col * totalRows + row;
+                    if (findex < images.Count) result.Composite(images[findex], x, y, CompositeOperator.Over);
+                }
+            }
+
+            // 保存拼接后的图像
+            result.Format = MagickFormat.Png;
+            return result;
+
+        }
+
+
         /// <summary>
         /// 图片旋转
         /// </summary>

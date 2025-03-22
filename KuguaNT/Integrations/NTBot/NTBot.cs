@@ -822,11 +822,25 @@ namespace Kugua.Integrations.NTBot
                                     {
                                         // [{"emoji_id":"10068","count":1}]
                                         var emoji_id = likes.First()["emoji_id"].ToString();
-                                        Logger.Log(emoji_id);
+                                        //Logger.Log(emoji_id);
                                         var emoji = EmojiReact.Instance.GetById(emoji_id);//  EmojiReact.Instance.emojiTypeInfos.TryGetValue(emoji_id, out var emoji);
                                         if (emoji != null)
                                         {
                                             Logger.Log($"[消息响应][群{data.group_id}]{data.user_id}给{data.message_id}点了个{emoji.name}");
+                                            var seo = new group_message_event
+                                            {
+                                                message_id = data.message_id,
+                                                group_id = data.group_id,
+                                                user_id = data.user_id,
+                                                self_id = data.self_id,
+                                                sender = new message_sender
+                                                {
+                                                    user_id = data.user_id,
+                                                    nickname = data.user_id,
+                                                }
+                                            };
+                                            seo.message = new List<Message>() { new ReactLike(emoji) };
+                                            OnGroupMessageReceive?.Invoke(seo);
                                             //getEmojiLikeNumber(data.message_id, emoji);
                                         }
                                         
