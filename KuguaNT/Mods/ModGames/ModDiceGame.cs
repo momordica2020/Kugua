@@ -6,6 +6,7 @@ using NvAPIWrapper.Display;
 using System;
 using Kugua.Integrations.NTBot;
 using System.Numerics;
+using Kugua.Core;
 
 
 namespace Kugua.Mods
@@ -93,7 +94,7 @@ namespace Kugua.Mods
         private string StartDiceGame(MessageContext context, string[] param)
         {
             BigInteger money = 1;
-            money = StaticUtil.ConvertToBigInteger(param[1]);
+            money = Util.ConvertToBigInteger(param[1]);
             if (money < 1) return "";
             string betDesc = param[2].Trim();
 

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ChatGPT.Net;
+using Kugua.Core;
 
 
 namespace Kugua.Mods
@@ -63,7 +64,7 @@ namespace Kugua.Mods
                 if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
-                money = StaticUtil.Floor(money, 2);
+                money = Util.Floor(money, 2);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
@@ -87,7 +88,7 @@ namespace Kugua.Mods
             try
             {
                 
-                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                BigInteger money = Util.ConvertToBigInteger(param[1]);
 
                 if (money > 0)
                 {
@@ -145,7 +146,7 @@ namespace Kugua.Mods
             
             long targetqq = -1;
             if (!long.TryParse(param[1], out targetqq)) return $"{param[1]}?不认识";
-            var money = StaticUtil.ConvertToBigInteger(param[2]);
+            var money = Util.ConvertToBigInteger(param[2]);
             if(money > 0)
             {
                 string res = "";
@@ -219,7 +220,7 @@ namespace Kugua.Mods
                 string res = "";
                 if(fromqq>0 &&  targetqq>0) 
                 {
-                    BigInteger money = StaticUtil.ConvertToBigInteger(param[3]);
+                    BigInteger money = Util.ConvertToBigInteger(param[3]);
                     BigInteger succeedMoney = TransMoney(fromqq.ToString(), targetqq.ToString(), money, out res);
                 }
 
@@ -237,7 +238,7 @@ namespace Kugua.Mods
         {
             if (context.IsAdminUser)
             {
-                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                BigInteger money = Util.ConvertToBigInteger(param[1]);
                 if (money > 0)
                 {
                     var message = AddMoney(context.groupId, Config.Instance.BotQQ, money);
@@ -283,7 +284,7 @@ namespace Kugua.Mods
             {
                 if (context.IsAdminUser)
                 {
-                    BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                    BigInteger money = Util.ConvertToBigInteger(param[1]);
 
                     if (money > 0)
                     {
@@ -322,7 +323,7 @@ namespace Kugua.Mods
                 if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
-                money = StaticUtil.Floor(money, 2);
+                money = Util.Floor(money, 2);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
@@ -459,7 +460,7 @@ namespace Kugua.Mods
                     return -1 * left.Money.CompareTo(right.Money);
                 });
 
-                sb.Append($"富 豪 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())}) \r\n");
+                sb.Append($"富 豪 榜 (基尼系数{Util.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())}) \r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
                     sb.Append($"{i + 1}:{users[i].Name},{users[i].Money.ToHans()}枚\r\n");
@@ -492,7 +493,7 @@ namespace Kugua.Mods
                     return left.Money.CompareTo(right.Money);
                 });
 
-                sb.Append($"穷 人 榜 (基尼系数{StaticUtil.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())})\r\n");
+                sb.Append($"穷 人 榜 (基尼系数{Util.CalculateGiniCoefficient(users.Select(u=>u.Money).ToList())})\r\n");
                 for (int i = 0; i < Math.Min(users.Count, maxnum); i++)
                 {
                     sb.Append($"{i + 1}:{users[i].Name},{users[i].Money.ToHans()}枚\r\n");
@@ -584,7 +585,7 @@ namespace Kugua.Mods
                     src = items[0];
                     tar = items[1];
                     time = DateTime.ParseExact(items[2], "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
-                    money = StaticUtil.ConvertToBigInteger(items[3]);
+                    money = Util.ConvertToBigInteger(items[3]);
                     reason = items[4];
                     result = items[5];
                 }

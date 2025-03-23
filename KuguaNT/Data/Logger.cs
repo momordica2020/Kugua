@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 
 
@@ -36,7 +37,24 @@ namespace Kugua
 
         public string ToDescription()
         {
-            string msg = $"[{HappendTime}][{Logger.GetLogTypeName(Type)}]{Message}";
+            //StackTrace stackTrace = new StackTrace();
+
+            ////// 遍历堆栈帧
+            //for (int i = 0; i < stackTrace.FrameCount; i++)
+            //{
+            //    StackFrame frame = stackTrace.GetFrame(i);
+            //    Console.WriteLine($"Frame {i}: {frame.GetMethod().Name}");
+            //}
+
+            //// 获取调用当前函数的上一个函数
+            //if (stackTrace.FrameCount > 1)
+            //{
+            //    StackFrame callerFrame = stackTrace.GetFrame(1); // 1 表示上一帧
+            //    string callerMethodName = callerFrame.GetMethod().Name;
+            //    Console.WriteLine($"Caller method name: {callerMethodName}");
+            //}
+
+            string msg = $"[{HappendTime}][{Logger.GetLogTypeName(Type)}][{new StackTrace().GetFrame(4).GetMethod().Name}]{Message}";
             return msg;
         }
 

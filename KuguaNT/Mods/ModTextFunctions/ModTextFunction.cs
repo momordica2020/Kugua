@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Kugua.Core;
+using Microsoft.JSInterop;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -219,7 +220,7 @@ namespace Kugua.Mods
         {
             try
             {
-                return StaticUtil.HanToHx(param[1]);
+                return Util.HanToHx(param[1]);
             }
             catch (Exception e)
             {
@@ -268,8 +269,8 @@ namespace Kugua.Mods
                     match = Regex.Match(str, @"^(\d{1,2}|[一二三四五六七八九十]{1,2})月([一二三四五六七八九十]{1,3}|\d{1,2})(日)?$");
                     if (match.Success)
                     {
-                        int m = StaticUtil.ConvertToNumber(match.Groups[1].Value);
-                        int d = StaticUtil.ConvertToNumber(match.Groups[2].Value);
+                        int m = Util.ConvertToNumber(match.Groups[1].Value);
+                        int d = Util.ConvertToNumber(match.Groups[2].Value);
                         checkDate = new DateTime(DateTime.Today.Year, m, d);
                     }
                 }
@@ -417,7 +418,7 @@ namespace Kugua.Mods
             runTime = Math.Min(runTime, 5);
             for (int i = 0; i < runTime; i++)
             {
-                target = StaticUtil.ShuffleString(target, cutNum) + "\r\n";
+                target = Util.ShuffleString(target, cutNum) + "\r\n";
             }
             return target;
         }
@@ -485,7 +486,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string handleShuffle(MessageContext context, string[] param)
         {
-            return StaticUtil.ShuffleString(param[1]);
+            return Util.ShuffleString(param[1]);
         }
 
 

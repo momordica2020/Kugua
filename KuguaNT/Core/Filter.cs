@@ -1,7 +1,6 @@
-﻿
-using System.Text;
+﻿using System.Text;
 
-namespace Kugua
+namespace Kugua.Core
 {
     public enum FilterType
     {

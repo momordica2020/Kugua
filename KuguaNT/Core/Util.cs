@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
-namespace Kugua
+namespace Kugua.Core
 {
     public delegate void SendMsgDelegate(string msg);
     public delegate void SendLogDelegate(LogInfo info);
@@ -23,7 +23,7 @@ namespace Kugua
     /// <summary>
     /// 全局功能
     /// </summary>
-    public static class StaticUtil
+    public static class Util
     {
 
         public static string ComputeHash(string input)
@@ -146,6 +146,41 @@ namespace Kugua
 
 
         #region 数字转换
+
+        /// <summary>
+        /// 大整数带小数除法，保留小数点后N位，返回字符串
+        /// </summary>
+        /// <param name="val1"></param>
+        /// <param name="val2"></param>
+        /// <param name="keepN"></param>
+        /// <returns></returns>
+        public static string BigDivToString(BigInteger val1, BigInteger val2, int keepN)
+        {
+            (BigInteger intPart, BigInteger decPart, BigInteger decUnit) = Div(val1, val2, keepN);
+            return $"{intPart}.{decPart.ToString().PadLeft((int)Math.Floor(BigInteger.Log10(decUnit) + 1), '0')}";
+        }
+
+
+        /// <summary>
+        /// 大整数带小数除法，返回值是整数部分、小数部分、小数部分该除以的大小（分母）
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <param name="keepN"></param>
+        /// <returns></returns>
+        public static (BigInteger intPart, BigInteger decPart, BigInteger decUnit) Div(BigInteger value1, BigInteger value2, int keepN = 2)
+        {
+            BigInteger res = value1;
+            if (keepN <= 0) keepN = 1;
+            var totalDigits2 = Math.Min((int)Math.Floor(BigInteger.Log10(value2) + 1) , keepN);
+            var delta = BigInteger.Pow(10, totalDigits2);
+            res = value1 * delta / value2;
+            var intpart = res / delta;
+            var decpart = res - (res / delta * delta);
+            
+
+            return (intpart,decpart, delta);
+        }
 
 
         /// <summary>
@@ -569,22 +604,22 @@ namespace Kugua
         public static bool IsEmojiCodePoint(int codePoint)
         {
             // 一些常见 emoji 的 Unicode 范围
-            return (codePoint >= 0x1F600 && codePoint <= 0x1F64F)  // 表情符号
-                || (codePoint >= 0x1F300 && codePoint <= 0x1F5FF)  // 符号和图像
-                || (codePoint >= 0x1F680 && codePoint <= 0x1F6FF)  // 交通符号
-                || (codePoint >= 0x1F700 && codePoint <= 0x1F77F)  // 占卜符号
-                || (codePoint >= 0x1F780 && codePoint <= 0x1F7FF)  // 地理符号
-                || (codePoint >= 0x1F800 && codePoint <= 0x1F8FF)  // 中古字母
-                || (codePoint >= 0x1F900 && codePoint <= 0x1F9FF)  // 表情符号补充
-                || (codePoint >= 0x1FA00 && codePoint <= 0x1FA6F)  // 新增的表情符号
-                || (codePoint >= 0x1F000 && codePoint <= 0x1F02F)  // 象棋和棋盘符号
-                || (codePoint >= 0x1F030 && codePoint <= 0x1F09F)  // 麻将符号
-                || (codePoint >= 0x1F0A0 && codePoint <= 0x1F0FF)  // 扑克牌符号
-                || (codePoint >= 0x1F100 && codePoint <= 0x1F1FF)  // 字母和数字符号
-                || (codePoint >= 0x1F200 && codePoint <= 0x1F251)  // 封闭式字符
-                || (codePoint >= 0x2600 && codePoint <= 0x26FF)    // Miscellaneous Symbols
-                || (codePoint >= 0x2700 && codePoint <= 0x27BF)    // Dingbats
-                || (codePoint >= 0x2B50 && codePoint <= 0x2B59)   // 箭头符号
+            return codePoint >= 0x1F600 && codePoint <= 0x1F64F  // 表情符号
+                || codePoint >= 0x1F300 && codePoint <= 0x1F5FF  // 符号和图像
+                || codePoint >= 0x1F680 && codePoint <= 0x1F6FF  // 交通符号
+                || codePoint >= 0x1F700 && codePoint <= 0x1F77F  // 占卜符号
+                || codePoint >= 0x1F780 && codePoint <= 0x1F7FF  // 地理符号
+                || codePoint >= 0x1F800 && codePoint <= 0x1F8FF  // 中古字母
+                || codePoint >= 0x1F900 && codePoint <= 0x1F9FF  // 表情符号补充
+                || codePoint >= 0x1FA00 && codePoint <= 0x1FA6F  // 新增的表情符号
+                || codePoint >= 0x1F000 && codePoint <= 0x1F02F  // 象棋和棋盘符号
+                || codePoint >= 0x1F030 && codePoint <= 0x1F09F  // 麻将符号
+                || codePoint >= 0x1F0A0 && codePoint <= 0x1F0FF  // 扑克牌符号
+                || codePoint >= 0x1F100 && codePoint <= 0x1F1FF  // 字母和数字符号
+                || codePoint >= 0x1F200 && codePoint <= 0x1F251  // 封闭式字符
+                || codePoint >= 0x2600 && codePoint <= 0x26FF    // Miscellaneous Symbols
+                || codePoint >= 0x2700 && codePoint <= 0x27BF    // Dingbats
+                || codePoint >= 0x2B50 && codePoint <= 0x2B59   // 箭头符号
                 ;
         }
 
@@ -642,8 +677,8 @@ namespace Kugua
                     if (IsEmojiCodePoint(codePoint))
                     {
                         // 处理为代理对格式 "uXXXX-uXXXX"
-                        int highSurrogate = (int)input[i];
-                        int lowSurrogate = (int)input[i + 1];
+                        int highSurrogate = input[i];
+                        int lowSurrogate = input[i + 1];
                         int allS = char.ConvertToUtf32(input, i);
                         emojiList.Add($"u{allS:x4}");
                     }
@@ -757,7 +792,7 @@ namespace Kugua
             Assembly assembly = Assembly.GetExecutingAssembly();
             // 获取程序集文件的路径
             var filePath = assembly.Location;
-            var fileInfo = new System.IO.FileInfo(filePath);
+            var fileInfo = new FileInfo(filePath);
 
             // 获取编译日期，文件的最后写入时间
             return fileInfo.LastWriteTime;
@@ -898,7 +933,7 @@ namespace Kugua
                 bool[] cuts = new bool[str.Length - 1];
 
                 var stringBuilder = new StringBuilder();
-                for (int i = 0; i < cuts.Length; i++) cuts[i] = (i < time);
+                for (int i = 0; i < cuts.Length; i++) cuts[i] = i < time;
                 FisherYates(cuts);
                 List<string> parts = new List<string>();
 
@@ -1004,8 +1039,8 @@ namespace Kugua
                     if(!string.IsNullOrWhiteSpace(b64))
                     {
                         Thread.Sleep(500);
-                        System.IO.File.Delete(f1);
-                        System.IO.File.Delete(f2);
+                        File.Delete(f1);
+                        File.Delete(f2);
 
                         return b64;
                     }
@@ -1147,14 +1182,14 @@ namespace Kugua
         public static string ConvertFileToBase64(string filePath)
         {
             // 检查文件是否存在
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
                 return null;
                 //throw new FileNotFoundException("The specified file does not exist.", filePath);
             }
 
             // 读取文件的字节内容
-            byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+            byte[] fileBytes = File.ReadAllBytes(filePath);
 
             // 将字节数组转换为 Base64 字符串
             string base64String = Convert.ToBase64String(fileBytes);

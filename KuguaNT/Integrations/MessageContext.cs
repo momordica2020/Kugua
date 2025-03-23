@@ -1,5 +1,6 @@
 ﻿
 using ImageMagick;
+using Kugua.Core;
 using Kugua.Integrations.NTBot;
 using System.Text;
 
@@ -406,20 +407,20 @@ namespace Kugua
             }
         }
 
-        public async Task<string> SendBackText(string text, bool isAt=false, bool isFilter = false)
+        public async Task<string> SendBackText(string text, bool isAt=false, bool isFilter = false, bool isDelay=true)
         {
             return await SendText(text,  IsGroup ? groupId : userId, IsGroup, isAt, isFilter);
         }
 
-        public async Task<string> SendText(string message, string targetId, bool isGroup, bool isAt = false,  bool isFilter=false)
+        public async Task<string> SendText(string message, string targetId, bool isGroup, bool isAt = false,  bool isFilter=false, bool isDelay = true)
         {
             if (IsGroup && isAt)
             {
-                return Send([new At(userId), new Text(message)], targetId,isGroup, isFilter).Result;
+                return Send([new At(userId), new Text(message)], targetId,isGroup, isFilter, isDelay).Result;
             }
             else
             {
-                return Send([new Text(message)], targetId, isGroup, isFilter).Result;
+                return Send([new Text(message)], targetId, isGroup, isFilter, isDelay).Result;
             }
         }
 
@@ -501,7 +502,7 @@ namespace Kugua
             return await Send(_sendMessages, IsGroup ? groupId : userId, IsGroup, isFilter);
         }
 
-        public async Task<string> Send(Message[] _sendMessages, string targetId, bool isGroup, bool isFilter = false)
+        public async Task<string> Send(Message[] _sendMessages, string targetId, bool isGroup, bool isFilter = false, bool isDealy = true)
         {
             if (client == null) return string.Empty;
             if (_sendMessages == null && _sendMessages.Length <= 0) return string.Empty;
@@ -520,7 +521,7 @@ namespace Kugua
                     // filtered
                     if (isFilter)
                     {
-                        itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, FilterType.Normal);
+                        itemPlain.text = Filter.Instance.FiltingBySentense(itemPlain.text, Kugua.Core.FilterType.Normal);
                     }
                         
                         
@@ -582,7 +583,7 @@ namespace Kugua
                             user.UseTimes += 1;
                         }
                         //Logger.Log($"delay={delay}ms");
-                        await Task.Delay(delay);
+                        if(isDealy)   await Task.Delay(delay);
                         var messageId = client.Send(new send_group_msg(targetId, pmsg)).Result;
                         if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, targetId, Config.Instance.BotQQ, pmsg.ToTextString());
                         msgIds.Add( messageId);
@@ -597,7 +598,7 @@ namespace Kugua
                             delay = user.delayMs;
                         }
                         //Logger.Log($"delay={delay}ms");
-                        await Task.Delay(delay);
+                        if (isDealy) await Task.Delay(delay);
                         var messageId = client.Send(new send_private_msg(targetId, pmsg)).Result;
                         if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, "", Config.Instance.BotQQ, pmsg.ToTextString());
                         msgIds.Add( messageId);

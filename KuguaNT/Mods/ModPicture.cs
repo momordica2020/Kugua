@@ -1,4 +1,5 @@
 ﻿using ImageMagick;
+using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Serialization;
@@ -120,7 +121,7 @@ namespace Kugua.Mods
                         images.Add(thisimg);
                     }
                 }
-                var randImgs = StaticUtil.FisherYates2(images);
+                var randImgs = Util.FisherYates2(images);
                 images.Clear();
                 foreach (var img in randImgs) images.Add(img);
                 images.OptimizeTransparency();
@@ -286,10 +287,10 @@ namespace Kugua.Mods
                 //var user = Config.Instance.UserInfo(context.userId);
 
                 var message = context.recvMessages.ToTextString();
-                if (StaticUtil.isOnlyEmoji(message))
+                if (Util.isOnlyEmoji(message))
                 {
                     // 只有纯emoji才触发拼合功能，防止误触
-                    var elist = StaticUtil.ExtractEmojis(message);
+                    var elist = Util.ExtractEmojis(message);
                     return DealEmojiMix(context, elist);
                 }
                 
@@ -403,7 +404,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getMoveEmoji(MessageContext context, string[] param)
         {
-            var elist = StaticUtil.ExtractEmojis(param[1]);
+            var elist = Util.ExtractEmojis(param[1]);
             if (elist.Count > 0)
             {
                 List<Message> msgs = new List<Message>();
@@ -656,7 +657,7 @@ namespace Kugua.Mods
                 {
                     if (fres.Count > 1) Logger.Log($"{fres.Count} => {emojiA}*{emojiB}*.png");
                     _ = context.SendBack([
-                        new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
+                        new Text($"{Util.UnicodePointsToEmoji(emojiA)}+{Util.UnicodePointsToEmoji(emojiB)}="),
                         new ImageSend($"file://{fres.First()}"),
                     ]);
                     return true;
@@ -674,7 +675,7 @@ namespace Kugua.Mods
                     {
                         var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f", "").Replace("-u200d", "");
                         _ = context.SendBack([
-                            new Text($"{StaticUtil.UnicodePointsToEmoji(emojiA)}+{StaticUtil.UnicodePointsToEmoji(emojiB)}="),
+                            new Text($"{Util.UnicodePointsToEmoji(emojiA)}+{Util.UnicodePointsToEmoji(emojiB)}="),
                             new ImageSend($"file://{getf}"),
                         ]);
                         return true;
@@ -763,7 +764,7 @@ namespace Kugua.Mods
                     if (f.Length == 2)
                     {
                         context.SendBack([
-                        new Text($"{StaticUtil.UnicodePointsToEmoji(f[0])} + {StaticUtil.UnicodePointsToEmoji(f[1])} = "),
+                        new Text($"{Util.UnicodePointsToEmoji(f[0])} + {Util.UnicodePointsToEmoji(f[1])} = "),
                         new ImageSend($"file://{fname}"),
                         ]);
                     }
@@ -797,7 +798,7 @@ namespace Kugua.Mods
                         if (news.Count > 0)
                         {
                             var nlist = news.Select(e => e.title).ToArray();
-                            StaticUtil.FisherYates(nlist);
+                            Util.FisherYates(nlist);
                             for (int i = 0; i < Math.Min(newsLen, news.Count); i++)
                             {
                                 if (!string.IsNullOrWhiteSpace(nlist[i])) res += $"- {nlist[i]}\r\n";

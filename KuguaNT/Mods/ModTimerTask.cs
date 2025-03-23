@@ -1,4 +1,5 @@
 ﻿
+using Kugua.Core;
 using Kugua.Integrations.NTBot;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;

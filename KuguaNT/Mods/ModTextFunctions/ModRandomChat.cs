@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 
 using System.Text;
 using System.Text.RegularExpressions;
+using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Microsoft.VisualBasic;
@@ -841,7 +842,7 @@ namespace Kugua.Mods
                                 if (!Filter.Instance.IsPass(msg, FilterType.Strict)) continue;
 
                                 // 转换emoji
-                                msg = StaticUtil.ConvertEmoji(msg);
+                                msg = Util.ConvertEmoji(msg);
                                 if (!string.IsNullOrWhiteSpace(msg))
                                 {
                                     result.Add(msg);

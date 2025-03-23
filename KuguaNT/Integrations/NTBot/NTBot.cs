@@ -1,4 +1,5 @@
 ﻿using ChatGPT.Net.DTO.ChatGPTUnofficial;
+using Kugua.Core;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

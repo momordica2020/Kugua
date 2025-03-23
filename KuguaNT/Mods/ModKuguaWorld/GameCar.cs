@@ -1,3 +1,4 @@
+using Kugua.Core;
 using Microsoft.AspNetCore.Mvc;
 using NvAPIWrapper.Native.Display.Structures;
 using System;
@@ -5,17 +6,13 @@ using System.Data;
 using System.Text;
 
 namespace Kugua.Mods{
-    public class GameTest
-    {
-        
-    }
 
-    public class Game2048
+    public class GameCar
     {
         private int[,] grid = new int[4, 4];
         public int score = 0;
 
-        public Game2048()
+        public GameCar()
         {
 
         }

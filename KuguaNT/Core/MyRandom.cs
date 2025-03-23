@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kugua
+namespace Kugua.Core
 {
     class MyRandom
     {
@@ -109,7 +109,7 @@ namespace Kugua
                 BigInteger range = maxValue - minValue;
                 var r = getNextBigInteger(range.ToByteArray().Length);
                 while (r < range) r += range;
-                return (r % range) + minValue;
+                return r % range + minValue;
             }
             catch (Exception ex)
             {
@@ -185,7 +185,7 @@ namespace Kugua
 
         public static int Next(uint maxValue)
         {
-            return (int)Next(0, (long)maxValue);
+            return (int)Next(0, maxValue);
         }
 
         public static int Next(IEnumerable<object> items)

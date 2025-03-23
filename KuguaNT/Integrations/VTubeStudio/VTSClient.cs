@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using WebSocket4Net;
+using Kugua.Core;
 
 namespace Kugua.Integrations.VTubeStudio
 {

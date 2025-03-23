@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Prophecy;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Timers;
+using Kugua.Core;
 
 namespace Kugua.Mods
 {
@@ -130,7 +131,7 @@ namespace Kugua.Mods
                 Logger.Log($"{string.Join(",", param)}");
                 int.TryParse(param[1].TrimEnd('个'), out num);
                 if (num <= 0 || num > 1000) num = 3;
-                money = StaticUtil.ConvertToBigInteger(param[2]);
+                money = Core.Util.ConvertToBigInteger(param[2]);
                 text = param[3];
 
                 if (string.IsNullOrWhiteSpace(text))text= "恭喜发财";

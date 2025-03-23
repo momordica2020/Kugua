@@ -16,7 +16,7 @@ namespace Kugua.Mods
 
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^启动$"), parseNew));
+            ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
 
 
             TaskTimer = new(1000 * 60); //ms
@@ -56,7 +56,13 @@ namespace Kugua.Mods
             return false;
         }
 
-
+        /// <summary>
+        /// 启动2048游戏
+        /// 2048
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string parseNew(MessageContext context, string[] param)
         {
             try
@@ -93,7 +99,7 @@ namespace Kugua.Mods
             {
                 Commands.Add(cmd);
             }
-            string msgid = cmd.context.SendBackText(cmd.Name).Result;
+            string msgid = cmd.context.SendBackText(cmd.Name,false,false,false).Result;
             foreach(var item in cmd.Params)
             {
                 cmd.context.client.SendEmojiLike(msgid, int.Parse(item));

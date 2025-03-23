@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.AI;
+﻿using Kugua.Core;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
@@ -1168,7 +1169,7 @@ namespace Kugua.Mods
                     var imghash = ImageSimilar.GetHashFromBase64(imgb64);
                     //StaticUtil.ComputeHash(imgb64)
                     _hashs.Add(imghash);
-                    _hash = StaticUtil.ComputeHash(_hash + imghash);
+                    _hash = Util.ComputeHash(_hash + imghash);
                     if (string.IsNullOrWhiteSpace(imgBase64))
                     {
                         imgBase64 = imgb64;
@@ -1190,8 +1191,8 @@ namespace Kugua.Mods
                     //}
 
                     //Logger.Log($"<hashvideo>{video.file}");
-                    _hashs.Add(StaticUtil.ComputeHash(video.file));
-                    _hash = StaticUtil.ComputeHash(_hash + video.file);
+                    _hashs.Add(Util.ComputeHash(video.file));
+                    _hash = Util.ComputeHash(_hash + video.file);
 
                 }
                 else if (item is ForwardNodeExist forward)
@@ -1215,8 +1216,8 @@ namespace Kugua.Mods
 
                     // text in forward
                     //Logger.Log($"<hashtext>{text.text}");
-                    _hashs.Add(StaticUtil.ComputeHash(text.text));
-                    _hash = StaticUtil.ComputeHash(_hash + text.text);
+                    _hashs.Add(Util.ComputeHash(text.text));
+                    _hash = Util.ComputeHash(_hash + text.text);
                     
                 }
 

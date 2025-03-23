@@ -19,7 +19,7 @@ using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Image = System.Drawing.Image;
 
-namespace Kugua
+namespace Kugua.Core
 {
     /// <summary>
     /// 图像处理相关
@@ -29,7 +29,7 @@ namespace Kugua
         // Clamp values to be within 0-65535
         private static int Clamp(int x)
         {
-            return x < 0 ? 0 : (x > 65535 ? 65535 : x);
+            return x < 0 ? 0 : x > 65535 ? 65535 : x;
         }
 
         // Convert RGB to YUV
@@ -138,7 +138,7 @@ namespace Kugua
                 // 获取图片宽高
                 uint width = image.Width;
                 uint height = image.Height;
-                int pos =  (int)(degree);
+                int pos =  (int)degree;
                 
                 // 裁剪右半部分
                 MagickGeometry rightHalfGeometry = new MagickGeometry((int)(width / 2), 0, width / 2, height);
@@ -346,7 +346,7 @@ namespace Kugua
         {
             byte r = (byte)(color >> 16);
             byte g = (byte)(color >> 8);
-            byte b = (byte)(color);
+            byte b = (byte)color;
             return $"#{r:X2}{g:X2}{b:X2}";
         }
 
@@ -358,14 +358,14 @@ namespace Kugua
         public static string UshortToHexColor(ushort color)
         {
             // 假设 color 是 RGB565 格式
-            byte r = (byte)((color >> 11) & 0x1F); // 提取红色分量（5 位）
-            byte g = (byte)((color >> 5) & 0x3F);  // 提取绿色分量（6 位）
+            byte r = (byte)(color >> 11 & 0x1F); // 提取红色分量（5 位）
+            byte g = (byte)(color >> 5 & 0x3F);  // 提取绿色分量（6 位）
             byte b = (byte)(color & 0x1F);         // 提取蓝色分量（5 位）
 
             // 将 5/6 位分量扩展到 8 位
-            r = (byte)((r << 3) | (r >> 2)); // 5 位 -> 8 位
-            g = (byte)((g << 2) | (g >> 4)); // 6 位 -> 8 位
-            b = (byte)((b << 3) | (b >> 2)); // 5 位 -> 8 位
+            r = (byte)(r << 3 | r >> 2); // 5 位 -> 8 位
+            g = (byte)(g << 2 | g >> 4); // 6 位 -> 8 位
+            b = (byte)(b << 3 | b >> 2); // 5 位 -> 8 位
 
             // 将 R、G、B 转换为 2 位十六进制字符串并拼接
             return $"#{r:X2}{g:X2}{b:X2}";
@@ -702,7 +702,7 @@ namespace Kugua
 
             // Create EncoderParameters object to set the quality
             EncoderParameters encoderParams = new EncoderParameters(1);
-            encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)quality);
+            encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
 
             // Save the image as JPEG
             image.Save(outputImagePath, jpegCodec, encoderParams);
@@ -852,8 +852,8 @@ namespace Kugua
                     frame.Annotate(
                         text[i].ToString(), 
                         new MagickGeometry(
-                            (int)((i% lineMax) * fontsize + MyRandom.Next(5,15) + slide),
-                            (int)((i / lineMax) * fontsize + MyRandom.Next(-5,5) + slide),
+                            (int)(i% lineMax * fontsize + MyRandom.Next(5,15) + slide),
+                            (int)(i / lineMax * fontsize + MyRandom.Next(-5,5) + slide),
                             100, 
                             100), 
                         Gravity.Northwest, 
@@ -953,8 +953,8 @@ namespace Kugua
                     image.Annotate(
                     text[i].ToString(),
                     new MagickGeometry(
-                        (int)(image.Width / 2 - width + (int)((i% lineMax)) * offsetsingle + offsetx),
-                       (int)(offsety - height / 2 + (int)((i/ lineMax)) * offsetsingle),
+                        (int)(image.Width / 2 - width + i% lineMax * offsetsingle + offsetx),
+                       (int)(offsety - height / 2 + i/ lineMax * offsetsingle),
                         width,
                         height),
                     Gravity.North, 0
@@ -1115,7 +1115,7 @@ namespace Kugua
         {
             var blurred = new Bitmap(image.Width, image.Height);
             using (var graphics = Graphics.FromImage(blurred))
-            using (var blurEffect = new System.Drawing.Imaging.ImageAttributes())
+            using (var blurEffect = new ImageAttributes())
             {
                 // 使用高斯模糊（需System.Drawing.Common）
                 blurEffect.SetColorMatrix(new ColorMatrix(new float[][]
@@ -1137,11 +1137,11 @@ namespace Kugua
         /// </summary>
         /// <param name="oriImage"></param>
         /// <returns></returns>
-        private Byte[] ReduceColor(Image image)
+        private byte[] ReduceColor(Image image)
         {
 
             Bitmap bitMap = new Bitmap(image);
-            Byte[] grayValues = new Byte[image.Width * image.Height];
+            byte[] grayValues = new byte[image.Width * image.Height];
 
             for (int x = 0; x < image.Width; x++)
                 for (int y = 0; y < image.Height; y++)
@@ -1176,11 +1176,11 @@ namespace Kugua
         /// </summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        private Byte CalcMedian(byte[] values)
+        private byte CalcMedian(byte[] values)
         {
             var sorted = values.OrderBy(v => v).ToArray();
             int mid = sorted.Length / 2;
-            return (sorted.Length % 2 != 0) ? sorted[mid] : (byte)((sorted[mid - 1] + sorted[mid]) / 2);
+            return sorted.Length % 2 != 0 ? sorted[mid] : (byte)((sorted[mid - 1] + sorted[mid]) / 2);
         }
 
         private string ComputeBits(byte[] values, byte threshold, int width = 8)

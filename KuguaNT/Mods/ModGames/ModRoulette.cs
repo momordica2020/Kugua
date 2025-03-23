@@ -8,6 +8,7 @@ using ChatGPT.Net.DTO.ChatGPT;
 using static System.Net.WebRequestMethods;
 using System.Text;
 using System.Numerics;
+using Kugua.Core;
 
 
 namespace Kugua.Mods
@@ -125,7 +126,7 @@ namespace Kugua.Mods
                     info[context.groupId] = new RouletteGame();
                 }
                 var g = info[context.groupId];
-                BigInteger money = StaticUtil.ConvertToBigInteger(param[1]);
+                BigInteger money = Util.ConvertToBigInteger(param[1]);
                 if(money < 0)
                 {
                     var res =  g.Start(context.userId, money);
@@ -474,7 +475,7 @@ namespace Kugua.Mods
                 chamber = new List<bool>();
                 for (int i = 0; i < totalBullets - emptyBullets; i++) chamber.Add(true); // 装填实弹
                 for (int i = 0; i < emptyBullets; i++) chamber.Add(false); // 装填空包弹
-                StaticUtil.FisherYates(chamber);
+                Util.FisherYates(chamber);
 
                 var res = $"第{round}轮开始！一共{totalBullets}发：{getBullets(totalBullets-emptyBullets,emptyBullets)}\r\n";
 

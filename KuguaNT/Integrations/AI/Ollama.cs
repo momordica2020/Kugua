@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text;
+using Kugua.Core;
 
 namespace Kugua.Integrations.AI
 {

@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.AI;
+﻿using Kugua.Core;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using System;
 using System.Collections.Generic;
@@ -170,7 +171,7 @@ namespace Kugua.Mods
             if (context.IsAdminGroup || context.IsAdminUser) //临时：只有测试群可查详细信息
             {
                 DateTime startTime = Config.Instance.StartTime;
-                rmsg.AppendLine($"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{StaticUtil.GetBuildDate().ToString("F")}）");
+                rmsg.AppendLine($"内核版本 - 苦音酱 v{Config.Instance.App.Version}（{Util.GetBuildDate().ToString("F")}）");
                 rmsg.AppendLine($"启动时间：{startTime.ToString("yyyy-MM-dd HH:mm:ss")}(已运行{(DateTime.Now - startTime).TotalDays.ToString("0.00")}天)");
                 rmsg.AppendLine($"CPU({Config.Instance.systemInfo.CpuLoad.ToString(".0")}%) 内存({(100.0 - ((double)Config.Instance.systemInfo.MemoryAvailable * 100 / Config.Instance.systemInfo.PhysicalMemory)).ToString(".0")}%)");
                 rmsg.AppendLine($"{SystemInfo.GetNvidiaGpuAndMemoryUsage()}");

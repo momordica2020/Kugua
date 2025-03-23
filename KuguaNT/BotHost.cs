@@ -4,6 +4,7 @@ using System;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods;
 using Kugua.Integrations.AI;
+using Kugua.Core;
 
 
 
@@ -249,7 +250,7 @@ namespace Kugua
             res.AppendLine($"运行路径：{filePath}");
             res.AppendLine($"代码最后修改日期：{fileInfo.LastWriteTime.ToString()}");
             
-            var codes = StaticUtil.GetCodeLineNum();
+            var codes = Util.GetCodeLineNum();
             res.AppendLine($"源码有{codes.Count}个文件({codes.Sum(s=>s.Item2)}行)");
             //foreach (var code in codes)
             //{

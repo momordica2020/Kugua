@@ -38,30 +38,20 @@ namespace Kugua
             if (regex != null)
             {
                 string message = context.recvMessages.ToTextString().Trim();
-                var m = regex.Match(message);
-                if (m.Success)
+                var match = regex.Match(message);
+                if (match.Success)
                 {
-                    param.AddRange(m.Groups.Values.Select(e => e.Value.Trim()).ToList());
+                    param.AddRange(match.Groups.Values.Select(e => e.Value.Trim()).ToList());
                 }
-               
-            }
-            if(useImage)
-            {
-                int imgNum = 0;
-                foreach(var  item in context.recvMessages)
+                else
                 {
-                    if(item is ImageBasic img)
-                    {
-                        imgNum++;
-                        //param.Add(img.url);
-                    }
+                    return false;
                 }
-                if(imgNum>0) param.Add(imgNum.ToString());
             }
-            if (param.Count > 0)
+            
+            try
             {
                 string res = handle(context, param.ToArray());
-
                 if (res == null) { return true; } // 用null 表明中断后续其他模块对该信息的响应
                 else if (!string.IsNullOrWhiteSpace(res))
                 {
@@ -69,10 +59,15 @@ namespace Kugua
                     //if (context.isGroup) sendMessage.Add(new At(context.userId));
                     //sendMessage.Add(new Text(res));
 
-                    context.SendBackText(res, context.IsGroup);
+                    context.SendBackText(res, true);
                     return true;
-                }                        
+                }
             }
+            catch (Exception ex)
+            {
+                Logger.Log($"CMD {handle.Method.Name} ERROR:{ex.Message}");
+            } 
+            
             return false;
         }
 
@@ -117,20 +112,6 @@ namespace Kugua
 
     public delegate string HandleCommandEvent(MessageContext context, string[] param);
 
-
-
-    ///// <summary>
-    ///// 模组的可持久化资源，用于自动存取
-    ///// </summary>
-    //public class ModResource
-    //{
-        
-    //}
-
-    //public enum ModResourceType
-    //{
-    //    Dictionary
-    //}
 
     /// <summary>
     /// 模组的基础类型，根据正则匹配等方式调用模组内方法
@@ -206,6 +187,41 @@ namespace Kugua
             }
         }
 
+
+        /// <summary>
+        /// 匹配模块中正在等待回应的指令
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public bool HandleWaitedMessage(MessageContext context)
+        {
+            string uid = $"{context.groupId}_{context.userId}";
+            bool isWaiting = false;
+            (MessageContext ctx, ModCommand cmd) last;
+            lock (WaitingCmdsLock) { isWaiting = WaitingCmds.TryGetValue(uid, out last); }
+            if (isWaiting)
+            {
+                if (context.IsAskme)
+                {
+                    // 重新at了bot，说明该用户已开启新的对话
+                    lock (WaitingCmdsLock) { WaitingCmds.Remove(uid); }
+                    return false;
+                }
+                else
+                {
+                    //context.recvMessages.AddRange(val.ctx.recvMessages);
+                    last.ctx.recvMessages.AddRange(context.recvMessages);    // 合并消息内容
+                    if (last.cmd.Handle(last.ctx))
+                    {
+                        // 只删自己，意思是如果handle内部重新设置了下一条要等待的指令，这里就不必remove了
+                        lock (WaitingCmdsLock) { if (WaitingCmds[uid] == last) WaitingCmds.Remove(uid); }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public async Task<bool> HandleMessages(MessageContext context)
         {
             try
@@ -217,37 +233,13 @@ namespace Kugua
 
                 //if (string.IsNullOrWhiteSpace(message)) return false;
 
-                // 如果处理模块中存在正在等待回应的指令，进行匹配
-                
-                string uid = $"{context.groupId}_{context.userId}";
-                bool isWaiting = false;
-                (MessageContext ctx, ModCommand cmd) val;
-                lock (WaitingCmdsLock){  isWaiting = WaitingCmds.TryGetValue(uid, out val);  }
-                if (isWaiting)
-                {
-                    if (context.IsAskme)
-                    {
-                        // new ask!
-                        lock (WaitingCmdsLock) {  WaitingCmds.Remove(uid);  }
-                    }
-                    else
-                    {
-                        //context.recvMessages.AddRange(val.ctx.recvMessages);
-                        val.ctx.recvMessages.AddRange(context.recvMessages);
-                        if (val.cmd.Handle(val.ctx))
-                        {
-                           // 只删自己，意思是如果handle时增加了新的waitingCmd，则保留
-                            lock (WaitingCmdsLock) { if (WaitingCmds.ContainsValue(val)) WaitingCmds.Remove(uid);  }
-                            return true;
-                        }
-                    }
-                }
+                if(HandleWaitedMessage(context))return true;
                 
 
                 // 逐个指令处理响应
                 foreach (var cmd in ModCommands)
                 {
-                    if(cmd.Handle(context))return true;
+                    if (cmd.Handle(context)) return true;
                 }
 
                 

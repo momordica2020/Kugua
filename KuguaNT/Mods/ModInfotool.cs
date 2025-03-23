@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Nodes;
+﻿using Kugua.Core;
+using System.Numerics;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods
@@ -16,7 +18,10 @@ namespace Kugua.Mods
         {
 
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
-
+            ModCommands.Add(new ModCommand(new Regex(@"^0[xX]([0-9A-Fa-f]+)$"), convertHex, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)([bB])$"), convertToByteNum, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.+)=$"), calculate, false));
 
             try
             {
@@ -29,6 +34,94 @@ namespace Kugua.Mods
 
 
             return true;
+        }
+        
+
+        /// <summary>
+        /// 计算数学公式
+        /// 1+1=
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string calculate(MessageContext context, string[] param)
+        {
+            try
+            {
+                string expr = param[1];
+                if (string.IsNullOrWhiteSpace(expr)) return "";
+                Calculator cal = new Calculator(expr);
+                return $"{param[1]}={cal.Evaluate()}";
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
+
+
+        // 字节数换算
+        private string convertToByteNum(MessageContext context, string[] param)
+        {
+           // BigInteger.Parse("1099511627776")
+            try
+            {
+                BigInteger data = BigInteger.Parse(param[1]);
+                string unit = param[2];
+                string res = $"{data}{unit}";
+                if (data <1024* 1024) res += $"= {(double)data / 1024:0.00}K{unit}";
+                if (data >= 1024 * 1024) res += $"= {(double)data / (1024 * 1024):0.00}M{unit}";
+                if (data >= 1024 * 1024 * 1024) res += $"= {(double)data / (1024 * 1024 * 1024):0.00}G{unit}";
+                if (data >= BigInteger.Parse("1099511627776")) res += $"= {Util.BigDivToString(data, BigInteger.Parse("1099511627776"),2)}T{unit}";
+                if (data >= BigInteger.Parse("1125899906842624")) res += $"= {Util.BigDivToString(data, BigInteger.Parse("1125899906842624"), 2)}P{unit}";
+                return res;
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
+
+        private string convertToHex(MessageContext context, string[] param)
+        {
+            try
+            {
+                if (context.IsGroup && context.Group.Is("测试")&& context.IsAdminUser)
+                {
+                    string numString = param[1];
+                    if (string.IsNullOrWhiteSpace(numString)) return "";
+                    long decimalValue = Convert.ToInt64(numString, 10);
+                    if (decimalValue != 0) return $"{param[0]} = 0x{Convert.ToString(decimalValue, 16)}";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
+
+        private string convertHex(MessageContext context, string[] param)
+        {
+            try
+            {
+                if(context.IsPrivate || (context.IsGroup &&context.Group.Is("测试")))
+                {
+                    string hexString = param[1];
+                    if (string.IsNullOrWhiteSpace(hexString)) return "";
+                    long decimalValue = Convert.ToInt64(hexString, 16);
+                    if (decimalValue != 0) return $"{param[0]} = {decimalValue.ToString()}";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
         }
 
         /// <summary>

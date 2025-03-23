@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Kugua.Core;
+using System.Text;
 
 namespace Kugua
 {
