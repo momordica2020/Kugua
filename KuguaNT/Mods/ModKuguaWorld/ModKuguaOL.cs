@@ -114,7 +114,7 @@ namespace Kugua.Mods
             if (react == null) return null;
             //Logger.Log("react.emoji.id = " + react.emoji.id);
 
-            if (context.Texts.StartsWith("启动"))
+            if (context.Texts.StartsWith("2048"))
             {
                 // 2048playing
                 if(games.TryGetValue(context.groupId, out var game))

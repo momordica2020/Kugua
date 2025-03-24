@@ -67,6 +67,7 @@ namespace Kugua.Mods
            // BigInteger.Parse("1099511627776")
             try
             {
+                if (context.IsAskme) return "";
                 BigInteger data = BigInteger.Parse(param[1]);
                 string unit = param[2];
                 string res = $"{data}{unit}";
@@ -88,7 +89,7 @@ namespace Kugua.Mods
         {
             try
             {
-                if (context.IsGroup && context.Group.Is("测试")&& context.IsAdminUser)
+                if (context.IsGroup && context.Group.Is("测试")&& context.IsAdminUser && !context.IsAskme)
                 {
                     string numString = param[1];
                     if (string.IsNullOrWhiteSpace(numString)) return "";
@@ -108,7 +109,7 @@ namespace Kugua.Mods
         {
             try
             {
-                if(context.IsPrivate || (context.IsGroup &&context.Group.Is("测试")))
+                if(context.IsPrivate || (context.IsGroup &&context.Group.Is("测试")&&!context.IsAskme))
                 {
                     string hexString = param[1];
                     if (string.IsNullOrWhiteSpace(hexString)) return "";
