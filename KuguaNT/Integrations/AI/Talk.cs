@@ -62,7 +62,7 @@ namespace Kugua.Integrations.AI
         }
 
 
-        public async Task TalkSingle(MessageContext context, string input)
+        public async Task TalkSingle(MessageContext context, string input, bool reverse)
         {
             try
             {
@@ -108,6 +108,11 @@ namespace Kugua.Integrations.AI
                 //Logger.Log(responseBody,LogType.Mirai);
                 string res = jsonResponse["audio_files"].First()["filename"].ToString();
 
+                if(reverse)
+                {
+                    res = AudioUtil.WavReverse(res);
+                }
+
 
                 //string amrf = StaticUtil.Wav2Amr(res, 1);
                 //var amrb64 = StaticUtil.ConvertFileToBase64(amrf);
@@ -135,7 +140,7 @@ namespace Kugua.Integrations.AI
 
 
 
-        public async void Talk(MessageContext context, string sentense)
+        public async void Talk(MessageContext context, string sentense, bool reverse = false)
         {
             if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.TTSUri)) return;
             var inputs = TalkPre(sentense);
@@ -143,7 +148,7 @@ namespace Kugua.Integrations.AI
             {
                 foreach (var ipt in inputs)
                 {
-                    await TalkSingle(context, ipt);
+                    await TalkSingle(context, ipt, reverse);
                 }
             }
         }

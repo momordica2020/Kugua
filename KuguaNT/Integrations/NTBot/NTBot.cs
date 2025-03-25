@@ -562,15 +562,14 @@ namespace Kugua.Integrations.NTBot
                                 
                                 var d = JsonConvert.DeserializeObject<ForwardNodeExist>(data);
                                 d.content = new List<forward_message_node>();
-                                //Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}");
+                                Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}");
                                 if (sender.user_id == Config.Instance.BotQQ)
                                 {
                                     //Logger.Log($"是我自己喵。");
                                 }
 
 
-
-                                //Logger.Log($"\r\n{mj["data"]}");
+                                if(sender.user_id == "287859992")  Logger.Log($"\r\n{mj["data"]}");
                                 JObject jjo = JObject.Parse(data);
                                 foreach (var nodej in mj["data"]["content"].ToArray())
                                 {

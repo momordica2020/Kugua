@@ -1,5 +1,6 @@
 ﻿
 using Kugua.Core;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
@@ -42,7 +43,6 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)"), setClock));
             ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+"), checkClock));
             ModCommands.Add(new ModCommand(new Regex(@"^(删除闹钟|别[叫喊][了我]?)"), removeClock));
-
             
 
 
@@ -168,6 +168,25 @@ namespace Kugua.Mods
         private string checkState(MessageContext context, string[] param)
         {
             if (context.client is LocalClient) return "";
+
+
+
+            var r = LLM.Instance.HSGetImg("");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             //var res = new BotProfile().Send(context.client);
             string data = "";
             //data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
@@ -316,6 +335,33 @@ namespace Kugua.Mods
                 }
             }
 
+            if(context.IsGroup && context.Group.Is("存图"))
+            {
+                foreach(var msg in context.recvMessages)
+                {
+                    Logger.Log(msg.ToString());
+                    if(msg is ForwardNodeExist f)
+                    {
+                        foreach(var fn in f.content)
+                        {
+                            foreach(var msg2 in fn.message)
+                            {
+                                Logger.Log(msg2.ToString());
+                                if (msg2 is ForwardNodeExist f2)
+                                {
+                                    foreach (var fn2 in f2.content)
+                                    {
+                                        foreach (var msg3 in fn2.message)
+                                        {
+                                            Logger.Log(msg3.ToString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             if(context.recvMessages.ToTextString() == "测试以下")
             {
