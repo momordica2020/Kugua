@@ -308,7 +308,7 @@ namespace Kugua.Mods
 
         private string handleAddTag(MessageContext context, string[] param)
         {
-            if (!context.IsAdminUser) return "";
+            //if (!context.IsAdminUser) return "";
 
             string id = param[1];
             string message = param[2];
@@ -343,7 +343,7 @@ namespace Kugua.Mods
 
         private string handleRemoveTag(MessageContext context, string[] param)
         {
-            if (!context.IsAdminUser) return "";
+            //if (!context.IsAdminUser) return "";
 
             string id = param[1];
             string message = param[2];

@@ -18,16 +18,16 @@ namespace Kugua.Mods
     /// <summary>
     /// 恶魔轮盘模块
     /// </summary>
-    public class ModRoulette : Mod
+    public class ModTianming : Mod
     {
 
         public Dictionary<string, RouletteGame> info = new Dictionary<string, RouletteGame>();
         public Dictionary<string, GamePlayerHistory> history = new Dictionary<string, GamePlayerHistory>();
 
 
-        private static readonly Lazy<ModRoulette> instance = new Lazy<ModRoulette>(() => new ModRoulette());
-        public static ModRoulette Instance => instance.Value;
-        private ModRoulette()
+        private static readonly Lazy<ModTianming> instance = new Lazy<ModTianming>(() => new ModTianming());
+        public static ModTianming Instance => instance.Value;
+        private ModTianming()
         {
 
 
@@ -41,8 +41,8 @@ namespace Kugua.Mods
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘介绍\s*"), IntroduceRouletteGame));
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘(.+)"), StartRouletteGame));
                 //ModCommands.Add(new ModCommand(new Regex(@"^\s*加入\s*(\d+)"),JoinGame));
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe));
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe, false));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim, false));
 
 
 
@@ -282,9 +282,9 @@ namespace Kugua.Mods
                     };
                     if (string.IsNullOrWhiteSpace(p2.name)) p2.name = p2.id.ToString();
                 }
-                if (!ModRoulette.Instance.history.ContainsKey(p)) ModRoulette.Instance.history[p] = new GamePlayerHistory();
-                ModRoulette.Instance.history[p].money += money;
-                ModRoulette.Instance.history[p].id = p;
+                if (!ModTianming.Instance.history.ContainsKey(p)) ModTianming.Instance.history[p] = new GamePlayerHistory();
+                ModTianming.Instance.history[p].money += money;
+                ModTianming.Instance.history[p].id = p;
 
                 res = $"{Config.Instance.UserInfo(p).Name}已成功加入恶魔轮盘，投了{money.ToHans()}{ModBank.unitName}\r\n";
                 if (round <= 0 && p1 != null && p2 != null)
@@ -514,16 +514,16 @@ namespace Kugua.Mods
             private string GameOver()
             {
                 string res = "游戏结束！";
-                ModRoulette.Instance.history[p1.id].playnum++;
-                ModRoulette.Instance.history[p2.id].playnum++;
+                ModTianming.Instance.history[p1.id].playnum++;
+                ModTianming.Instance.history[p2.id].playnum++;
                 if (p1.IsAlive && !p2.IsAlive)
                 {
-                    ModRoulette.Instance.history[p1.id].winnum++;
+                    ModTianming.Instance.history[p1.id].winnum++;
                     res +=  Reward(p1);
                 }
                 else if (p2.IsAlive && !p1.IsAlive)
                 {
-                    ModRoulette.Instance.history[p2.id].winnum++;
+                    ModTianming.Instance.history[p2.id].winnum++;
                     res += Reward(p2);
                 }
 
