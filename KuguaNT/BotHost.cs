@@ -61,7 +61,7 @@ namespace Kugua
 
                 Logger.Instance.OnBroadcastLogEvent += sendLog;
                 Logger.Log("开始初始化配置文件。");
-
+                //Logger.Log($"--");
                 bool isValid = Config.Instance.Load();
                 if (!isValid)
                 {

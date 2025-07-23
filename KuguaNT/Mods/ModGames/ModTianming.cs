@@ -41,11 +41,8 @@ namespace Kugua.Mods
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘介绍\s*"), IntroduceRouletteGame));
                 ModCommands.Add(new ModCommand(new Regex(@"^\s*轮盘(.+)"), StartRouletteGame));
                 //ModCommands.Add(new ModCommand(new Regex(@"^\s*加入\s*(\d+)"),JoinGame));
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe, false));
-                ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim, false));
-
-
-
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射我"), ShootMe, _needAsk : false ));
+                ModCommands.Add(new ModCommand(new Regex(@"^\s*射他"), ShootHim, _needAsk: false));
                 var lines = LocalStorage.ReadResourceLines("game/roulette_user.txt");
                 foreach (var line in lines)
                 {

@@ -47,23 +47,30 @@ namespace Kugua
         ///  
         public SystemInfo()
         {
-            //初始化CPU计数器 
-            pcCpuLoad = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            pcCpuLoad.MachineName = ".";
-            pcCpuLoad.NextValue();
-
-            //CPU个数 
-            m_ProcessorCount = Environment.ProcessorCount;
-
-            //获得物理内存 
-            ManagementClass mc = new ManagementClass("Win32_ComputerSystem");
-            ManagementObjectCollection moc = mc.GetInstances();
-            foreach (ManagementObject mo in moc)
+            try
             {
-                if (mo["TotalPhysicalMemory"] != null)
+                //初始化CPU计数器 
+                pcCpuLoad = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                pcCpuLoad.MachineName = ".";
+                pcCpuLoad.NextValue();
+
+                //CPU个数 
+                m_ProcessorCount = Environment.ProcessorCount;
+
+                //获得物理内存 
+                ManagementClass mc = new ManagementClass("Win32_ComputerSystem");
+                ManagementObjectCollection moc = mc.GetInstances();
+                foreach (ManagementObject mo in moc)
                 {
-                    m_PhysicalMemory = long.Parse(mo["TotalPhysicalMemory"].ToString());
+                    if (mo["TotalPhysicalMemory"] != null)
+                    {
+                        m_PhysicalMemory = long.Parse(mo["TotalPhysicalMemory"].ToString());
+                    }
                 }
+            }
+           catch(Exception ex)
+            {
+                Logger.Log(ex);
             }
         }
         #endregion

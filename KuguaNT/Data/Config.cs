@@ -110,14 +110,13 @@ namespace Kugua
         /// <returns></returns>
         public bool Load()
         {
-            Logger.Log($"1");
+            Logger.Log($"Load（）");
             if (isLoaded) return true;
             lock (loadMutex)
             {
                 if (isLoaded) return true;
                 try
                 {
-                    Logger.Log($"2");
                     configFile = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}{configFileName}";
                     Logger.Log($"配置文件路径是{configFile}");
                     if (!File.Exists(configFile))
@@ -378,7 +377,7 @@ namespace Kugua
                 Player u = UserInfo(id);
                 if (UserHasAdminAuthority(id)) return true;
                 if (u.Type == PlayerType.Blacklist || u.Is("黑名单")) return false;
-                
+                if (u.Is("面试")) return false;//这个模式由astrbot接管
                 // 默认皆可应答
                 return true;
                 
@@ -456,7 +455,7 @@ namespace Kugua
                 var g = GroupInfo(id);
                 if (g == null) return true;
                 if (g.Type == PlaygroupType.Blacklist || g.Is("黑名单")) return false;
-
+                if (g.Is("面试")) return false;//这个模式由astrbot接管
                 // 默认皆可应答
                 return true;
 

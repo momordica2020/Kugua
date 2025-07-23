@@ -13,6 +13,7 @@ using System.Xml.Linq;
 
 namespace Kugua
 {
+
     /// <summary>
     /// 所触发操作的指令。可以用regex匹配文本，也可以用image匹配图片等，反正参数都放入string[]里传
     /// </summary>
@@ -20,15 +21,19 @@ namespace Kugua
     {
         public Regex regex;
         public HandleCommandEvent handle;
-        public bool useImage = false;
-        public bool needAsk = true;
+        public bool useImage = false;   // 匹配图片
+        public bool useAudio = false;   // 匹配音频
+        public bool useAny = false;     // 任何内容皆可触发
+        public bool needAsk = true;     // （在群里）需要前缀
 
-        public ModCommand(Regex _regex, HandleCommandEvent _handle, bool _needAsk = true, bool _useImage =false)
+        public ModCommand(Regex _regex, HandleCommandEvent _handle, bool _useImage=false,bool _useAudio=false, bool _useAny=false, bool _needAsk=true)
         {
             regex = _regex;
             handle = _handle;
-            needAsk = _needAsk;
+            useAny = _useAny;
+            useAudio = _useAudio;
             useImage = _useImage;
+            needAsk = _needAsk;
         }
 
         public bool Handle(MessageContext context)
@@ -48,7 +53,24 @@ namespace Kugua
                     return false;
                 }
             }
-            
+            else
+            {
+                // 用空regex表示非文本的匹配，或者任意匹配。
+                // 采用其他标志来决定是否进入处理
+                if(useImage && context.IsImage)
+                {
+                    // ok
+                }
+                else if(useAudio && context.IsAudio)
+                {
+                    // ok
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             try
             {
                 string res = handle(context, param.ToArray());
@@ -65,7 +87,7 @@ namespace Kugua
             }
             catch (Exception ex)
             {
-                Logger.Log($"CMD {handle.Method.Name} ERROR:{ex.Message}");
+                Logger.Log($"ModCommand {handle.Method.Name} ERROR:{ex.Message}");
             } 
             
             return false;

@@ -19,6 +19,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^反向点歌(.+)"), getMusicReverse));
             ModCommands.Add(new ModCommand(new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline), say));
             ModCommands.Add(new ModCommand(new Regex(@"^反着说[∶|:|：](.+)", RegexOptions.Singleline), sayReverse));
+            ModCommands.Add(new ModCommand(null, dealRecord,_needAsk:false, _useAudio:true));
+
 
             musicDownloader = new MusicDownloader();
 
@@ -239,6 +241,36 @@ namespace Kugua.Mods
             //return $"曲库没有{mname}";
             //if(!string.IsNullOrWhiteSpace(mname))
         }
+
+
+        /// <summary>
+        /// 语音识别
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string dealRecord(MessageContext context, string[] param)
+        {
+            if (!context.IsAdminUser) return "";
+            var r = context.Audios;
+            string content = "";
+            if (r.Count > 0)
+            {
+                Thread.Sleep(1000);
+                string file = AudioUtil.SilkV32Mp3(r.First().path, false);
+                content = $"{file}";
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    content = LLM.HSRecognizeAudio(file);
+                }
+
+            }
+
+
+            return content;
+        }
+
 
 
         /// <summary>

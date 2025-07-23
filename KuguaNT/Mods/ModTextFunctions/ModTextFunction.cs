@@ -51,6 +51,7 @@ namespace Kugua.Mods
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^反转(.+)", RegexOptions.Singleline), handleReverse));
+            ModCommands.Add(new ModCommand(new Regex(@"^逐行反转(.+)", RegexOptions.Singleline), handleReverseByLine));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序(.+)", RegexOptions.Singleline), handleShuffle));
             ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline), handleGongshou));
             ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline), handleRandomString));
@@ -503,6 +504,21 @@ namespace Kugua.Mods
             Array.Reverse(charArray);
             return new string(charArray);
         }
+
+        /// <summary>
+        /// 逐行反转字符串
+        /// 逐行反转 第一行\n第二行
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleReverseByLine(MessageContext context, string[] param)
+        {
+            string[] sArray = param[1].Split('\n');
+            Array.Reverse(sArray);
+            return string.Join("\r\n",sArray);
+        }
+
 
         /// <summary>
         /// 垃圾文生成器

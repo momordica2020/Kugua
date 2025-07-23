@@ -45,7 +45,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^群内搜索(.+)"), handleSearch));
             ModCommands.Add(new ModCommand(new Regex(@"^(拍拍|贴贴)"), sendPoke));
 
-            ModCommands.Add(new ModCommand(new Regex(@"^笑死$"), sendEmojiTest, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^笑死$"), sendEmojiTest, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^吃点好的$"), sendMarketImage));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
@@ -108,10 +108,18 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getWelcomeString(MessageContext context, string[] param)
         {
-            context.SendForward([new Text(
-                $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" 
+            if (context.IsGroup)
+            {
+                context.SendForward([new Text(
+                $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n"
                 + BotHost.Instance.ModsDesc())]);
-            return null;
+            }
+            else
+            {
+                context.SendBackText(BotHost.Instance.ModsDesc());
+            }
+
+                return null;
             //return "" +
             //    $"想在群里使用，就at我或者打字开头加“{Config.Instance.BotName}”，再加内容。私聊乐我的话直接发内容。\r\n" +
             //    "以下是群常用功能。\r\n" +

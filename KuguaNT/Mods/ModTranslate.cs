@@ -350,7 +350,16 @@ namespace Kugua.Mods
         private readonly HttpClient _httpClient;
         public static GoogleTranslate Get => Nested.Instance;
 
-        private GoogleTranslate() => _httpClient = new HttpClient();
+        private GoogleTranslate()
+        {
+            var proxy = new WebProxy("http://localhost:7897", false); // Set proxy address and port
+            var handler = new HttpClientHandler()
+            {
+                Proxy = proxy, // Use the proxy
+                UseProxy = true
+            };
+            _httpClient = new HttpClient(handler);
+        }
 
 
         /// <summary> enum  </summary>
@@ -397,6 +406,7 @@ namespace Kugua.Mods
         public string Translate(string inputText, string to, string? from = null)
         {
             _httpClient.AddUserAgentToHeader();
+          
 
             var fromLang = from == null ? "auto" : GetLanguage(from);
             var toLang = GetLanguage(to);

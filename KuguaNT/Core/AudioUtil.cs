@@ -21,8 +21,120 @@ namespace Kugua.Core
     /// </summary>
     public static class AudioUtil
     {
+        #region silkv3 -> wav
 
-      
+        /// <summary>
+        /// 执行本地指令，返回值是成功与否
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public static bool DealProcess(string cmd, string param = "")
+        {
+            try
+            {
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo()
+                {
+                    FileName = $"\"{cmd}\"",
+                    Arguments = param,
+                    CreateNoWindow = true
+                };
+                process.StartInfo = startInfo;
+
+                process.Start();
+                process.WaitForExit();
+
+                int exitCode = process.ExitCode;
+                if (exitCode != 0)
+                {
+                    Logger.Log($"执行程序失败。指令是 {cmd} {param}");
+                    return false;
+                }
+                else
+                {
+                    Logger.Log($"执行程序成功。指令是 {cmd} {param}");
+                    return true;
+                }
+
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+                return false;
+            }
+        }
+
+
+        public static string SilkV32Wav(string inputFile, bool deleteAfterFinish=false)
+        {
+            if (string.IsNullOrWhiteSpace(inputFile)) return "";
+            // 命令行指令
+            inputFile = Path.GetFullPath(inputFile);
+            string pcmFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.pcm";
+            string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.wav";
+            //string cmd1 = "D:\\Downloads\\_software\\silk-v3-decoder-master\\windows\\silk_v3_decoder.exe";
+            //string cmd2 = "D:\\ffmpeg\\bin\\ffmpeg.exe";
+            //string param1 = $" \"{inputFile}\" \"{pcmFile}\"";
+            //string param2 = $" -i \"{inputFile}\" -acodec libmp3lame -y \"{outputFile}\"";
+            if(!DealProcess("D:\\Downloads\\_software\\silk-v3-decoder-master\\windows\\silk_v3_decoder.exe", 
+                $" \"{inputFile}\" \"{pcmFile}\""))
+            {
+                //fail
+                return "";
+            }
+            if (!DealProcess("D:\\ffmpeg\\bin\\ffmpeg.exe", 
+                $" -f s16le -ar 24000 -ac 1 -i \"{pcmFile}\"  \"{outputFile}\" -y"))
+            {
+                //fail
+                return "";
+            }
+            
+            //File.Delete(pcmFile);
+            if (deleteAfterFinish)
+            {
+                File.Delete(inputFile);
+            }
+
+            return outputFile;
+        }
+
+
+
+
+        public static string SilkV32Mp3(string inputFile, bool deleteAfterFinish = false)
+        {
+            if (string.IsNullOrWhiteSpace(inputFile)) return "";
+            // 命令行指令
+            inputFile = Path.GetFullPath(inputFile);
+            string pcmFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.pcm";
+            string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}.mp3";
+            //string cmd1 = "D:\\Downloads\\_software\\silk-v3-decoder-master\\windows\\silk_v3_decoder.exe";
+            //string cmd2 = "D:\\ffmpeg\\bin\\ffmpeg.exe";
+            //string param1 = $" \"{inputFile}\" \"{pcmFile}\"";
+            //string param2 = $" -i \"{inputFile}\" -acodec libmp3lame -y \"{outputFile}\"";
+            if (!DealProcess("D:\\Downloads\\_software\\silk-v3-decoder-master\\windows\\silk_v3_decoder.exe",
+                $" \"{inputFile}\" \"{pcmFile}\""))
+            {
+                //fail
+                return "";
+            }
+            if (!DealProcess("D:\\ffmpeg\\bin\\ffmpeg.exe",
+                $" -f s16le -ar 24000 -ac 1 -i \"{pcmFile}\" -codec:a libmp3lame -q:a 2 \"{outputFile}\" -y"))
+            {
+                //fail
+                return "";
+            }
+
+            //File.Delete(pcmFile);
+            if (deleteAfterFinish)
+            {
+                File.Delete(inputFile);
+            }
+
+            return outputFile;
+        }
+        #endregion
         #region FFMPEG
 
         public static string Mp32AmrBase64(string inputFile)

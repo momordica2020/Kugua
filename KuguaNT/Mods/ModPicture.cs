@@ -19,18 +19,20 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
-            ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
-            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
+            //ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
+            //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
-            ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,false));
+            ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,_needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
-            ModCommands.Add(new ModCommand(new Regex(@"^删帧(.+)$", RegexOptions.Singleline), removeGifFrame));
-            ModCommands.Add(new ModCommand(new Regex(@"^拆序列帧$", RegexOptions.Singleline), unzipGifFrameImg));
+            ModCommands.Add(new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
+            ModCommands.Add(new ModCommand(new Regex(@"^删(.+)$", RegexOptions.Singleline), removeGifFrame));
+            ModCommands.Add(new ModCommand(new Regex(@"^拆序列帧(.*)$", RegexOptions.Singleline), unzipGifFrameImg));
             ModCommands.Add(new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
             ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
@@ -44,7 +46,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 从gif的特定帧数起，删掉n帧
-        /// 删帧 -1 [图片]/ 删帧 1,3 [图片]
+        /// 删 -1 [图片]/ 删 1,3 [图片]
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -62,7 +64,7 @@ namespace Kugua.Mods
                 int beginFrame = 0;
                 int sumFrame = 0;
                 if (string.IsNullOrWhiteSpace(param[1])) return "";
-                var frameParams = param[1].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                var frameParams = param[1].Split([',',' ','，'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 if(frameParams.Length >=1) int.TryParse(frameParams[0], out beginFrame);
                 if (frameParams.Length >= 2) int.TryParse(frameParams[1], out sumFrame);
                 if (beginFrame < 0) beginFrame = thisimgs.Count - (Math.Abs(beginFrame) % thisimgs.Count) ;
@@ -91,7 +93,7 @@ namespace Kugua.Mods
             }
 
 
-            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^删帧([\-0-9]+)(\.\.)?([\-0-9]*)", RegexOptions.Singleline), removeGifFrame));
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^删([\-0-9]+)(\.\.)?([\-0-9]*)", RegexOptions.Singleline), removeGifFrame));
             return null;
         }
 
@@ -136,7 +138,7 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// 拆序列帧
+        /// 拆序列帧，即将帧图像合并成条图
         /// 拆序列帧 [图片]
         /// </summary>
         /// <param name="context"></param>
@@ -147,9 +149,18 @@ namespace Kugua.Mods
             bool findImg = false;
             if (context.IsImage)
             {
+                int col = 1;
+                int.TryParse(param[1], out col);
+                if (col < 1) col = 1;
+
                 findImg = true;
                 var imgs = Network.DownloadImage(context.Images.First().url);
-                var res = ImageUtil.GetGifFrames(imgs);
+                if (param[1].Trim() == "竖")
+                {
+                    col = 1;
+                }
+                else if(col == 1) col = imgs.Count;
+                var res = ImageUtil.GetGifFrames(imgs, col);
                 context.SendBackImage(res, $"一共{imgs.Count}帧");
             }
 
@@ -184,6 +195,7 @@ namespace Kugua.Mods
                         thisimg.Format = MagickFormat.Gif;
                         thisimg.AnimationDelay = 5;
                         thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+
                         if (thisimg.Height < thisimg.Width)
                         {
                             uint targetWidth = (uint)((double)thisimg.Width / thisimg.Height * minH);
@@ -239,6 +251,69 @@ namespace Kugua.Mods
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
             return null;
         }
+
+
+
+        /// <summary>
+        /// 拆解图片为col x row的碎片
+        /// 拆3x4 [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string unzipImage(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            if (context.IsImage)
+            {
+                findImg = true;
+
+                uint row, col;
+                uint.TryParse(param[1], out col);
+                uint.TryParse(param[2], out row);
+                if (row <= 0) row = 1;
+                if (col <= 0) col = 1;
+                var imgs = Network.DownloadImage(context.Images.First().url);
+                imgs.Coalesce();
+                List<Message> msgs = new List<Message>();
+
+                foreach (var img in imgs)
+                {
+                    List<MagickImage> subImages = new List<MagickImage>();
+
+                    uint width = (uint)(img.Width / col);
+                    uint height = (uint)(img.Height / row);
+
+                    for (int y = 0; y < row; y++)
+                    {
+                        for (int x = 0; x < col; x++)
+                        {
+                            MagickGeometry cropGeometry = new MagickGeometry((int)(x * width), (int)(y * height), width, height);
+                            MagickImage subImage = (MagickImage)img.Clone();
+                            subImage.Crop(cropGeometry);
+                            subImage.Format = MagickFormat.Png;
+                            msgs.Add(new ImageSend((MagickImage)subImage));
+                            
+                            //subImages.Add(subImage);
+                        }
+                    }
+
+
+                    // only first img
+                    break;
+
+                    
+                }
+
+                context.SendForward(msgs.ToArray());
+            }
+
+
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
+            return null;
+        }
+
+
 
         private string showColor(MessageContext context, string[] param)
         {
@@ -315,6 +390,8 @@ namespace Kugua.Mods
                 return true;
             }
 
+
+
             return false;
         }
 
@@ -389,6 +466,40 @@ namespace Kugua.Mods
             }
 
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            return null;
+
+
+        }
+
+        /// <summary>
+        /// 图片反色
+        /// 反色[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+
+        private string changeColor(MessageContext context, string[] param)
+        {
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), getOldJpg));
+            else
+            {
+                foreach (var itemImg in context.Images)
+                {
+                    var oriImg = Network.DownloadImage(itemImg.url);
+                    oriImg.Coalesce();
+                    foreach (var image in oriImg)
+                    {
+                        image.Negate();
+                    }
+
+                    oriImg.OptimizeTransparency();
+
+                    //Logger.Log("? == " + oriImg.Count);
+                    context.SendBackImage(oriImg);
+                }
+            }
+
             return null;
 
 
@@ -691,20 +802,17 @@ namespace Kugua.Mods
             public string desc;
             public string url;
             public static Dictionary<string, string> platform = new Dictionary<string, string>(){
-            { "百度","baidu" },
-            { "少数派","shaoshupai" },
-            { "微博","weibo" },
-            { "知乎","zhihu" },
-            { "36氪","36kr" },
-            { "52破解","52pojie" },
-            { "b站","bilibili" },
-            { "豆瓣","douban" },
-            { "虎扑","hupu" },
-            { "贴吧","tieba" },
-            { "掘金","juejin" },
-            { "抖音","douyin" },
-            { "v2ex","v2ex" },
-            { "头条","jinritoutiao" },
+            { "百度","Jb0vmloB1G" },
+            { "少数派","Y2KeDGQdNP" },
+            { "微博","KqndgxeLl9" },
+            { "知乎","mproPpoq6O" },
+                {"微信","WnBe01o371" },
+                {"澎湃","wWmoO5Rd4E" },
+            { "36氪","Q1Vd5Ko85R" },
+            { "52破解","NKGoRAzel6" },
+            { "b站","74KvxwokxM" },
+            { "抖音","DpQvNABoNE" },
+            { "头条","x9ozB4KoXb" },
            };
         }
 
@@ -773,35 +881,61 @@ namespace Kugua.Mods
                 else if (NewsInfo.platform.ContainsKey(something))
                 {
                     // 来点新闻系列
-                    int newsLen = 25;
+                    int newsLen = 15;
                     List<NewsInfo> news = new List<NewsInfo>();
-                    string plat = NewsInfo.platform[something];
-                    var jstr = Network.Get($"https://orz.ai/dailynews/?platform={plat}");
-                    if (!string.IsNullOrWhiteSpace(jstr))
+                    string platcode = NewsInfo.platform[something];
+                    var webstr = Network.Get($"https://tophub.today/n/{platcode}");
+                    if (!string.IsNullOrWhiteSpace(webstr))
                     {
                         string res = "";
-                        var jo = JsonObject.Parse(jstr);
-                        if (jo["data"] != null)
-                        {
-                            foreach (var item in jo["data"]?.AsArray())
-                            {
-                                var n = new NewsInfo
-                                {
-                                    title = item["title"]?.ToString(),
-                                    url = item["url"]?.ToString(),
-                                    desc = item["desc"]?.ToString(),
-                                };
+                        // Regular expression pattern to match the news titles
+                        Regex regex = new Regex(@"<a href=""[^""]+"" target=""_blank"" rel=""nofollow"" itemid=""\d+"">([^<]+)<\/a>");
 
-                                news.Add(n);
-                            }
+                        // Find matches
+                        MatchCollection matches = regex.Matches(webstr);
+
+                        // Store the matched titles in a list
+                        List<string> newsTitles = new List<string>();
+
+                        foreach (Match match in matches)
+                        {
+                            // The captured group contains the news title
+                            newsTitles.Add(match.Groups[1].Value);
                         }
+
+                        // Output the titles
+                        foreach (string title in newsTitles)
+                        {
+                            var n = new NewsInfo
+                            {
+                                title = title,
+                            };
+
+                            news.Add(n);
+                            //Console.WriteLine(title);
+                        }
+                        //var jo = JsonObject.Parse(webstr);
+                        //if (jo["data"] != null)
+                        //{
+                        //    foreach (var item in jo["data"]?.AsArray())
+                        //    {
+                        //        var n = new NewsInfo
+                        //        {
+                        //            title = item["title"]?.ToString(),
+                        //            url = item["url"]?.ToString(),
+                        //            desc = item["desc"]?.ToString(),
+                        //        };
+
+                        //        news.Add(n);
+                        //    }
+                        //}
                         if (news.Count > 0)
                         {
                             var nlist = news.Select(e => e.title).ToArray();
                             Util.FisherYates(nlist);
                             for (int i = 0; i < Math.Min(newsLen, news.Count); i++)
                             {
-                                if (!string.IsNullOrWhiteSpace(nlist[i])) res += $"- {nlist[i]}\r\n";
+                                if (!string.IsNullOrWhiteSpace(nlist[i])) res += $"·{nlist[i]}\r\n";
                             }
                         }
                         //LocalStorage.writeLines(Config.Instance.ResourceFullPath("news.txt"), news.Select(v => $"{DateTime.Now.ToString("yyyyMMdd")}\t{v.title}\t{v.desc}\t{v.url}"));

@@ -18,10 +18,10 @@ namespace Kugua.Mods
         {
 
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
-            ModCommands.Add(new ModCommand(new Regex(@"^0[xX]([0-9A-Fa-f]+)$"), convertHex, false));
-            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, false));
-            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)([bB])$"), convertToByteNum, false));
-            ModCommands.Add(new ModCommand(new Regex(@"^(.+)=$"), calculate, false));
+            ModCommands.Add(new ModCommand(new Regex(@"^0[xX]([0-9A-Fa-f]+)$"), convertHex, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)([bB])$"), convertToByteNum, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.+)=$"), calculate, _needAsk: false));
 
             try
             {

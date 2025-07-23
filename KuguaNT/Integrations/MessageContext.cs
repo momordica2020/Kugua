@@ -54,7 +54,13 @@ namespace Kugua
                 return this.Images.Count > 0;
             }
         }
-
+        public bool IsAudio
+        {
+            get
+            {
+                return this.Audios.Count > 0;
+            }
+        }
 
         public bool OnlyImage
         {
@@ -216,6 +222,23 @@ namespace Kugua
                 }
 
                 return images;
+            }
+        }
+
+        public List<Record> Audios
+        {
+            get
+            {
+                List<Record> audios = new List<Record>();
+                if (recvMessages != null)
+                {
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is Record rec) audios.Add(rec);
+                    }
+                }
+
+                return audios;
             }
         }
 

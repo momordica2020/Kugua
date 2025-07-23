@@ -366,27 +366,22 @@ namespace Kugua.Mods
 
         public async override Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (!context.IsAskme) return false;
-            var message = context.recvMessages.ToTextString().Trim();
-
-            var user = Config.Instance.UserInfo(context.userId);
-            var group = Config.Instance.GroupInfo(context.groupId);
-
-
-
+           // var message = context.recvMessages.ToTextString().Trim();
 
             // 以下部分无需输入任何内容即可触发！！！！！！！！！！！！！1111111
+            if (context.IsGroup && context.Group.Is("少话"))return true;
+            if (context.IsPrivate && context.User.Is("少话")) return true;
 
             ModeInfo modeTrigger = null;
-            if (context.IsGroup)
+            if (context.IsGroup && context.IsAskme)
             {
                 // 群内
-                modeTrigger = getGroupMode(group);
+                modeTrigger = getGroupMode(context.Group);
             }
-            else
+            else if(context.IsPrivate)
             {
                 // 私聊发言
-                modeTrigger = getUserMode(user);
+                modeTrigger = getUserMode(context.User);
             }
             if (modeTrigger == null)
             {
@@ -395,6 +390,8 @@ namespace Kugua.Mods
             }
             else
             {
+                var msg = context.recvMessages.ToTextString().Trim();
+                
                 if (handleChatResults(modeTrigger, context, out IEnumerable<string> chatResult))
                 {
                     if (chatResult.Count() == 1) context.SendBackText(chatResult.First(), true, true);
@@ -446,6 +443,7 @@ namespace Kugua.Mods
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         //GPT.Instance.OllamaReply(context);
+                        
                         var res = LLM.Instance.HSChat(context);
                         if (!string.IsNullOrWhiteSpace(res))
                         {
@@ -454,7 +452,7 @@ namespace Kugua.Mods
                         else
                         {
                             // next wait for image input
-                            WaitNext(context, new ModCommand(null, descImage, false, true));
+                            WaitNext(context, new ModCommand(null, descImage, _needAsk: false, _useImage: true));
                         }
                         break;
 

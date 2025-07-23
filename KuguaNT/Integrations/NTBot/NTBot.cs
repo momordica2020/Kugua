@@ -555,7 +555,12 @@ namespace Kugua.Integrations.NTBot
                             case "location": msgs.Add(JsonConvert.DeserializeObject<Location>(data)); break;
                             case "music": msgs.Add(JsonConvert.DeserializeObject<Music>(data)); break;
                             case "reply": msgs.Add(JsonConvert.DeserializeObject<Reply>(data)); break;
-                            case "record": msgs.Add(JsonConvert.DeserializeObject<Record>(data)); break;
+                            case "record": msgs.Add(JsonConvert.DeserializeObject<Record>(data));
+
+                                Logger.Log(data);
+                                
+                                
+                                break;
                             case "xml": msgs.Add(JsonConvert.DeserializeObject<XmlData>(data)); break;
                             case "json": msgs.Add(JsonConvert.DeserializeObject<JsonData>(data)); break;
                             case "forward":

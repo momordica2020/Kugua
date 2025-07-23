@@ -64,11 +64,12 @@ namespace Kugua.Mods
                 ModCommands.Add(new ModCommand(new Regex(@"^搬史(启动|停止)$", RegexOptions.Singleline), setState));
 
 
-                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转发(\d+)$", RegexOptions.Singleline), setTransSource));
-                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转到(\d+)$", RegexOptions.Singleline), setTransTarget));
+                
 
                 ModCommands.Add(new ModCommand(new Regex(@"^别转发(\d*)$", RegexOptions.Singleline), setTransSourceStop));
                 ModCommands.Add(new ModCommand(new Regex(@"^别转到(\d+)$", RegexOptions.Singleline), setTransTargetStop));
+                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转发(\d+)$", RegexOptions.Singleline), setTransSource));
+                ModCommands.Add(new ModCommand(new Regex(@"^(.*)转到(\d+)$", RegexOptions.Singleline), setTransTarget));
                 ModCommands.Add(new ModCommand(new Regex(@"^转发情况$", RegexOptions.Singleline), showList));
 
                 // ModCommands.Add(new ModCommand(new Regex(@"^转发每次(\d)条$", RegexOptions.Singleline), showList));
@@ -516,6 +517,8 @@ namespace Kugua.Mods
                     && shit.AIscore == 0)
                 {
                     shit.AIscore = LLM.Instance.HSGetImgScore(shit.imgBase64, shit.imgType);
+                    if (shit.isVideo) shit.AIscore = 5;// 视频自动通过
+
                     if (shit.AIscore <= 0) shit.AIscore = 1;
                 }
             }catch(Exception ex)
@@ -653,43 +656,45 @@ namespace Kugua.Mods
             //        //    }
 
             //    }
-                
+
             //    lastPublishDate = DateTime.Now;
             //    config.historyPublished++;
             //}
 
-
-            foreach (var shit in getBestAIShits())
+            var span = DateTime.Now - lastPublishDate;
+            if (span.TotalMinutes > 10)
             {
-                if (shit == null || shit.published) continue;
-                shit.publishedAI = true;
-                string msgid = shit.contexts.First().messageId;
-                Logger.Log($"[AI:{shit.AIscore}分]=>=>=>=> shit{msgid}");
-                foreach (var target in ShitTarget)
+                foreach (var shit in getBestAIShits())
                 {
-                    if (string.IsNullOrWhiteSpace(target.tags) || !target.tags.Contains("AI")) continue;
-                    //Logger.Log($"shit[{msgid}] => {target.targetId}");
-                    foreach (var context in shit.contexts)
+                    if (shit == null || shit.published) continue;
+                    shit.publishedAI = true;
+                    string msgid = shit.contexts.First().messageId;
+                    Logger.Log($"[AI:{shit.AIscore}分]=>=>=>=> shit{msgid}");
+                    foreach (var target in ShitTarget)
                     {
-                        if (!context.HasForward)
+                        if (string.IsNullOrWhiteSpace(target.tags) || !target.tags.Contains("AI")) continue;
+                        //Logger.Log($"shit[{msgid}] => {target.targetId}");
+                        foreach (var context in shit.contexts)
                         {
-                            context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
-                            break;
-                        }
-                        else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
-                        {
-                            break;
+                            if (!context.HasForward)
+                            {
+                                context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
+                                break;
+                            }
+                            else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
+                            {
+                                break;
+                            }
                         }
                     }
+                    lastPublishDate = DateTime.Now;
+                    config.historyPublished++;
                 }
-                lastPublishDate = DateTime.Now;
-                config.historyPublished++;
+
+
+                RemoveOldShits();
+
             }
-
-
-            RemoveOldShits();
-
-
 
             Save();
 
@@ -708,7 +713,11 @@ namespace Kugua.Mods
                     var s = shits[i];
                     if (DateTime.Now - s.createTime > new TimeSpan(0, config.del_old_span_min, 0))
                     {
-                        if (!oldHash.Contains(s.hash)) oldHash.Add(s.hash);
+                        foreach(var hash in s._hashs)
+                        {
+                            if (!oldHash.Contains(hash)) oldHash.Add(hash);
+                        }
+                        
                         shits.RemoveAt(i);
                     }
                 }
@@ -920,6 +929,52 @@ namespace Kugua.Mods
             return nodes;
         }
 
+        bool compareHashIsMatch(Shit shit)
+        {
+            if (shit == null || shit._hashs.Count <= 0)
+            {
+                return false;
+            }
+            int score = 0;
+            List<Shit> matchShits = new List<Shit>();
+            foreach (var hash in shit._hashs)
+            {
+                if (shithash.ContainsKey(hash))
+                {
+                    score += 1;
+                    matchShits.Add(shithash[hash]);
+                }
+            }
+            if ((double)(score) / shit._hashs.Count > 0.50)
+            {
+                foreach (var existShit in matchShits)
+                {
+                    var timespan = DateTime.Now - existShit.createTime;
+                    Logger.Log($"重复的hash，最初来自群{existShit.createGroup}({timespan.TotalMinutes:F2}分钟前)[id={existShit.contexts.First().messageId}]");
+                    //if (ori_score != 0) existShit.score = ori_score;
+                    //existShit.contexts.Add(ns.contexts.First());
+                }
+                return true;
+            }
+
+            score = 0;
+            foreach (var hash in shit._hashs)
+            {
+                if(oldHash.Contains(hash))
+                {
+                    score += 1;
+                }
+            }
+            if ((double)(score) / shit._hashs.Count > 0.50)
+            {
+                Logger.Log("old hash.");
+                return true;
+            }
+
+
+                return false;
+        }
+
         /// <summary>
         /// 向shit添加新元素。此处会检测是否重复
         /// </summary>
@@ -930,25 +985,14 @@ namespace Kugua.Mods
             var ns = new Shit(context);
             if (ori_score != 0) ns.score = ori_score;
 
-            if (string.IsNullOrWhiteSpace(ns.hash))
+            if (ns._hashs.Count<=0)
             {
                 // not shit
                 //Logger.Log($"[{context.groupId}] not shit.");
                 return null;
             }
-            else if (shithash.ContainsKey(ns.hash))
+            else if (compareHashIsMatch(ns))
             {
-                // exist!
-                var existShit = shithash[ns.hash];
-                var timespan = DateTime.Now - existShit.createTime;
-                Logger.Log($"shit发过了，最初来自群{existShit.createGroup}({timespan.TotalMinutes:F2}分钟前)[id={existShit.contexts.First().messageId}]");
-                if (ori_score != 0) existShit.score = ori_score;
-                existShit.contexts.Add(ns.contexts.First());
-                return existShit;
-            }
-            else if (oldHash.Contains(ns.hash))
-            {
-                // old shit
                 return null;
             }
             else
@@ -956,9 +1000,12 @@ namespace Kugua.Mods
                 // new!
                 lock (shitMutex)
                 {
-                    shithash[ns.hash] = ns;
+                    foreach(var h in  ns._hashs)
+                    {
+                        shithash[h] = ns;
+                    }
                     shits.Add(ns);
-                    Logger.Log($"shit新鲜的，来自群{ns.createGroup}[id={ns.contexts.First().messageId}]");
+                    Logger.Log($"新shit来自群{ns.createGroup}[id={ns.contexts.First().messageId}]");
                     
 
                     //if (!string.IsNullOrWhiteSpace(ns.imgBase64))
@@ -1029,7 +1076,7 @@ namespace Kugua.Mods
                 if (config.open && ShitSource.ContainsKey(context.groupId))
                 {
                     var source = ShitSource[context.groupId];
-                    if (!string.IsNullOrWhiteSpace(source.tags)&&  source.tags.Contains("全转"))
+                    if (!string.IsNullOrWhiteSpace(source.tags) &&  source.tags.Contains("全转"))
                     {
                         addNewShit(context, config.min_score + 1);
                     }
@@ -1112,14 +1159,15 @@ namespace Kugua.Mods
         public bool isForward = false;
         public string imgBase64;
         public string imgType;
+        public bool isVideo = false;
 
         //string _hashtext;
-        string _hash;
-        public List<string> _hashs;
-        public string hash { get
-            {
-                return _hash;
-            } }
+        //string _hash;
+        public List<string> _hashs = new List<string>();
+        //public string hash { get
+        //    {
+        //        return _hash;
+        //    } }
         public Shit(MessageContext _context)
         {
             contexts = new List<MessageContext>();
@@ -1132,7 +1180,8 @@ namespace Kugua.Mods
             published = false;
             publishedAI = false;
             isForward = false;
-            
+            isVideo = false;
+
             calHash();
         }
 
@@ -1169,7 +1218,7 @@ namespace Kugua.Mods
                     var imghash = ImageSimilar.GetHashFromBase64(imgb64);
                     //StaticUtil.ComputeHash(imgb64)
                     _hashs.Add(imghash);
-                    _hash = Util.ComputeHash(_hash + imghash);
+                    //_hash = Util.ComputeHash(_hash + imghash);
                     if (string.IsNullOrWhiteSpace(imgBase64))
                     {
                         imgBase64 = imgb64;
@@ -1179,7 +1228,7 @@ namespace Kugua.Mods
                 }
                 else if (item is Video video)
                 {
-                    
+
                     //string localPath = $"Temp/{video.file.Replace(".mp4",".jpg")}";
                     //if (ImageUtil.CaptureFirstFrame(video.url, Config.Instance.FullPath(localPath)))
                     //{
@@ -1191,8 +1240,9 @@ namespace Kugua.Mods
                     //}
 
                     //Logger.Log($"<hashvideo>{video.file}");
-                    _hashs.Add(Util.ComputeHash(video.file));
-                    _hash = Util.ComputeHash(_hash + video.file);
+                    isVideo = true;
+                    //_hashs.Add(Util.ComputeHash(video.file));
+                    //_hash = Util.ComputeHash(_hash + video.file);
 
                 }
                 else if (item is ForwardNodeExist forward)
@@ -1217,7 +1267,7 @@ namespace Kugua.Mods
                     // text in forward
                     //Logger.Log($"<hashtext>{text.text}");
                     _hashs.Add(Util.ComputeHash(text.text));
-                    _hash = Util.ComputeHash(_hash + text.text);
+                    //_hash = Util.ComputeHash(_hash + text.text);
                     
                 }
 
@@ -1235,7 +1285,7 @@ namespace Kugua.Mods
         void calHash()
         {
             _hashs = new List<string>();
-            _hash = "";
+            //_hash = "";
             //bool hasNextForwardLevel = false;
             var context = contexts.First();
             //if(context.IsOnlyImage)

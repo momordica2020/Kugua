@@ -34,7 +34,7 @@ namespace Kugua.Mods
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
-            if (context.Group.Is("游戏"))
+            if (context.Group != null && context.Group.Is("游戏"))
             {
                 if (context.IsReact)
                 {

@@ -248,7 +248,7 @@ namespace Kugua.Mods
                 foreach (var g in Config.Instance.groups)
                 {
                     // 随机触发自言自语
-                    if (g.Value.Is("自言自语") && MyRandom.NextDouble() > (1 - 1.0 / 360))
+                    if (g.Value.Is("自言自语") && !g.Value.Is("少话") && MyRandom.NextDouble() > (1 - 1.0 / 360))
                     {
                         
                         Logger.Log($"自言自语 ===> {g.Value.Name}({g.Key})");
