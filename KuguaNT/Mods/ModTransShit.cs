@@ -21,7 +21,7 @@ namespace Kugua.Mods
     public class ModTransShit : Mod
     {
         Dictionary<string, ShitTransGroupInfo> ShitSource = new Dictionary<string, ShitTransGroupInfo>();
-        List<ShitTransGroupInfo> ShitTarget = new List<ShitTransGroupInfo>();
+        List<ShitTarget> ShitTargets = new List<ShitTarget>();
         //List<ShitTransGroupInfo> transInfo=new List<ShitTransGroupInfo>();
         //string targetGroup = "833246207";
         string sfile = "ModTransShit/groupinfo.json";
@@ -36,13 +36,13 @@ namespace Kugua.Mods
         /// <summary>
         /// 之前一段时间内的平均用户评分。如果该值太接近0，就增加AI权重。
         /// </summary>
-        public double last_loop_ave_score = 1;
-        public DateTime lastPublishDate = DateTime.Now;
+        //public double last_loop_ave_score = 1;
+        
 
 
 
         Dictionary<string, Shit> shithash = new Dictionary<string, Shit>();
-        List<Shit> shits = new List<Shit>();
+        //List<Shit> shits = new List<Shit>();
         public object shitMutex = new object();
 
         System.Timers.Timer TaskTimer;
@@ -64,13 +64,13 @@ namespace Kugua.Mods
                 ModCommands.Add(new ModCommand(new Regex(@"^搬史(启动|停止)$", RegexOptions.Singleline), setState));
 
 
-                
+                ModCommands.Add(new ModCommand(new Regex(@"^转发情况$", RegexOptions.Singleline), showList));
 
                 ModCommands.Add(new ModCommand(new Regex(@"^别转发(\d*)$", RegexOptions.Singleline), setTransSourceStop));
                 ModCommands.Add(new ModCommand(new Regex(@"^别转到(\d+)$", RegexOptions.Singleline), setTransTargetStop));
                 ModCommands.Add(new ModCommand(new Regex(@"^(.*)转发(\d+)$", RegexOptions.Singleline), setTransSource));
                 ModCommands.Add(new ModCommand(new Regex(@"^(.*)转到(\d+)$", RegexOptions.Singleline), setTransTarget));
-                ModCommands.Add(new ModCommand(new Regex(@"^转发情况$", RegexOptions.Singleline), showList));
+                
 
                 // ModCommands.Add(new ModCommand(new Regex(@"^转发每次(\d)条$", RegexOptions.Singleline), showList));
 
@@ -105,7 +105,7 @@ namespace Kugua.Mods
                     }
                     else if (!string.IsNullOrWhiteSpace(info.targetId))
                     {
-                        ShitTarget.Add(info);
+                        ShitTargets.Add(new ShitTarget(info));
                     }
                 }
 
@@ -156,10 +156,10 @@ namespace Kugua.Mods
         {
             string sourceList = $"来源{ShitSource.Count}个群：";
             foreach (var s in ShitSource) sourceList = sourceList + $"\r\n{Config.Instance.GroupInfo(s.Value.sourceId)?.Name} {s.Value.sourceId} {s.Value.tags}";
-            string targetList = $"发到{ShitTarget.Count}个群：";
-            foreach (var s in ShitTarget) targetList = targetList + $"\r\n{Config.Instance.GroupInfo(s.targetId)?.Name} {s.targetId} {s.tags}";
-            string storage = $"搬过{config.historyPublished}条，库存{shits.Count}，哈希数{shithash.Count}+{oldHash.Count}";
-            string history = $"历史最高分{config.historyMaxScore}，出现于{config.historyMaxScoreDate}";
+            string targetList = $"发到{ShitTargets.Count}个群：";
+            foreach (var s in ShitTargets) targetList = targetList + $"\r\n{Config.Instance.GroupInfo(s.groupinfo.targetId)?.Name} {s.groupinfo.targetId} {s.groupinfo.tags}";
+            string storage = $"搬过{config.historyPublished}条，哈希量{shithash.Count}+{oldHash.Count}";
+            //string history = $"历史最高分{config.historyMaxScore}，出现于{config.historyMaxScoreDate}";
             var res = new List<Message>
             {
                 new ForwardNodeNew
@@ -185,14 +185,14 @@ namespace Kugua.Mods
                     {
                         new MessageInfo(new Text(storage))
                     }  },
-                new ForwardNodeNew
-                {
-                    user_id = Config.Instance.BotQQ,
-                    nickname = Config.Instance.BotName,
-                    content=new List<MessageInfo>()
-                    {
-                        new MessageInfo(new Text(history))
-                    } },
+                //new ForwardNodeNew
+                //{
+                //    user_id = Config.Instance.BotQQ,
+                //    nickname = Config.Instance.BotName,
+                //    content=new List<MessageInfo>()
+                //    {
+                //        new MessageInfo(new Text(history))
+                //    } },
             };
 
             //context.SendBack([res]);
@@ -200,104 +200,6 @@ namespace Kugua.Mods
             return null;
         }
 
-
-        /// <summary>
-        /// 从shit中取出尚未发表的里面得分最高的一个。传入的是已选元素，以便排除
-        /// </summary>
-        /// <param name="exists"></param>
-        /// <returns></returns>
-        private Shit getMaxScoreUnPublicShit(List<Shit> exists)
-        {
-            long nowBestScore = 0;
-            Shit nowBestShit = null;
-            for(int i=0;i<shits.Count;i++)
-            {
-                var s = shits[i];
-                // 总分=人工分+（AI分*AI权重）
-                var realscore = s.score + Math.Max(0, s.AIscore - 3 + (last_loop_ave_score < 0.1 ? 1 : last_loop_ave_score > 1 ? -1 : 0));
-                if (exists.Contains(s)
-                    || s.published
-                    || realscore < config.min_score
-                //|| DateTime.Now - s.createTime < new TimeSpan(0, config.deal_score_span_min, 0) 
-                ) continue;
-
-                if (realscore > nowBestScore)
-                {
-                    nowBestScore = realscore;
-                    nowBestShit = s;
-                }
-
-                if (realscore > config.historyMaxScore)
-                {
-                    // history best
-                    config.historyMaxScore = realscore;
-                    config.historyMaxScoreDate = DateTime.Now;
-                }
-            }
-            return nowBestShit;
-        }
-
-
-        public List<Shit> getBestShits()
-        {
-            // find bests
-            List<Shit> bestShits = new List<Shit>();
-            int bestNumMax = config.once_maxnum;
-            for (int i = 0; i < bestNumMax; i++)
-            {
-                var best = getMaxScoreUnPublicShit(bestShits);
-                if (best == null) break;
-                bestShits.Add(best);
-            }
-            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
-            return bestShits;
-        }
-
-
-
-
-        /// <summary>
-        /// 从shit中取出尚未发表的里面AI得分最高的一个
-        /// </summary>
-        /// <param name="exists"></param>
-        /// <returns></returns>
-        private Shit getMaxScoreUnPublicAIShit(List<Shit> exists)
-        {
-            long nowBestScore = 0;
-            Shit nowBestShit = null;
-            for(int i = 0; i < shits.Count; i++)
-            {
-                var s = shits[i];
-                if (exists.Contains(s)
-                    || s.publishedAI
-                    || s.AIscore <=3
-                //|| DateTime.Now - s.createTime < new TimeSpan(0, config.deal_score_span_min, 0) 
-                ) continue;
-
-                if (s.AIscore > nowBestScore)
-                {
-                    nowBestScore = s.AIscore;
-                    nowBestShit = s;
-                }
-            }
-            return nowBestShit;
-        }
-
-
-        public List<Shit> getBestAIShits()
-        {
-            // find bests
-            List<Shit> bestShits = new List<Shit>();
-            int bestNumMax = config.once_maxnum;
-            for (int i = 0; i < bestNumMax; i++)
-            {
-                var best = getMaxScoreUnPublicAIShit(bestShits);
-                if (best == null) break;
-                bestShits.Add(best);
-            }
-            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
-            return bestShits;
-        }
 
 
         public void getScore(Shit shit)
@@ -476,14 +378,6 @@ namespace Kugua.Mods
 
             };
 
-            //List<EmojiTypeInfo> bads = new List<EmojiTypeInfo>
-            //{
-            //    new EmojiTypeInfo{id="26", type="1"},//惊恐
-            //    new EmojiTypeInfo{id="38", type="1"},//敲打
-            //    new EmojiTypeInfo{id="322", type="1"},//拒绝
-            //    new EmojiTypeInfo{id="10060", type="2"},//❌	错误
-            //    new EmojiTypeInfo{id="128560", type="2"},//😰	紧张
-            //};
 
             try
             {
@@ -512,14 +406,15 @@ namespace Kugua.Mods
 
 
                 // generate ai score if nessary
+                if (shit.isVideo) shit.score = 5;// 视频自动通过
                 if (//shit.score < config.min_score &&
                     !string.IsNullOrWhiteSpace(shit.imgBase64)
-                    && shit.AIscore == 0)
+                    && shit.score == 0)
                 {
-                    shit.AIscore = LLM.Instance.HSGetImgScore(shit.imgBase64, shit.imgType);
-                    if (shit.isVideo) shit.AIscore = 5;// 视频自动通过
+                    shit.score = LLM.Instance.HSGetImgScore(shit.imgBase64, shit.imgType);
+                    
 
-                    if (shit.AIscore <= 0) shit.AIscore = 1;
+                    if (shit.score <= 0) shit.score = 1;
                 }
             }catch(Exception ex)
             {
@@ -530,76 +425,13 @@ namespace Kugua.Mods
 
         }
 
-        private void UpdateScores()
-        {
-            if (shits == null) return;
-            lock (shitMutex)
-            {
-                for (int i = 0; i < shits.Count; i++)
-                {
-                    var shit = shits[i];
-                    if (shit.published == false
-                        && shit.score == 0
-                        && enough_time(shit)// 足够久远
-                    )
-                    {
-                        Task.Run(()=> getScore(shit));
-                        //shit.score = shit.score + shit.AIscore;
-                        //if (shit.score == 0) shit.score = -1;// drop
-                    }
-                }
-            }
-
-        }
-        /// <summary>
-        /// 根据已统计的部分看平均人工打分数值
-        /// 用来判断当前时段人工打分活跃程度，及需不需要提升AI打分权重
-        /// </summary>
-        private void CheckScore()
-        {
-            //double allscore = 0;
-            double allnum = 1;
-            lock (shitMutex)
-            {
-                for (int i = 0; i < shits.Count; i++)
-                {
-                    var shit = shits[i];
-                    if (enough_time(shit))
-                    {
-                        //allscore += shit.score;
-                        allnum += 1;
-                    }
-                }
-            }
-
-            //last_loop_ave_score = allscore / allnum;
-
-            var span = DateTime.Now - lastPublishDate;
-            Logger.Log($"*** shit轮检中，目前{shit_not_published}/{shits.Count}个没发，hash={shithash.Count}/{oldHash.Count}，距上次推送{span.TotalMinutes:F2}min");
-
-        }
 
         private bool enough_time(Shit shit)
         {
             return DateTime.Now - shit.createTime > new TimeSpan(0, config.deal_score_span_min, 0);
         }
 
-        private int shit_not_published
-        {
-            get
-            {
-                int num = 0;
-                if (shits == null) return 0;
-                foreach(var shit in shits)
-                {
-                    if(shit.published==false && enough_time(shit))
-                    {
-                        num++;
-                    }
-                }
-                return num;
-            }
-        }
+
 
         /// <summary>
         /// 定期巡查发送
@@ -609,92 +441,53 @@ namespace Kugua.Mods
         private void TaskTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
             if (!config.open) return;
-            // 检查到期内容是否被点过很多赞，有的话就发送最高的几个
             
 
 
-            UpdateScores();
+            
 
-
-            CheckScore();
-
-            //foreach (var shit in getBestShits())
-            //{
-            //    if (shit == null || shit.published) continue;
-            //    shit.published = true;
-            //    string msgid = shit.contexts.First().messageId;
-            //    Logger.Log($"[{shit.score}(+{Math.Max(0,shit.AIscore-3)})分]=>=>=>=> shit{msgid}");
-
-            //    //var nodes = getNodeTree(shit.context);
-            //    foreach (var target in ShitTarget)
-            //    {
-            //        if (!string.IsNullOrWhiteSpace(target.tags) && target.tags.Contains("AI")) continue;
-            //        // 不重构，直接搬运原文
-            //        //Logger.Log($"shit[{msgid}] => {target.targetId}");
-            //        foreach (var context in shit.contexts)
-            //        {
-            //            if (!context.HasForward)
-            //            {
-            //                // directly sendout msgs
-            //                context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
-            //                break;
-            //            }
-            //            else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
-            //            {
-            //                break;
-            //            }
-            //        }
-            //        //shit.contexts.First().client.SendForwardToGroupSimply(target.targetId, msgid);
-            //        //    if (nodes == null)
-            //        //    {
-            //        //        // 不重构，直接搬运原文
-            //        //        context.client.SendForwardToGroupSimply(targetId, context.messageId);
-            //        //    }
-            //        //    else
-            //        //    {
-            //        //        context.client.SendForwardMessageToGroup(targetId, nodes);
-            //        //    }
-
-            //    }
-
-            //    lastPublishDate = DateTime.Now;
-            //    config.historyPublished++;
-            //}
-
-            var span = DateTime.Now - lastPublishDate;
-            if (span.TotalMinutes > 10)
+            foreach(ShitTarget target in ShitTargets)
             {
-                foreach (var shit in getBestAIShits())
+                if (target.groupinfo.tags.Contains("slow"))
                 {
-                    if (shit == null || shit.published) continue;
-                    shit.publishedAI = true;
-                    string msgid = shit.contexts.First().messageId;
-                    Logger.Log($"[AI:{shit.AIscore}分]=>=>=>=> shit{msgid}");
-                    foreach (var target in ShitTarget)
+                    Logger.Log($"slow {target.groupinfo.targetId}库存{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
+
+                    if (target.spanM < 10)
                     {
-                        if (string.IsNullOrWhiteSpace(target.tags) || !target.tags.Contains("AI")) continue;
-                        //Logger.Log($"shit[{msgid}] => {target.targetId}");
-                        foreach (var context in shit.contexts)
-                        {
-                            if (!context.HasForward)
-                            {
-                                context.client.SendForwardMessageToGroup(target.targetId, context.recvMessages);
-                                break;
-                            }
-                            else if (context.client.SendForwardToGroupSimply(target.targetId, msgid))
-                            {
-                                break;
-                            }
-                        }
+                        continue;
+
                     }
-                    lastPublishDate = DateTime.Now;
-                    config.historyPublished++;
                 }
+                    
+                else if (target.groupinfo.tags.Contains("AI")) { }
+                else { continue; }
+                var goodshits = target.getBestAIShits();
+                Logger.Log($"{target.groupinfo.targetId}库存{goodshits.Count}/{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
+                if (goodshits==null || goodshits.Count<1) continue;
 
+                
 
-                RemoveOldShits();
-
+                var shit = goodshits.FirstOrDefault();
+                
+                string msgid = shit.contexts.First().messageId;
+                var context = shit.contexts.FirstOrDefault();
+                if (context.HasForward)
+                {
+                    context.client.SendForwardToGroupSimply(target.groupinfo.targetId, msgid);
+                }
+                else
+                {
+                    context.client.SendForwardMessageToGroup(target.groupinfo.targetId, context.recvMessages);
+                }
+                Logger.Log($"{target.groupinfo.targetId}=>[{shit.score}]");
+                target.shits.Remove(shit);
+                target.lastPublishDate = DateTime.Now;
+                config.historyPublished++;
             }
+            RemoveOldShits();
+
+
+
 
             Save();
 
@@ -702,34 +495,28 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// 将非常旧的扔出队列。当然hash列表保留着
-        /// </summary>
+        /// 将非常旧的扔出队列。hash列表转存入oldhash
+        /// /// </summary>
         private void RemoveOldShits()
         {
             lock (shitMutex)
             {
-                for (int i = shits.Count - 1; i >= 0; i--)
+                foreach (var target in ShitTargets)
                 {
-                    var s = shits[i];
-                    if (DateTime.Now - s.createTime > new TimeSpan(0, config.del_old_span_min, 0))
+                    for (int i = target.shits.Count - 1; i >= 0; i--)
                     {
-                        foreach(var hash in s._hashs)
+                        var s = target.shits[i];
+                        if (DateTime.Now - s.createTime > new TimeSpan(0, config.del_old_span_min, 0))
                         {
-                            if (!oldHash.Contains(hash)) oldHash.Add(hash);
+                            foreach (var hash in s._hashs)
+                            {
+                                if (!oldHash.Contains(hash)) oldHash.Add(hash);
+                            }
+
+                            target.shits.RemoveAt(i);
                         }
-                        
-                        shits.RemoveAt(i);
                     }
                 }
-
-
-                //foreach(var shit in shits)
-                //{
-                //    if(DateTime.Now - shit.createTime > new TimeSpan(0, 5, 0) && shit.score > 0)
-                //    {
-
-                //    }
-                //}
 
             }
         }
@@ -738,7 +525,7 @@ namespace Kugua.Mods
         {
             try
             {
-                var transInfo = new List<ShitTransGroupInfo>(ShitTarget);
+                var transInfo = ShitTargets.Select(t => t.groupinfo).ToList();
                 transInfo.AddRange(ShitSource.Values);
                 LocalStorage.WriteResource(sfile, JsonConvert.SerializeObject(transInfo));
 
@@ -783,12 +570,12 @@ namespace Kugua.Mods
             //open = false;
             string target = param[1];
             if (string.IsNullOrWhiteSpace(target)) target = context.groupId;
-
-            for (int i = ShitTarget.Count - 1; i >= 0; i--)
+            foreach (var starget in ShitTargets)
             {
-                if (ShitTarget[i].targetId == target)
+                if(starget.groupinfo.targetId == target)
                 {
-                    ShitTarget.RemoveAt(i);
+                    ShitTargets.Remove(starget);
+                    break;
                 }
             }
             return $"已中止向{(target == context.groupId ? "本群" : $"群{target}")}的自动转发行为，，，";
@@ -805,16 +592,16 @@ namespace Kugua.Mods
                 string tid = param[2];
                 string sid = context.groupId;
                 bool exist = false;
-                foreach (var g in ShitTarget)
+                foreach(var starget in ShitTargets)
                 {
-                    if (g.targetId == tid)
-                    {
+                    if(starget.groupinfo.targetId == tid) { 
                         exist = true;
-                        if (!string.IsNullOrWhiteSpace(tag)) g.tags = tag;
-                        break;
+                        if (!string.IsNullOrWhiteSpace(tag)) starget.groupinfo.tags = tag;
+                        break; 
                     }
                 }
-                if (!exist) ShitTarget.Add(new ShitTransGroupInfo() { targetId = tid,tags=tag });
+
+                if (!exist) ShitTargets.Add(new ShitTarget( new ShitTransGroupInfo() { targetId = tid,tags=tag }));
                 return $"已增加{(string.IsNullOrWhiteSpace(tag)?"":tag)}转发目标 {tid}";
             }
             catch (Exception e)
@@ -850,84 +637,7 @@ namespace Kugua.Mods
             return "";
         }
 
-        //public static List<MessageInfo> Msg2Info(List<Message> msgs)
-        //{
-        //    var infos=new List<MessageInfo>();
 
-        //    if (msgs == null || msgs.Count <= 0) return infos;
-        //    foreach (var m in msgs) infos.Add(new MessageInfo(m));
-
-        //    return infos;
-        //}
-
-        private List<Message> getNodeTree(ForwardNodeExist forward)
-        {
-            string user_id_default = "1094950020";
-            string nickname_default = "QQ用户";
-            List<Message> nodes = new List<Message>();
-            if (forward == null) return nodes;
-            if (forward.content == null)
-            {
-                clientQQ?.GetForwardMessage(forward);
-            }
-
-
-
-            if (forward.content == null || forward.content.Count <= 0) return nodes;
-            try
-            {
-                var pmsg = new List<MessageInfo>();
-                foreach (var m in forward.content)
-                {
-                    List<MessageInfo> infos = new List<MessageInfo>();
-                    foreach (var msg in m.message)
-                    {
-                        if (msg is Text t)
-                        {
-                            if (t.text.EndsWith("↓")) continue;
-                        }
-                        else if (msg is JsonData jd) continue;
-                        if (msg is ForwardNodeExist)
-                        {
-                            // 是嵌套结构，所以不拆了，直接套娃转发
-                            return null;
-                        }
-                        //if(msg is Reply r) { continue; }
-                        //if (msg is ForwardNodeExist n)
-                        //{
-                        //    var innerTree = getNodeTree(n.id);
-                        //    if (innerTree != null)
-                        //    {
-                        //        infos.Add(new MessageInfo(new ForwardNodeNew
-                        //        {
-                        //            user_id = user_id_default,//m.user_id,
-                        //            nickname = nickname_default,//m.sender.nickname,
-                        //            content = Msg2Info(m.message)
-                        //        }));
-                        //    }
-                        //}
-
-
-                        infos.Add(new MessageInfo(msg));
-
-                    }
-                    var newNode = new ForwardNodeNew
-                    {
-                        user_id = user_id_default,//m.user_id,
-                        nickname = nickname_default,//m.sender.nickname,
-                        content = infos
-                    };
-                    nodes.Add(newNode);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-
-            return nodes;
-        }
 
         bool compareHashIsMatch(Shit shit)
         {
@@ -1004,15 +714,12 @@ namespace Kugua.Mods
                     {
                         shithash[h] = ns;
                     }
-                    shits.Add(ns);
+                    Task.Run(() => getScore(ns));
+                    foreach (var shitList in ShitTargets)
+                    {
+                        shitList.addShit(ns);
+                    }
                     Logger.Log($"新shit来自群{ns.createGroup}[id={ns.contexts.First().messageId}]");
-                    
-
-                    //if (!string.IsNullOrWhiteSpace(ns.imgBase64))
-                    //{
-                    //    var score = GPT.Instance.ZPGetImgScore(ns.imgBase64);
-                    //}
-                    //ns.context.client.SendEmojiLike(ns.context.messageId, 76);
                 }
 
             }
@@ -1022,56 +729,10 @@ namespace Kugua.Mods
         }
 
 
-        public void Test(MessageContext context)
-        {
-
-            string infoTypes = "";
-
-            
-            //foreach (var item in context.recvMessages)
-            //{
-            //    if (item is Video video)
-            //    {
-            //        string localPath = $"Temp/{video.file}";
-            //        if (ImageUtil.CaptureFirstFrame(video.url, Config.Instance.FullPath(localPath)))
-            //        {
-            //            var base64 = Convert.ToBase64String(File.ReadAllBytes(localPath));
-            //            var hash = ImageSimilar.GetHashFromBase64(base64);
-            //            Logger.Log($"VIDEO HASH={hash}");
-            //            break;
-
-            //        }
-            //        break;
-            //    }
-            //}
-            
-
-            foreach(var item in context.recvMessages)
-            {
-                infoTypes += item.GetType().Name.ToString()+" ";
-            }
-            var shit = new Shit(context);
-            foreach(var hash in shit._hashs)
-            {
-                Logger.Log($"HASH={hash}");
-            }
-            //Logger.Log($"[{context.messageId}]HASH={shit.hash}");
-
-            Logger.Log(infoTypes);
-        }
-
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
             try
             {
-                if(context.IsGroup&& context.groupId== "1001021948")
-                {
-                    // test
-                    Test(context);
-                    return false;
-                }
-
-
                 //Logger.Log($"!config.open?{!config.open}");
                 if (config.open && ShitSource.ContainsKey(context.groupId))
                 {
@@ -1086,47 +747,6 @@ namespace Kugua.Mods
                     }
                     
                 }
-                //bool tranit = false;
-                ////ForwardNodeExist forward = null;
-                //List<string> targets = new List<string>();
-                //foreach (var m in context.recvMessages)
-                //{
-                //    if (ShitSource.ContainsKey(context.groupId))
-                //    {
-                //        tranit = true;
-                //        break;
-                //    }
-                //}
-                ////Logger.Log($"tranit?{tranit}");
-                //if (tranit)
-                //{
-                //    // add to prepare list
-                //    addNewShit(context);
-                //    //if (m is ForwardNodeExist fnode)
-                //    //{
-                //    //    forward = fnode;
-
-                    //    //    break;
-                    //    //}
-                    //}
-
-
-
-
-
-                    //var input = context.recvMessages.ToTextString();
-                    //if (!context.IsAskme || !input.Contains('译')) return false;
-                    //(string text, List<string> langs) = CutLanguages(input);
-                    //if (langs.Count > 0 && !string.IsNullOrWhiteSpace(text))
-                    //{
-                    //    var resAll = getTrans(text, langs);
-                    //    if (!string.IsNullOrWhiteSpace(resAll))
-                    //    {
-                    //        context.SendBackPlain(resAll, true);
-                    //        return true;
-                    //    }
-                    //}
-
             }
             catch (Exception ex)
             {
@@ -1143,6 +763,76 @@ namespace Kugua.Mods
         public string tags;
     }
 
+    public class ShitTarget
+    {
+        public ShitTransGroupInfo groupinfo;
+        public DateTime lastPublishDate = DateTime.Now;
+        public List<Shit> shits = new List<Shit>();
+        public double spanM {
+            get {
+                return (DateTime.Now - lastPublishDate).TotalMinutes;
+            } 
+        }
+
+        public ShitTarget(ShitTransGroupInfo info)
+        {
+            groupinfo = info;
+            lastPublishDate = DateTime.Now;
+            shits = new List<Shit>();
+        }
+
+
+        /// <summary>
+        /// 从shit中取出尚未发表的里面AI得分最高的一个
+        /// </summary>
+        /// <param name="exists"></param>
+        /// <returns></returns>
+        private Shit getMaxScoreUnPublicAIShit(List<Shit> exists)
+        {
+            long nowBestScore = 0;
+            Shit nowBestShit = null;
+            for (int i = 0; i < shits.Count; i++)
+            {
+                var s = shits[i];
+                if (exists.Contains(s)
+                    //|| s.published
+                    //|| s.publishedAI
+                    || s.score <= 3
+                //|| DateTime.Now - s.createTime < new TimeSpan(0, config.deal_score_span_min, 0) 
+                ) continue;
+
+                if (s.score > nowBestScore)
+                {
+                    nowBestScore = s.score;
+                    nowBestShit = s;
+                }
+            }
+            return nowBestShit;
+        }
+
+
+        public List<Shit> getBestAIShits()
+        {
+            // find bests
+            List<Shit> bestShits = new List<Shit>();
+            int bestNumMax = 1;
+            for (int i = 0; i < bestNumMax; i++)
+            {
+                var best = getMaxScoreUnPublicAIShit(bestShits);
+                if (best == null) break;
+                bestShits.Add(best);
+            }
+            bestShits.Sort((x, y) => (x.createTime > y.createTime ? 1 : -1));
+            return bestShits;
+        }
+
+        public void addShit(Shit shit)
+        {
+            if (shit == null) return;
+            shits.Add(shit);
+        }
+    }
+
     public class Shit
     {
         public List<MessageContext> contexts;
@@ -1151,10 +841,10 @@ namespace Kugua.Mods
         public string createUser;
 
         public long score;
-        public bool published;
+        //public bool published;
 
-        public long AIscore;
-        public bool publishedAI;
+        //public long AIscore;
+        //public bool publishedAI;
 
         public bool isForward = false;
         public string imgBase64;
@@ -1176,35 +866,15 @@ namespace Kugua.Mods
             createGroup = _context.groupId;
             createUser = _context.userId;
             score = 0;
-            AIscore = 0;
-            published = false;
-            publishedAI = false;
+            //AIscore = 0;
+            //published = false;
+            //publishedAI = false;
             isForward = false;
             isVideo = false;
 
             calHash();
         }
 
-        //void downloadImage()
-        //{
-        //    foreach(var msg in contexts.First().recvMessages)
-        //    {
-        //        if(msg is Image img)
-        //        {
-        //            try
-        //            {
-        //                imgBase64 = Network.ConvertImageUrlToBase64(img.url).Result;
-        //                return;
-
-        //            }catch(Exception ex)
-        //            {
-        //                Logger.Log(ex);
-                        
-        //            }
-                    
-        //        }
-        //    }
-        //}
 
         void calHashSingleItem(Message item)
         {
@@ -1239,9 +909,9 @@ namespace Kugua.Mods
 
                     //}
 
-                    //Logger.Log($"<hashvideo>{video.file}");
+                    Logger.Log($"<hashvideo>{video.file}");
                     isVideo = true;
-                    //_hashs.Add(Util.ComputeHash(video.file));
+                    _hashs.Add(Util.ComputeHash(video.file));
                     //_hash = Util.ComputeHash(_hash + video.file);
 
                 }
