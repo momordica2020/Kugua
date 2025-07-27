@@ -52,6 +52,8 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^反转(.+)", RegexOptions.Singleline), handleReverse));
             ModCommands.Add(new ModCommand(new Regex(@"^逐行反转(.+)", RegexOptions.Singleline), handleReverseByLine));
+            ModCommands.Add(new ModCommand(new Regex(@"^大写(.+)", RegexOptions.Singleline), handleToUpper));
+            ModCommands.Add(new ModCommand(new Regex(@"^小写(.+)", RegexOptions.Singleline), handleToLower));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序(.+)", RegexOptions.Singleline), handleShuffle));
             ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline), handleGongshou));
             ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline), handleRandomString));
@@ -61,6 +63,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
             ModCommands.Add(new ModCommand(new Regex(@"^火星文(.+)", RegexOptions.Singleline), handleHX));
             ModCommands.Add(new ModCommand(new Regex(@"^研究一下(.+)", RegexOptions.Singleline), handlePaper));
+
+
 
 
 
@@ -517,6 +521,30 @@ namespace Kugua.Mods
             string[] sArray = param[1].Split('\n');
             Array.Reverse(sArray);
             return string.Join("\r\n",sArray);
+        }
+
+        /// <summary>
+        /// 英文转大写
+        /// 大写 abc
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleToUpper(MessageContext context, string[] param)
+        {
+            return param[1].ToUpper();
+        }
+
+        /// <summary>
+        /// 英文转小写
+        /// 小写 ABC
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleToLower(MessageContext context, string[] param)
+        {
+            return param[1].ToLower();
         }
 
 
