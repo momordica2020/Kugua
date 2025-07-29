@@ -498,12 +498,28 @@ namespace Kugua
             return await SendImage(image, IsGroup ? groupId : userId, IsGroup, desc);
         }
 
+        public async Task<string> SendBackImages(List<MagickImageCollection> images, string desc = "")
+        {
+            return await SendImages(images, IsGroup ? groupId : userId, IsGroup, desc);
+        }
+
 
         public async Task<string> SendImage(MagickImageCollection image, string targetId, bool isGroup, string desc = "")
         {
             
             List<Message> msgs = new List<Message>();
             if (image!=null) msgs.Add(new ImageSend(image));
+            if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
+            if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
+            else return "";
+        }
+
+        public async Task<string> SendImages(List<MagickImageCollection> images, string targetId, bool isGroup, string desc = "")
+        {
+
+            List<Message> msgs = new List<Message>();
+            
+            if (images != null)foreach(var image in images) msgs.Add(new ImageSend(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
             if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";

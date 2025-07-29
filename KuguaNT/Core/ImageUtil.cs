@@ -123,6 +123,9 @@ namespace Kugua.Core
         }
 
 
+
+
+
         /// <summary>
         /// 图像旋转，传入下刀方位
         /// </summary>
@@ -923,6 +926,35 @@ namespace Kugua.Core
             MagickColor.FromRgb(0,0,255),// blue
             MagickColor.FromRgb(255,0,255),// purple
             ];
+
+
+
+        public static MagickImageCollection ImgGenerateRandomPixel(int size = 100)
+        {
+            var images = new MagickImageCollection();
+            var frame = new MagickImage(
+                    MagickColor.FromRgba(255, 255, 255, 255),
+                    (uint)size,
+                    (uint)size);
+            frame.Format = MagickFormat.Gif;
+            foreach (var pixel in frame.GetPixelsUnsafe())
+            {
+                // Generate random x, y components in range [-1, 1]
+                double x = (MyRandom.NextDouble() * 2.0 - 1.0);
+                double y = (MyRandom.NextDouble() * 2.0 - 1.0);
+                double z = (MyRandom.NextDouble() * 2.0 - 1.0);
+
+                // Convert to 0-255 range for image storage
+                pixel.SetChannel(0, (ushort)(65535 * (x * 0.5 + 0.5)));
+                pixel.SetChannel(1, (ushort)(65535 * (y * 0.5 + 0.5)));
+                pixel.SetChannel(2, (ushort)(65535 * (z * 0.5 + 0.5))); 
+            }
+            images.Add(frame);
+            return images;
+
+        }
+
+
 
         /// <summary>
         /// 生成 CAPTCHA 图片

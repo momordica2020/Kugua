@@ -19,11 +19,14 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
+
             //ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
             //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
+            ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,_needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor));
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
             ModCommands.Add(new ModCommand(new Regex(@"^删(.+)$", RegexOptions.Singleline), removeGifFrame));
@@ -35,6 +38,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
+            ModCommands.Add(new ModCommand(new Regex(@"水平翻转(.*)", RegexOptions.Singleline), setImgHorzontalFlip));
+            ModCommands.Add(new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
             ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
             ModCommands.Add(new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
             
@@ -657,6 +662,28 @@ namespace Kugua.Mods
         }
 
         /// <summary>
+        /// 生成噪声图片
+        /// 噪声100
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string genRandomPixel(MessageContext context, string[] param)
+        {
+            string text = param[1].Trim();
+            int size = 0;
+            int.TryParse(text, out size);
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                context.SendBackImage(ImageUtil.ImgGenerateRandomPixel(size));
+            }
+
+            return null;
+
+        }
+        
+
+        /// <summary>
         /// 图片顺时针旋转n度
         /// 旋转90[图片]
         /// </summary>
@@ -753,7 +780,64 @@ namespace Kugua.Mods
             return null;
         }
 
+        /// <summary>
+        /// 图像水平翻转
+        /// 水平翻转[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setImgHorzontalFlip(MessageContext context, string[] param)
+        {
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                foreach(var img in oriImgs)
+                {
+                    foreach (var image in img)
+                    {
+                        image.Flop();
+                    }
+                }
+                context.SendBackImages(oriImgs);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"水平翻转(.*)", RegexOptions.Singleline), setImgHorzontalFlip));
 
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// 图像垂直翻转
+        /// 垂直翻转[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setImgVerticalFlip(MessageContext context, string[] param)
+        {
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                foreach (var img in oriImgs)
+                {
+                    foreach (var image in img)
+                    {
+                        image.Flip();
+                    }
+                }
+                context.SendBackImages(oriImgs);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
+
+            }
+            return null;
+        }
 
         bool DealEmojiMix(MessageContext context, List<string> emojiList)
         {

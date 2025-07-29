@@ -111,8 +111,26 @@ namespace Kugua
             }
         }
 
+        public static List<MagickImageCollection> DownloadImages(MessageContext context)
+        {
+            List<MagickImageCollection> res=new List<MagickImageCollection>();
 
-        
+            if (context != null && context.IsImage)
+            {
+                foreach (var image in context.Images)
+                {
+                    res.Add(DownloadImage(image.url));
+                }
+            }
+            return res;
+        }
+
+
+        /// <summary>
+        /// 从url下载图片
+        /// </summary>
+        /// <param name="imageUrl"></param>
+        /// <returns></returns>
         public static MagickImageCollection DownloadImage(string imageUrl)
         {//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13; // 启用 TLS 1.2 和 TLS 1.3
 
