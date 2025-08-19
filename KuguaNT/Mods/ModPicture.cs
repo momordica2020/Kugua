@@ -4,6 +4,8 @@ using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
+using System.Drawing;
+using System.Drawing.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ZhipuApi.Modules;
@@ -26,7 +28,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,_needAsk: false));
-            ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor));
+            //ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor));
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
             ModCommands.Add(new ModCommand(new Regex(@"^删(.+)$", RegexOptions.Singleline), removeGifFrame));
@@ -35,6 +37,9 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"像素字(\S*)", RegexOptions.Singleline), getPixelWords));
+            ModCommands.Add(new ModCommand(new Regex(@"抖(\S*)", RegexOptions.Singleline), getShake));
+            ModCommands.Add(new ModCommand(new Regex(@"滚动", RegexOptions.Singleline), getRoll));
             ModCommands.Add(new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
             ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
@@ -42,6 +47,9 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
             ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
             ModCommands.Add(new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
+
+            ModCommands.Add(new ModCommand(new Regex(@"网格化2(.*)", RegexOptions.Singleline), setPixelChange2));
+            ModCommands.Add(new ModCommand(new Regex(@"网格化(.*)", RegexOptions.Singleline), setPixelChange1));
             
 
             return true;
@@ -477,6 +485,75 @@ namespace Kugua.Mods
         }
 
         /// <summary>
+        /// 图片抖动！数字是1~10的震级
+        /// 抖[图片]   抖1[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getShake(MessageContext context, string[] param)
+        {
+            double degree = 5;
+            if (!double.TryParse(param[1], out degree))
+            {
+                degree = 5;
+            }
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                var resImgs = new List<MagickImageCollection>();
+                foreach (var img in oriImgs)
+                {
+                    var res = ImageUtil.ImgShake(img, degree);
+                    resImgs.Add(res);
+                }
+                context.SendBackImages(resImgs);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"抖(\S*)", RegexOptions.Singleline), getShake));
+
+            }
+            return null;
+        }
+
+
+
+
+        /// <summary>
+        /// 图片竖滚 
+        /// 滚动[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getRoll(MessageContext context, string[] param)
+        {
+            //double degree = 5;
+            //if (!double.TryParse(param[1], out degree))
+            //{
+            //    degree = 5;
+            //}
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                var resImgs = new List<MagickImageCollection>();
+                foreach (var img in oriImgs)
+                {
+                    var res = ImageUtil.ImgShake(img);
+                    resImgs.Add(res);
+                }
+                context.SendBackImages(resImgs);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"滚动", RegexOptions.Singleline), getRoll));
+
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 图片反色
         /// 反色[图片]
         /// </summary>
@@ -486,7 +563,7 @@ namespace Kugua.Mods
 
         private string changeColor(MessageContext context, string[] param)
         {
-            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), getOldJpg));
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
             else
             {
                 foreach (var itemImg in context.Images)
@@ -661,6 +738,30 @@ namespace Kugua.Mods
 
         }
 
+
+
+        /// <summary>
+        /// 生成12pixel像素字文本图片
+        /// 像素字 哈哈哈
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getPixelWords(MessageContext context, string[] param)
+        {
+            string text = param[1].Trim();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                InstalledFontCollection MyFont = new InstalledFontCollection();
+                FontFamily[] MyFontFamilies = MyFont.Families;
+                context.SendBackImage(ImageUtil.ImgGeneratePixel2(text, "凤凰点阵体 12px", 12));
+            }
+
+            return null;
+
+        }
+        
+
         /// <summary>
         /// 生成噪声图片
         /// 噪声100
@@ -708,6 +809,47 @@ namespace Kugua.Mods
                 }
             }
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
+            return null;
+        }
+
+        /// <summary>
+        /// 图片网格化扩张一倍
+        /// 网格化[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setPixelChange1(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            foreach (var item in context.Images)
+            {
+                var oriImg = Network.DownloadImage(item.url);
+                context.SendBackImage(ImageUtil.setPixelChange1(oriImg));
+                findImg = true;
+            }
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"网格化(.*)", RegexOptions.Singleline), setPixelChange1));
+            return null;
+        }
+
+
+        /// <summary>
+        /// 图片网格化扣洞
+        /// 网格化2[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setPixelChange2(MessageContext context, string[] param)
+        {
+            bool findImg = false;
+            foreach (var item in context.Images)
+            {
+                var oriImg = Network.DownloadImage(item.url);
+                context.SendBackImage(ImageUtil.setPixelChange2(oriImg));
+                findImg = true;
+            }
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"网格化2(.*)", RegexOptions.Singleline), setPixelChange2));
             return null;
         }
 

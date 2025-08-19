@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Printing;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -607,7 +608,7 @@ namespace Kugua.Core
                     foreach (var image in images)
                     {
                         //image.Format = MagickFormat.Jpeg;
-                        image.Quality = (uint)(quality*90 * MyRandom.NextDouble());
+                        image.Quality = (uint)(quality*90 * MyRandom.NextDouble);
                         //image.Write(ms);
                     }
                     images.Write(mss);
@@ -840,7 +841,136 @@ namespace Kugua.Core
                 }
             }
         }
-       
+
+
+        public static MagickImage setPixelChange1_2(MagickImage image, double scale = 2)
+        {
+
+            try
+            {
+                if (image == null) return null;
+                // 确保图像支持Alpha通道
+                image.Alpha(AlphaOption.Set);
+
+                var newWidth = image.Width * scale;
+                var newHeight = image.Height * scale;
+                var newImage = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), (uint)newWidth, (uint)newHeight);
+                var p = image.GetPixels();
+                var np = newImage.GetPixels();
+                for (int x = 0; x < image.Width; x++)
+                {
+                    for (int y = 0; y < image.Height; y++)
+                    {
+                        np.SetPixel((int)(x * scale), (int)(y * scale), p[x, y].ToArray());
+                    }
+                }
+                return newImage;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return image;
+        }
+
+        public static MagickImageCollection setPixelChange1(MagickImageCollection images)
+        {
+            try
+            {
+                int num = images.Count;
+                images.Coalesce();
+
+
+                for (int i = 0; i < num; i++)
+                {
+
+                    images[i] = setPixelChange1_2((MagickImage)images[i]);
+                    images[i].GifDisposeMethod = GifDisposeMethod.Background;
+                    images[i].AnimationDelay = images[i].AnimationDelay;
+
+                    if (num == 1) images[i].Format = MagickFormat.Png;
+                    else images[i].Format = MagickFormat.Gif;
+
+                }
+
+                images.OptimizeTransparency();
+
+                var settings = new QuantizeSettings();
+                settings.Colors = 256;
+
+                images.Quantize(settings);
+                return images;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return null;
+        }
+        public static MagickImage setPixelChange2_2(MagickImage image)
+        {
+
+            try
+            {
+                if (image == null) return null;
+                // 确保图像支持Alpha通道
+                image.Alpha(AlphaOption.Set);
+                var p = image.GetPixels();
+                for (int x = 0; x < image.Width; x++)
+                {
+                    for (int y = 0; y < image.Height; y++)
+                    {
+                        if (x % 2 + y % 2 == 1)
+                        {
+                            p.SetPixel(x, y, [0, 0, 0, 0]);
+                        }
+                    }
+                }
+                return image;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return image;
+        }
+        public static MagickImageCollection setPixelChange2(MagickImageCollection images)
+        {
+            try
+            {
+                int num = images.Count;
+                images.Coalesce();
+
+
+                for (int i = 0; i < num; i++)
+                {
+
+                    images[i] = setPixelChange2_2((MagickImage)images[i]);
+                    images[i].GifDisposeMethod = GifDisposeMethod.Background;
+                    images[i].AnimationDelay = images[i].AnimationDelay;
+
+                    if (num == 1) images[i].Format = MagickFormat.Png;
+                    else images[i].Format = MagickFormat.Gif;
+
+                }
+
+                images.OptimizeTransparency();
+
+                var settings = new QuantizeSettings();
+                settings.Colors = 256;
+
+                images.Quantize(settings);
+                return images;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return null;
+        }
+
 
         public static MagickImageCollection ImgRemoveBackgrounds(MagickImageCollection images)
         {
@@ -861,7 +991,9 @@ namespace Kugua.Core
                     ImgRemoveBackground2((MagickImage)images[i]);
                     images[i].GifDisposeMethod = GifDisposeMethod.Background;
                     images[i].AnimationDelay = images[i].AnimationDelay;
-                    images[i].Format = MagickFormat.Png;
+                    
+                    if(num==1) images[i].Format = MagickFormat.Png;
+                    else images[i].Format = MagickFormat.Gif;
                     // img.Transparent(new MagickColor(0, 0, 0,0));
                     //if(i!=0) img.Alpha(AlphaOption.Copy);
 
@@ -940,9 +1072,9 @@ namespace Kugua.Core
             foreach (var pixel in frame.GetPixelsUnsafe())
             {
                 // Generate random x, y components in range [-1, 1]
-                double x = (MyRandom.NextDouble() * 2.0 - 1.0);
-                double y = (MyRandom.NextDouble() * 2.0 - 1.0);
-                double z = (MyRandom.NextDouble() * 2.0 - 1.0);
+                double x = (MyRandom.NextDouble * 2.0 - 1.0);
+                double y = (MyRandom.NextDouble * 2.0 - 1.0);
+                double z = (MyRandom.NextDouble * 2.0 - 1.0);
 
                 // Convert to 0-255 range for image storage
                 pixel.SetChannel(0, (ushort)(65535 * (x * 0.5 + 0.5)));
@@ -952,6 +1084,96 @@ namespace Kugua.Core
             images.Add(frame);
             return images;
 
+        }
+
+
+        public static void ShowFonts()
+        {
+            InstalledFontCollection MyFont = new InstalledFontCollection();
+            FontFamily[] MyFontFamilies = MyFont.Families;
+            foreach(var f in MyFontFamilies)
+            {
+                Logger.Log(f.Name);
+            }
+        }
+
+
+        public static MagickImage ImgGeneratePixel2(string text, string fontName, int fontSize)
+        {
+            int lineMax = 12;
+            int lineNum = text.Length / lineMax;
+            int slide = (int)(fontSize * 0.1);
+            int width = (int)(fontSize * Math.Min(lineMax, text.Length) + slide * 2);
+            int height = (int)(fontSize * (lineNum + 1) + slide * 2);
+
+            // 创建位图
+            using (Bitmap bitmap = new Bitmap(width, height))
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                // 设置字体
+                System.Drawing.Font font = new System.Drawing.Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+                g.Clear(Color.Transparent);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    g.DrawString(text[i].ToString(), font, Brushes.Red,
+                        (int)(i % lineMax * fontSize),
+                        (int)(i / lineMax * fontSize)); // 绘制文本
+                }
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bitmap.Save(ms, ImageFormat.Png); // 将 Bitmap 保存到内存流
+                    ms.Position = 0;
+                    var image = new MagickImage(ms);
+                    return image;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 生成像素字图片
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static MagickImage ImgGeneratePixel(string text, FontFamily family)
+        {
+            //ShowFonts();
+
+
+            uint fontsize = 12;
+            int slide = (int)(fontsize * 0.1);
+            int lineMax = 12;
+            int lineNum = text.Length / lineMax;
+
+            uint width = (uint)(fontsize * Math.Min(lineMax, text.Length) + slide * 2);
+            uint height = (uint)(fontsize * (lineNum + 1) + slide * 2);
+
+            //var images = new MagickImageCollection();
+            var frame = new MagickImage(
+                   MagickColor.FromRgba(0, 0, 0, 0),
+                   width,
+                   height
+               );
+            frame.Format = MagickFormat.Png;
+            for (int i = 0; i < text.Length; i++)
+            {
+                frame.Settings.Font = family.Name;
+                frame.Settings.TextGravity = Gravity.West;
+                frame.Settings.FillColor = MagickColor.FromRgb(255, 0, 0);
+                frame.Settings.FontPointsize = fontsize;
+                frame.Annotate(
+                    text[i].ToString(),
+                    new MagickGeometry(
+                        (int)(i % lineMax * fontsize),
+                        (int)(i / lineMax * fontsize),
+                        100,
+                        100),
+                    Gravity.Northwest,
+                    0
+                    );
+            }
+            return frame;
+         
         }
 
 
@@ -998,7 +1220,7 @@ namespace Kugua.Core
                             100, 
                             100), 
                         Gravity.Northwest, 
-                        MyRandom.NextDouble()
+                        MyRandom.NextDouble
                         );
                 }
 
@@ -1176,6 +1398,136 @@ namespace Kugua.Core
             }
         }
 
+        public static MagickImageCollection ImgRoll(MagickImageCollection img)
+        {
+            try
+            {
+                var images = new MagickImageCollection();
+                int frameCount = img.Count;
+                if (frameCount == 1)
+                {
+                    var imgg = img[0];
+                    uint frameDelay = 5;
+                    int frameMax = 10;
+                    for (int frameIndex = 0; frameIndex < frameMax; frameIndex++)
+                    {
+                        var frame = new MagickImage(
+                           MagickColor.FromRgba(255, 255, 255, 0),
+                           imgg.Width,
+                           imgg.Height
+                        );
+                        frame.Format = MagickFormat.Gif;
+                        frame.AnimationDelay = frameDelay;
+                        int y1 = (int)(imgg.Height * (((double)frameIndex) / frameMax - 1));
+                        int y2 = (int)(y1 + imgg.Height);
+                        int x = 0;
+                        frame.Composite(imgg, x, y1, CompositeOperator.Over);
+                        frame.Composite(imgg, x, y2, CompositeOperator.Over);
+                        frame.GifDisposeMethod = GifDisposeMethod.Background;
+                        images.Add(frame);
+                    }
+                }
+                else
+                {
+                    uint frameDelay = 5;
+                    int frameMax = 10;
+                    int fullframe = (int)Util.LCM(frameMax, img.Count);
+                    img.Coalesce();
+                    for (int frameIndex = 0; frameIndex < fullframe; frameIndex++)
+                    {
+                        var imgg = img[frameIndex];
+                        var frame = new MagickImage(
+                           MagickColor.FromRgba(255, 255, 255, 0),
+                           imgg.Width,
+                           imgg.Height
+                        );
+                        frame.Format = MagickFormat.Gif;
+                        //frame.AnimationDelay = ;
+                        int y1 = (int)(imgg.Height * (((double)frameIndex) / frameMax - 1));
+                        int y2 = (int)(y1 + imgg.Height);
+                        int x = 0;
+                        frame.Composite(imgg, x, y1, CompositeOperator.Over);
+                        frame.Composite(imgg, x, y2, CompositeOperator.Over);
+                        frame.GifDisposeMethod = GifDisposeMethod.Background;
+                        images.Add(frame);
+                    }
+                }
+                //images.Optimize();
+                images.OptimizeTransparency();
+                //images.Optimize();
+                return images;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return null;
+        }
+
+        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 5)
+        {
+            try
+            {
+                uint width = (uint)(img.FirstOrDefault().Width * (1 + degree / 5.0));
+                uint height = (uint)(img.FirstOrDefault().Height * (1 + degree / 5.0));
+
+                var images = new MagickImageCollection();
+                int frameCount = img.Count;
+                if(frameCount == 1)
+                {
+                    var imgg = img[0];
+                    uint frameDelay = 5;
+                    for (int frameIndex = 0; frameIndex < 10; frameIndex++)
+                    {
+                        var frame = new MagickImage(
+                           MagickColor.FromRgba(255, 255, 255, 0),
+                           width,
+                           height
+                        );
+                        frame.Format = MagickFormat.Gif;
+                        frame.AnimationDelay = frameDelay;
+                        double dx = width * ((MyRandom.NextDouble-0.5) * degree / 10);
+                        double dy = height * ((MyRandom.NextDouble-0.5) * degree / 10);
+                        int x = (int)(width / 2 - imgg.Width / 2 + dx);
+                        int y = (int)(height / 2 - imgg.Height / 2 + dy);
+                        frame.Composite(imgg, x, y, CompositeOperator.Over);
+                        frame.GifDisposeMethod = GifDisposeMethod.Background;
+                        images.Add(frame);
+                    }
+                }
+                else
+                {
+                    img.Coalesce();
+                    for (int frameIndex = 0; frameIndex < img.Count; frameIndex++)
+                    {
+                        var imgg = img[frameIndex];
+                        var frame = new MagickImage(
+                           MagickColor.FromRgba(255, 255, 255, 0),
+                           width,
+                           height
+                        );
+                        frame.Format = MagickFormat.Gif;
+                        frame.AnimationDelay = imgg.AnimationDelay;
+                        double dx = width * ((MyRandom.NextDouble - 0.5) * degree / 10);
+                        double dy = height * ((MyRandom.NextDouble - 0.5) * degree / 10);
+                        int x = (int)(width / 2 - imgg.Width / 2 + dx);
+                        int y = (int)(height / 2 - imgg.Height / 2 + dy);
+                        frame.Composite(imgg, x, y, CompositeOperator.Over);
+                        frame.GifDisposeMethod = GifDisposeMethod.Background;
+                        images.Add(frame);
+                    }
+                }
+                //images.Optimize();
+                images.OptimizeTransparency();
+                //images.Optimize();
+                return images;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return null;
+        }
     }
 
 

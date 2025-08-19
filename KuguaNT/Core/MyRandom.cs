@@ -193,18 +193,26 @@ namespace Kugua.Core
             return items == null ? 0 : Next(0, items.Count());
         }
 
-
         /// <summary>
         /// 0.0~1.0
         /// </summary>
         /// <returns></returns>
-        public static double NextDouble()
+        public static double NextDouble
         {
-            var d = Math.Abs((double)getNextULong() / ulong.MaxValue);
-            //Logger.Log(d.ToString());
-            return d;
-
+            get
+            {
+                return Math.Abs((double)getNextULong() / ulong.MaxValue);
+            }
         }
+
+       
+        //public static double NextDouble()
+        //{
+        //    var d = Math.Abs((double)getNextULong() / ulong.MaxValue);
+        //    //Logger.Log(d.ToString());
+        //    return d;
+
+        //}
 
         /// <summary>
         /// 生成指定长度的随机可打印字符串
