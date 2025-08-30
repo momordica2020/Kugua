@@ -209,9 +209,14 @@ namespace Kugua.Mods
                         // 借贷？
                         targetqq = long.Parse(context.userId);
                     }
+                    else if (target.Length > 10)
+                    {
+                        return "";
+                    }
                     else
                     {
-                        return $"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转";
+                        context.SendBackText($"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转");
+                        return "";
                     }
                     
                 }

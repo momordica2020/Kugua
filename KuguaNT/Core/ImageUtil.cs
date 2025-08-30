@@ -1100,7 +1100,7 @@ namespace Kugua.Core
 
         public static MagickImage ImgGeneratePixel2(string text, string fontName, int fontSize)
         {
-            int lineMax = 12;
+            int lineMax = 20;
             int lineNum = text.Length / lineMax;
             int slide = (int)(fontSize * 0.1);
             int width = (int)(fontSize * Math.Min(lineMax, text.Length) + slide * 2);

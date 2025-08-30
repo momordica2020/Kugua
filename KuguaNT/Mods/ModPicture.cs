@@ -37,7 +37,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
-            ModCommands.Add(new ModCommand(new Regex(@"像素字(\S*)", RegexOptions.Singleline), getPixelWords));
+            ModCommands.Add(new ModCommand(new Regex(@"像素字(.*)", RegexOptions.Singleline), getPixelWords));
             ModCommands.Add(new ModCommand(new Regex(@"抖(\S*)", RegexOptions.Singleline), getShake));
             ModCommands.Add(new ModCommand(new Regex(@"滚动", RegexOptions.Singleline), getRoll));
             ModCommands.Add(new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
@@ -749,13 +749,20 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getPixelWords(MessageContext context, string[] param)
         {
-            string text = param[1].Trim();
-            if (!string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(param[1])) return null;
+            string[] text = param[1].Trim().Split('\n');
+            MagickImageCollection imgs = new MagickImageCollection();
+            foreach(var sentence in text)
             {
-                InstalledFontCollection MyFont = new InstalledFontCollection();
-                FontFamily[] MyFontFamilies = MyFont.Families;
-                context.SendBackImage(ImageUtil.ImgGeneratePixel2(text, "凤凰点阵体 12px", 12));
+                var img2 = ImageUtil.ImgGeneratePixel2(sentence, "凤凰点阵体 12px", 12);
+                imgs.Add(img2);
             }
+            MagickImage img = (MagickImage)imgs.AppendVertically();
+            
+            //InstalledFontCollection MyFont = new InstalledFontCollection();
+            //FontFamily[] MyFontFamilies = MyFont.Families;
+            context.SendBackImage(img);
+            
 
             return null;
 
