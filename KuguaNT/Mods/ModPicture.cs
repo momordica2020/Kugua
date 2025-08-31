@@ -34,6 +34,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^删(.+)$", RegexOptions.Singleline), removeGifFrame));
             ModCommands.Add(new ModCommand(new Regex(@"^拆序列帧(.*)$", RegexOptions.Singleline), unzipGifFrameImg));
             ModCommands.Add(new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^竖拼$", RegexOptions.Singleline), combineV));
+            ModCommands.Add(new ModCommand(new Regex(@"^横拼$", RegexOptions.Singleline), combineH));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
             ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
@@ -182,6 +184,60 @@ namespace Kugua.Mods
         }
 
 
+        /// <summary>
+        /// 竖着拼在一起
+        /// 竖拼 [图片1][图片2]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string combineV(MessageContext context, string[] param)
+        {
+            if (!context.IsImage)
+            {
+                WaitNext(context, new ModCommand(new Regex(@"^竖拼$", RegexOptions.Singleline), combineV));
+            }
+            List<MagickImageCollection> list = Network.DownloadImages(context);
+            MagickImageCollection res = list.First();
+            list.RemoveAt(0);
+            foreach (var img in list)
+            {
+                res = ImageUtil.combineImage(res, img, false);
+            }
+            context.SendBackImage(res);
+            
+
+
+            return null;
+        }
+
+
+        /// <summary>
+        /// 横着拼在一起
+        /// 横拼 [图片1][图片2]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string combineH(MessageContext context, string[] param)
+        {
+            if (!context.IsImage)
+            {
+                WaitNext(context, new ModCommand(new Regex(@"^横拼$", RegexOptions.Singleline), combineH));
+            }
+            List<MagickImageCollection> list = Network.DownloadImages(context);
+            MagickImageCollection res = list.First();
+            list.RemoveAt(0);
+            foreach (var img in list)
+            {
+                res = ImageUtil.combineImage(res, img, true);
+            }
+            context.SendBackImage(res);
+
+
+
+            return null;
+        }
 
         /// <summary>
         /// 合并图片序列到一个gif里
@@ -493,10 +549,10 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getShake(MessageContext context, string[] param)
         {
-            double degree = 5;
+            double degree = .5;
             if (!double.TryParse(param[1], out degree))
             {
-                degree = 5;
+                degree = .5;
             }
             if (context.IsImage)
             {

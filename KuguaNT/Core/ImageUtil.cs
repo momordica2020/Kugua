@@ -1398,6 +1398,12 @@ namespace Kugua.Core
             }
         }
 
+
+        /// <summary>
+        /// 图片抖动
+        /// </summary>
+        /// <param name="img"></param>
+        /// <returns></returns>
         public static MagickImageCollection ImgRoll(MagickImageCollection img)
         {
             try
@@ -1464,7 +1470,15 @@ namespace Kugua.Core
             return null;
         }
 
-        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 5)
+
+
+        /// <summary>
+        /// 图片抖动
+        /// </summary>
+        /// <param name="img"></param>
+        /// <param name="degree"></param>
+        /// <returns></returns>
+        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 0.5)
         {
             try
             {
@@ -1528,6 +1542,79 @@ namespace Kugua.Core
             }
             return null;
         }
+
+
+
+
+        /// <summary>
+        /// 图片拼接，横向或者纵向
+        /// </summary>
+        /// <param name="img1"></param>
+        /// <param name="img2"></param>
+        /// <param name="horizional"></param>
+        /// <returns></returns>
+        public static MagickImageCollection combineImage(MagickImageCollection img1,  MagickImageCollection img2, bool horizional = true)
+        {
+            MagickImageCollection img = new MagickImageCollection();
+
+            var fullframes = Util.LCM(img1.Count, img2.Count);
+            uint i1w = img1.First().Width;
+            uint i1h = img1.First().Height;
+            uint i2w = img2.First().Width;
+            uint i2h = img2.First().Height;
+            float r1 = 1;
+            float r2 = 1;
+            if (horizional)  {
+                if (i1h > i2h) r2 = ((float)i1h) / i2h;
+                else if (i1h < i2h)  r1 = ((float)i2h) / i1h;
+            } else {
+                if (i1w > i2w) r2 = ((float)i1w) / i2w;
+                else if (i1w < i2w) r1 = ((float)i2w) / i1w;
+            }
+            for(int i = 0; i < fullframes; i++)
+            {
+                var img1f = img1[i % img1.Count];
+                var img2f = img2[i % img2.Count];
+                img1f.Resize((uint)(i1w * r1), (uint)(i1h * r1));
+                img2f.Resize((uint)(i2w * r2), (uint)(i2h * r2));
+                MagickImage frame = null;
+                if (horizional)
+                {
+                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), img1f.Width + img2f.Width, img1f.Height);
+                    frame.Composite(img1f, 0, 0, CompositeOperator.Over);
+                    frame.Composite(img2f, (int)img1f.Width, 0, CompositeOperator.Over);
+                }
+                else
+                {
+                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), img1f.Width, img1f.Height + img2f.Height);
+                    frame.Composite(img1f, 0, 0, CompositeOperator.Over);
+                    frame.Composite(img2f, 0, (int)img1f.Height, CompositeOperator.Over);
+                }
+                frame.Format = fullframes == 1 ? MagickFormat.Png : MagickFormat.Gif;
+                frame.AnimationDelay = 5;
+                img.Add(frame);
+            }
+
+
+            return img;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
