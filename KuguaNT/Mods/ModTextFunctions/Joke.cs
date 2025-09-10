@@ -7,7 +7,11 @@ namespace Kugua
     /// 苏联笑话的模板填充相关
     /// </summary>
     public class Joke
-    {
+    {     
+        
+        
+        
+        
         class Trie
         {
             class TrieNode
@@ -18,7 +22,16 @@ namespace Kugua
 
             private readonly TrieNode root = new TrieNode();
             List<string> keywords = new List<string>();
-            // 插入关键词到 Trie
+
+
+
+       
+
+            /// <summary>
+            /// 插入关键词到 Trie
+            /// </summary>
+            /// <param name="word"></param>
+            /// <param name="index"></param>
             public void Insert(string word, int index)
             {
                 keywords.Add(word);
@@ -104,6 +117,9 @@ namespace Kugua
 
         public string raw;
         List<JokeTemplate> templates;
+
+
+
         public Joke(string template)
         {
             templates = new List<JokeTemplate>();
@@ -268,17 +284,7 @@ namespace Kugua
         static Trie Keys = new Trie();
         static List<string> KeysList = new List<string>();
 
-        public static void Init(string[] keystr)
-        {
-            KeysList = keystr.ToList();
-            for (int i = 0; i < keystr.Length; i++)
-            {
 
-                Keys.Insert(keystr[i], i);
-            }
-            //Keys = new List<string>(keystr);
-            Jokes = new Dictionary<string, List<Joke>>();
-        }
 
         /// <summary>
         /// 用于索引模板是否可匹配。返回索引用的字符串
@@ -348,5 +354,54 @@ namespace Kugua
 
 
         }
+
+
+
+
+
+
+
+        /// <summary>
+        /// joke库的初始化
+        /// </summary>
+        /// <param name="data"></param>
+        public static void Init(string[] data)
+        {
+            string tmpline = "";
+            bool firstLine = true;
+            foreach (var line in data)
+            {
+                if (firstLine)
+                {
+                    var keys = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    KeysList = keys.ToList();
+                    for (int i = 0; i < keys.Length; i++)
+                    {
+
+                        Keys.Insert(keys[i], i);
+                    }
+                    //Keys = new List<string>(keystr);
+                    Jokes = new Dictionary<string, List<Joke>>();
+                    firstLine = false;
+                    continue;
+                }
+
+                if (line.Trim().StartsWith("#"))
+                {
+                    if (!string.IsNullOrEmpty(tmpline))
+                    {
+                        bool find = false;
+                        AddJoke(tmpline);
+                    }
+                    tmpline = "";
+                    continue;
+                }
+                else
+                {
+                    tmpline += $"{line.Trim()}\r\n";
+                }
+            }
+        }
+
     }
 }

@@ -36,17 +36,16 @@ namespace Kugua.Mods
         string gongshouName = "gongshou.txt";
         List<string> gongshou = new List<string>();
 
-        string jokeName = "jokes.txt";
 
 
-
-        List<List<string>> junks = new List<List<string>>();
+        
 
         string symbolf = "symboltemplate.txt";
         Dictionary<string, List<string>> symbollist = new Dictionary<string, List<string>>();
         #endregion
 
-
+        string textModuleData = "data_hyly.txt";
+        TextModules textModule = new TextModules();
 
         public override bool Init(string[] args)
         {
@@ -112,34 +111,13 @@ namespace Kugua.Mods
             //}
 
             // joke
-            string tmpline = "";
-            bool firstLine = true;
-            res = LocalStorage.ReadLines($"{PluginPath}/{jokeName}");
-            foreach (var line in res)
-            {
-                if (firstLine)
-                {
-                    var keys = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    Joke.Init(keys);
-                    firstLine = false;
-                    continue;
-                }
+            Joke.Init(LocalStorage.ReadLines($"{PluginPath}/jokes.txt"));
 
-                if (line.Trim().StartsWith("#"))
-                {
-                    if (!string.IsNullOrEmpty(tmpline))
-                    {
-                        bool find = false;
-                        Joke.AddJoke(tmpline);
-                    }
-                    tmpline = "";
-                    continue;
-                }
-                else
-                {
-                    tmpline += $"{line.Trim()}\r\n";
-                }
-            }
+            // spam
+            SpamText.Init(LocalStorage.Read($"{PluginPath}/spam.txt").Split('\n'));
+
+            // text module
+            TextModules.Init(LocalStorage.ReadLines($"{PluginPath}/data_hyly.txt"));
 
 
             string[] lines;
@@ -160,30 +138,8 @@ namespace Kugua.Mods
             //}
 
 
-            //// junk
-            ///
-            lines = LocalStorage.Read($"{PluginPath}/spam.txt").Split('\n');
-
-            List<string> nowline = new List<string>();
-            foreach (var line in lines)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    if (nowline.Count > 0)
-                    {
-                        junks.Add(nowline);
-                        nowline = new List<string>();
-                    }
-                }
-                else
-                {
-                    nowline.Add(line.Trim());
-                }
-            }
-            if (nowline.Count > 0)
-            {
-                junks.Add(nowline);
-            }
+            
+            
 
 
             //// symbols
@@ -201,6 +157,10 @@ namespace Kugua.Mods
             //        }
             //    }
             //}
+
+
+
+            
 
             return true;
         }
@@ -557,34 +517,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string handleSalad(MessageContext context, string[] param)
         {
-            string WordSaladres = "";
-            try
-            {
-                string WordSaladresKey = param[1];
-                if (string.IsNullOrWhiteSpace(WordSaladresKey)) return "";
-                foreach (var para in junks)
-                {
-                    if (para.Count > 0)
-                    {
-                        WordSaladres += para[MyRandom.Next(para.Count)] + "\r\n";
-                    }
-                }
-                WordSaladres = WordSaladres.Replace("【E】", DateTime.Now.Year.ToString());
-                WordSaladres = WordSaladres.Replace("【B】", new string[] { "朋友", "小伙伴", "网友" }[MyRandom.Next(3)]);
-                WordSaladres = WordSaladres.Replace("【A】", WordSaladresKey);
-
-                if (!string.IsNullOrWhiteSpace(WordSaladres))
-                {
-                    WordSaladres = WordSaladres.Replace("【D】", Config.Instance.App.Avatar.myQQ.ToString()).Replace("【C】", Config.Instance.App.Avatar.askName);
-
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-            return WordSaladres;
+            return SpamText.GetRandomSpam(param[1]);
         }
 
 
