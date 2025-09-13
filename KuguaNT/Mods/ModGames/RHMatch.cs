@@ -7,6 +7,9 @@ using System.Timers;
 
 namespace Kugua.Mods
 {
+    /// <summary>
+    /// 赛马比赛信息
+    /// </summary>
     class RHMatch
     {
         // getQQNickHandler getQQNick;

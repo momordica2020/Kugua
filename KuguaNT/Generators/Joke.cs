@@ -1,130 +1,71 @@
 ﻿using Kugua.Core;
 using System.Text;
 
-namespace Kugua
+namespace Kugua.Generators
 {
     /// <summary>
     /// 苏联笑话的模板填充相关
     /// </summary>
     public class Joke
     {     
-        
-        
-        
-        
-        class Trie
-        {
-            class TrieNode
-            {
-                public Dictionary<char, TrieNode> Children { get; } = new Dictionary<char, TrieNode>();
-                public int Index { get; set; } = -1; // 记录关键词在输入列表中的索引
-            }
-
-            private readonly TrieNode root = new TrieNode();
-            List<string> keywords = new List<string>();
-
-
-
-       
-
-            /// <summary>
-            /// 插入关键词到 Trie
-            /// </summary>
-            /// <param name="word"></param>
-            /// <param name="index"></param>
-            public void Insert(string word, int index)
-            {
-                keywords.Add(word);
-                var node = root;
-                foreach (char ch in word)
-                {
-                    if (!node.Children.ContainsKey(ch))
-                    {
-                        node.Children[ch] = new TrieNode();
-                    }
-                    node = node.Children[ch];
-                }
-                node.Index = index; // 标记关键词在输入中的索引
-            }
-
-            /// <summary>
-            /// 从字符串中查找所有关键词，保持输入顺序
-            /// </summary>
-            /// <param name="text"></param>
-            /// <returns></returns>
-            public List<string> SearchKeywords(string text)
-            {
-                var matchedIndexes = new HashSet<int>();
-                int i = 0;
-
-                while (i < text.Length)
-                {
-                    var node = root;
-                    int longestMatchIndex = -1;
-                    int endIndex = i;
-
-                    // 从当前位置开始尝试匹配
-                    for (int j = i; j < text.Length; j++)
-                    {
-                        if (node.Children.ContainsKey(text[j]))
-                        {
-                            node = node.Children[text[j]];
-                            if (node.Index != -1)
-                            {
-                                longestMatchIndex = node.Index; // 更新当前最长匹配的索引
-                                endIndex = j;                 // 更新结束索引
-                            }
-                        }
-                        else
-                        {
-                            break; // 无法继续匹配
-                        }
-                    }
-
-                    if (longestMatchIndex != -1)
-                    {
-                        matchedIndexes.Add(longestMatchIndex); // 添加匹配到的关键词索引
-                        i = endIndex + 1;                     // 跳过已匹配的部分
-                    }
-                    else
-                    {
-                        i++; // 未匹配任何关键词，继续下一字符
-                    }
-                }
-                List<string> res = new List<string>();
-                var c = matchedIndexes.ToList();
-                c.Sort();
-                foreach (var item in c)
-                {
-                    res.Add(keywords[item]);
-                }
-                return res;
-            }
-        }
-
-        class JokeTemplate
-        {
-            public int index;
-            public int len;
-            public string raw;
-            public List<(string, string)> conditions;
-        }
-
-
-
-
-
-
         public string raw;
         List<JokeTemplate> templates;
 
+        public static Dictionary<string, List<Joke>> Jokes;
+        //public static List<string> Keys;
+        static Trie Keys = new Trie();
+        static List<string> KeysList = new List<string>();
+
+        /// <summary>
+        /// joke库的初始化
+        /// </summary>
+        /// <param name="data"></param>
+        public static void Init(string[] data)
+        {
+            string tmpline = "";
+            bool firstLine = true;
+            foreach (var line in data)
+            {
+                if (firstLine)
+                {
+                    var keys = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    KeysList = keys.ToList();
+                    for (int i = 0; i < keys.Length; i++)
+                    {
+
+                        Keys.Insert(keys[i], i);
+                    }
+                    //Keys = new List<string>(keystr);
+                    Jokes = new Dictionary<string, List<Joke>>();
+                    firstLine = false;
+                    continue;
+                }
+
+                if (line.Trim().StartsWith("#"))
+                {
+                    if (!string.IsNullOrEmpty(tmpline))
+                    {
+                        bool find = false;
+                        AddJoke(tmpline);
+                    }
+                    tmpline = "";
+                    continue;
+                }
+                else
+                {
+                    tmpline += $"{line.Trim()}\r\n";
+                }
+            }
+
+
+        }
 
 
         public Joke(string template)
         {
             templates = new List<JokeTemplate>();
             if (string.IsNullOrWhiteSpace(template)) return;
-            this.raw = template.Trim();
+            raw = template.Trim();
 
 
             // parse
@@ -279,10 +220,7 @@ namespace Kugua
 
 
 
-        public static Dictionary<string, List<Joke>> Jokes;
-        //public static List<string> Keys;
-        static Trie Keys = new Trie();
-        static List<string> KeysList = new List<string>();
+
 
 
 
@@ -361,47 +299,118 @@ namespace Kugua
 
 
 
-        /// <summary>
-        /// joke库的初始化
-        /// </summary>
-        /// <param name="data"></param>
-        public static void Init(string[] data)
+
+
+
+
+
+
+
+
+
+
+        class JokeTemplate
         {
-            string tmpline = "";
-            bool firstLine = true;
-            foreach (var line in data)
+            public int index;
+            public int len;
+            public string raw;
+            public List<(string, string)> conditions;
+        }
+
+        class Trie
+        {
+            class TrieNode
             {
-                if (firstLine)
-                {
-                    var keys = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    KeysList = keys.ToList();
-                    for (int i = 0; i < keys.Length; i++)
-                    {
+                public Dictionary<char, TrieNode> Children { get; } = new Dictionary<char, TrieNode>();
+                public int Index { get; set; } = -1; // 记录关键词在输入列表中的索引
+            }
 
-                        Keys.Insert(keys[i], i);
-                    }
-                    //Keys = new List<string>(keystr);
-                    Jokes = new Dictionary<string, List<Joke>>();
-                    firstLine = false;
-                    continue;
-                }
+            private readonly TrieNode root = new TrieNode();
+            List<string> keywords = new List<string>();
 
-                if (line.Trim().StartsWith("#"))
+
+
+
+
+            /// <summary>
+            /// 插入关键词到 Trie
+            /// </summary>
+            /// <param name="word"></param>
+            /// <param name="index"></param>
+            public void Insert(string word, int index)
+            {
+                keywords.Add(word);
+                var node = root;
+                foreach (char ch in word)
                 {
-                    if (!string.IsNullOrEmpty(tmpline))
+                    if (!node.Children.ContainsKey(ch))
                     {
-                        bool find = false;
-                        AddJoke(tmpline);
+                        node.Children[ch] = new TrieNode();
                     }
-                    tmpline = "";
-                    continue;
+                    node = node.Children[ch];
                 }
-                else
+                node.Index = index; // 标记关键词在输入中的索引
+            }
+
+            /// <summary>
+            /// 从字符串中查找所有关键词，保持输入顺序
+            /// </summary>
+            /// <param name="text"></param>
+            /// <returns></returns>
+            public List<string> SearchKeywords(string text)
+            {
+                var matchedIndexes = new HashSet<int>();
+                int i = 0;
+
+                while (i < text.Length)
                 {
-                    tmpline += $"{line.Trim()}\r\n";
+                    var node = root;
+                    int longestMatchIndex = -1;
+                    int endIndex = i;
+
+                    // 从当前位置开始尝试匹配
+                    for (int j = i; j < text.Length; j++)
+                    {
+                        if (node.Children.ContainsKey(text[j]))
+                        {
+                            node = node.Children[text[j]];
+                            if (node.Index != -1)
+                            {
+                                longestMatchIndex = node.Index; // 更新当前最长匹配的索引
+                                endIndex = j;                 // 更新结束索引
+                            }
+                        }
+                        else
+                        {
+                            break; // 无法继续匹配
+                        }
+                    }
+
+                    if (longestMatchIndex != -1)
+                    {
+                        matchedIndexes.Add(longestMatchIndex); // 添加匹配到的关键词索引
+                        i = endIndex + 1;                     // 跳过已匹配的部分
+                    }
+                    else
+                    {
+                        i++; // 未匹配任何关键词，继续下一字符
+                    }
                 }
+                List<string> res = new List<string>();
+                var c = matchedIndexes.ToList();
+                c.Sort();
+                foreach (var item in c)
+                {
+                    res.Add(keywords[item]);
+                }
+                return res;
             }
         }
+
+
+
+
+
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Kugua.Core;
+using Kugua.Generators;
 using Microsoft.JSInterop;
 using System;
 using System.Collections;
@@ -31,21 +32,11 @@ namespace Kugua.Mods
         //Dictionary<string, string[]> cf2 = new Dictionary<string, string[]>();
 
         string randomch = "随机-随机汉字.txt";
-        string randomChar = "";
-
-        string gongshouName = "gongshou.txt";
-        List<string> gongshou = new List<string>();
-
-
-
-        
+        string randomChar = "";     
 
         string symbolf = "symboltemplate.txt";
         Dictionary<string, List<string>> symbollist = new Dictionary<string, List<string>>();
         #endregion
-
-        string textModuleData = "data_hyly.txt";
-        TextModules textModule = new TextModules();
 
         public override bool Init(string[] args)
         {
@@ -70,23 +61,6 @@ namespace Kugua.Mods
             string PluginPath = Config.Instance.FullPath("ModePath");
             randomChar = LocalStorage.Read($"{PluginPath}/{randomch}").Trim();
 
-            // gongshou
-            gongshou = new List<string>();
-            var res = LocalStorage.ReadLines($"{PluginPath}/{gongshouName}");
-            string thistmp = "";
-            foreach (var line in res)
-            {
-                if (line.Trim() == "$$$$$$$$" && !string.IsNullOrWhiteSpace(thistmp))
-                {
-                    gongshou.Add(thistmp);
-                    thistmp = "";
-                }
-                else
-                {
-                    thistmp += line + "\r\n";
-                }
-            }
-            if (!string.IsNullOrWhiteSpace(thistmp)) gongshou.Add(thistmp);
 
             //// qianze
             //qianze1 = new List<string>();
@@ -110,14 +84,21 @@ namespace Kugua.Mods
             //    else if (pos == 2) qianze2.Add(line.Trim());
             //}
 
+
+            // gongshou
+            Gongshou.Init(LocalStorage.Read($"{PluginPath}/gongshou.txt"));
+
             // joke
             Joke.Init(LocalStorage.ReadLines($"{PluginPath}/jokes.txt"));
 
             // spam
-            SpamText.Init(LocalStorage.Read($"{PluginPath}/spam.txt").Split('\n'));
+            SpamText.Init(LocalStorage.Read($"{PluginPath}/spam.txt"));
 
             // text module
-            TextModules.Init(LocalStorage.ReadLines($"{PluginPath}/data_hyly.txt"));
+            TextModules.Init(LocalStorage.Read($"{PluginPath}/data_hyly.txt"));
+
+            // id module
+            IDGenerator.Init(LocalStorage.Read($"{PluginPath}/data_id.txt"));
 
 
             string[] lines;
@@ -169,7 +150,7 @@ namespace Kugua.Mods
         {
             string keyword = param[1];
 
-            var res = TextModules.GenerateEssay(keyword);
+            var res = TextModules.Get(keyword);
 
             return res;
         }
@@ -201,53 +182,7 @@ namespace Kugua.Mods
         }
 
 
-        private DateTime getDateFromString(string str)
-        {
-            DateTime checkDate = DateTime.Now;
-            try
-            {
-
-                if (str == "今天") checkDate = DateTime.Now;
-                else if (str == "昨天") checkDate = DateTime.Now.AddDays(-1);
-                else if (str == "前天") checkDate = DateTime.Now.AddDays(-2);
-                else if (str == "明天") checkDate = DateTime.Now.AddDays(1);
-                else if (str == "后天") checkDate = DateTime.Now.AddDays(2);
-                else
-                {
-                    Match match = Regex.Match(str, @"^(大+)(前天)$");
-                    if (match.Success)
-                    {
-                        string dPart = match.Groups[1].Value;
-                        int dCount = dPart.Length;
-                        checkDate = DateTime.Now.AddDays(-2 - dCount);
-                    }
-
-
-                    match = Regex.Match(str, @"^(大+)(后天)$");
-                    if (match.Success)
-                    {
-                        string dPart = match.Groups[1].Value;
-                        int dCount = dPart.Length;
-                        checkDate = DateTime.Now.AddDays(2 + dCount);
-                    }
-
-                    match = Regex.Match(str, @"^(\d{1,2}|[一二三四五六七八九十]{1,2})月([一二三四五六七八九十]{1,3}|\d{1,2})(日)?$");
-                    if (match.Success)
-                    {
-                        int m = Util.ConvertToNumber(match.Groups[1].Value);
-                        int d = Util.ConvertToNumber(match.Groups[2].Value);
-                        checkDate = new DateTime(DateTime.Today.Year, m, d);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-
-            return checkDate;
-        }
+       
 
         /// <summary>
         /// 历史上的哪天？
@@ -259,7 +194,7 @@ namespace Kugua.Mods
         private string handleHistoryToday(MessageContext context, string[] param)
         {
             string date = param[1].Trim();
-            DateTime checkDate = getDateFromString(date);
+            DateTime checkDate = Util.GetDateFromHans(date);
             string res = $"历史上的{checkDate.ToString("MM月dd日")}：\r\n";
             try
             {
@@ -423,20 +358,17 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string handleGongshou(MessageContext context, string[] param)
         {
-            string gong = param[1];
-            string shou = param[2];
             string result = "";
             try
             {
-                if (!string.IsNullOrWhiteSpace(gong) && !string.IsNullOrWhiteSpace(shou) && gongshou.Count > 0)
-                {
-                    result = gongshou[MyRandom.Next(gongshou.Count)];
-                    result = result.Replace("<攻>", gong).Replace("<受>", shou);
-                }
+                string gong = param[1];
+                string shou = param[2];
+                
+                result = Gongshou.Get(gong,shou);
             }
             catch (Exception ex)
             {
-                Logger.Log(ex.Message + "\r\n" + ex.StackTrace);
+                Logger.Log(ex);
             }
 
             return result;
@@ -517,7 +449,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string handleSalad(MessageContext context, string[] param)
         {
-            return SpamText.GetRandomSpam(param[1]);
+            return SpamText.Get(param[1]);
         }
 
 

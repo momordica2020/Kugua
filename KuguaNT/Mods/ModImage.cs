@@ -5,6 +5,7 @@ using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ namespace Kugua.Mods
     /// <summary>
     /// 图片处理
     /// </summary>
-    public class ModPicture : Mod
+    public class ModImage : Mod
     {
         public override bool Init(string[] args)
         {
@@ -27,7 +28,10 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
+            ModCommands.Add(new ModCommand(new Regex(@"^CIS\s*(\S+)\s(\S+)\s(\S+)", RegexOptions.Singleline), convertCIS));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,_needAsk: false));
+            
+            
             //ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor));
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
@@ -421,6 +425,26 @@ namespace Kugua.Mods
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"取色(\S*)", RegexOptions.Singleline), getColorCode));
             return null;
         }
+
+        /// <summary>
+        /// CIS转换为RGB。传入参数是xyY
+        /// CIS 0.595 0.328 0.092
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string convertCIS(MessageContext context, string[] param)
+        {
+            double x, y, Y;
+            x = Double.Parse(param[1]);
+            y = Double.Parse(param[2]);
+            Y = Double.Parse(param[3]);
+            (int R, int G, int B) = ColorConvertUtil.xyYtoRGB(x, y, Y);
+            context.SendBackImage(ImageUtil.GetColorSamples([$"#{R:X2}{G:X2}{B:X2}"], 200), $"{R},{G},{B}(#{R:X2}{G:X2}{B:X2})");
+
+            return null;
+        }
+        
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {

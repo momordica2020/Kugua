@@ -1,4 +1,5 @@
 ﻿using Kugua.Core;
+using Kugua.Generators;
 using System.Numerics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -16,7 +17,7 @@ namespace Kugua.Mods
 
         public override bool Init(string[] args)
         {
-
+            ModCommands.Add(new ModCommand(new Regex(@"^开(.+)"), checkID));
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
             ModCommands.Add(new ModCommand(new Regex(@"^0[xX]([0-9A-Fa-f]+)$"), convertHex, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, _needAsk: false));
@@ -168,6 +169,28 @@ namespace Kugua.Mods
             return "";
         }
 
+
+
+        /// <summary>
+        /// 随即开合
+        /// 开我/ 开287859992
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string checkID(MessageContext context, string[] param)
+        {
+            var userName = param[1].Trim();
+            try
+            {
+                return IDGenerator.Get(userName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
 
     }
 }

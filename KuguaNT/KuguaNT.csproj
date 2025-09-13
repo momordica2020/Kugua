@@ -9,6 +9,8 @@
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
     <BaseOutputPath>D:\Projects\momordica2020\Kugua\output</BaseOutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+    <NuGetAudit>True</NuGetAudit>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,9 +27,8 @@
   <ItemGroup>
     <PackageReference Include="ChatGPT.Net" Version="2.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.4.0" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.8.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
     <PackageReference Include="Prophecy" Version="1.0.1" />

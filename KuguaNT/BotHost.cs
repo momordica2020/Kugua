@@ -90,7 +90,7 @@ namespace Kugua
                     new ModTextFunction(),
                     new ModZhanbu(),
                     new ModTranslate(),
-                    new ModPicture(),
+                    new ModImage(),
                     new ModInfotool(),
                     new ModAudio(),
                     new ModTimerTask(),

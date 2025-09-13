@@ -1,4 +1,5 @@
 ﻿
+using Kugua.Generators;
 using System;
 using System.Collections.Generic;
 using System.IO;
