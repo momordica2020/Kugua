@@ -38,8 +38,10 @@ namespace Kugua.Generators
                     new DValue("【受】", [shou]),
                 ];
                 // 从攻受模板列表中随机选择一个
-                var template = GongshouTemplate.AnonymousTemplates[MyRandom.Next(GongshouTemplate.AnonymousTemplates.Count)];
-                res = template.Result(param);
+                res = GongshouTemplate.GetDefaultResult(null, param);
+
+                //var template = GongshouTemplate.AnonymousTemplates[MyRandom.Next(GongshouTemplate.AnonymousTemplates.Count)];
+                //res = template.Result(param);
             }
             catch (Exception ex)
             {

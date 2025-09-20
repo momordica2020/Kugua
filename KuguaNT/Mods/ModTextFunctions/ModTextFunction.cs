@@ -51,10 +51,10 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^讽刺(.+)", RegexOptions.Singleline), handleJoke));
             ModCommands.Add(new ModCommand(new Regex(@"^历史上的(\S+)", RegexOptions.Singleline), handleHistoryToday));
             ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
-            ModCommands.Add(new ModCommand(new Regex(@"^火星文(.+)", RegexOptions.Singleline), handleHX));
-            ModCommands.Add(new ModCommand(new Regex(@"^研究一下(.+)", RegexOptions.Singleline), handlePaper));
-
-
+            ModCommands.Add(new ModCommand(new Regex(@"^火星文[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleHX));
+            ModCommands.Add(new ModCommand(new Regex(@"^研究一下[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper));
+            ModCommands.Add(new ModCommand(new Regex(@"^狗屁不通[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper2));
+            ModCommands.Add(new ModCommand(new Regex(@"^营销号[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper3));
 
 
 
@@ -100,7 +100,8 @@ namespace Kugua.Mods
             // id module
             IDGenerator.Init(LocalStorage.Read($"{PluginPath}/data_id.txt"));
 
-
+            SpamText2.Init(LocalStorage.Read($"{PluginPath}/data_hyly2.txt"));
+            SpamText3.Init(LocalStorage.Read($"{PluginPath}/data_hyly3.txt"));
             string[] lines;
             //// duilian
             //var lines = FileManager.readLines($"{PluginPath}/{duiP1f}");
@@ -154,6 +155,25 @@ namespace Kugua.Mods
 
             return res;
         }
+
+        private string handlePaper2(MessageContext context, string[] param)
+        {
+            string keyword = param[1];
+
+            var res = SpamText2.Get(keyword);
+
+            return res;
+        }
+
+        private string handlePaper3(MessageContext context, string[] param)
+        {
+            string keyword = param[1];
+
+            var res = SpamText3.Get(keyword);
+
+            return res;
+        }
+
 
         /// <summary>
         /// 文本转煋文
@@ -363,8 +383,12 @@ namespace Kugua.Mods
             {
                 string gong = param[1];
                 string shou = param[2];
-                
-                result = Gongshou.Get(gong,shou);
+                if (string.IsNullOrWhiteSpace(gong) || string.IsNullOrWhiteSpace(shou)
+                    || gong.Length > 20 || shou.Length > 20)
+                {
+                    return "";
+                }
+                result = Gongshou.Get(gong, shou);
             }
             catch (Exception ex)
             {

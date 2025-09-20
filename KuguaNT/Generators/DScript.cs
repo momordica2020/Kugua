@@ -1,5 +1,6 @@
 using Kugua.Core;
 using NvAPIWrapper.Native.Display;
+using System.Numerics;
 
 namespace Kugua.Generators
 {
@@ -12,24 +13,85 @@ namespace Kugua.Generators
     {
         public string Name;
 
-        public List<string> Templates;
+        private List<(long, string)> Templates;
+        
+        private long AllFrequent = 0;
+        public const long DefaultFrequent = 10;
 
         public DValue(string name = "")
         {
             Name = name;
-            Templates = new List<string>();
+            Templates = new List<(long, string)>();
         }
 
-        public DValue(IEnumerable<string> templates)
+        public DValue(string name, string singleValue) : this(name)
         {
-            Name = "";
-            Templates=templates.ToList();
+            Add(singleValue, DefaultFrequent);
         }
 
-        public DValue(string name, IEnumerable<string> templates) : this(name)
+        public DValue(List<string> templates) : this() 
         {
-            Templates = templates.ToList();
+            foreach (var template in templates)
+            {
+                Add(template, DefaultFrequent);
+            }
         }
+
+        public DValue(string name, List<string> templates) : this(name)
+        {
+            foreach (var template in templates)
+            {
+                Add(template, DefaultFrequent);
+            }
+        }
+
+        /// <summary>
+        /// 添加新模板
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="frequent"></param>
+        public void Add(string template, long frequent)
+        {
+            Templates.Add((frequent,template));
+            AllFrequent += frequent;
+        }
+
+        /// <summary>
+        /// 随机返回一个模板。会考虑模板的频数
+        /// </summary>
+        public string GetTemplate
+        {
+            get
+            {
+                if (Templates.Count > 0 && AllFrequent > 0)
+                {
+                    var target = MyRandom.Next(AllFrequent);
+                    foreach (var (freq, template) in Templates)
+                    {
+                        if (target < freq)
+                        {
+                            return template;
+                        }
+                        else
+                        {
+                            target -= freq;
+                        }
+                    }
+                }
+                return "";
+            }
+           
+        }
+
+        //public DValue(IEnumerable<string> templates)
+        //{
+        //    Name = "";
+        //}
+
+        //public DValue(string name, IEnumerable<string> templates) : this(name)
+        //{
+        //    Templates = templates.ToList();
+        //}
 
 
         /// <summary>
@@ -40,12 +102,7 @@ namespace Kugua.Generators
         public string Result(IEnumerable<DValue> ExistParams = null)
         {
             
-            string result = "";
-
-            if(Templates.Count > 0) 
-            {
-                result = Templates[MyRandom.Next(Templates.Count)];
-            }
+            string result = GetTemplate;
             if (ExistParams == null || ExistParams.Count() <= 0) return result;
             bool final = true;
             int loopCount = 255; // 防止循环卡死
@@ -76,6 +133,35 @@ namespace Kugua.Generators
 
     }
 
+    /// DScript文件格式
+    /// [xxx]
+    /// 10 a是好的
+    /// 15 我喜欢a
+    /// 15 还是a，a就好了。
+    /// 
+    /// [a]
+    /// 苦音
+    /// 桅子
+    /// 枙子
+    /// 
+    /// #
+    /// a是xxx
+    /// a是
+    /// xxx是a是xxx
+    /// #
+    /// 哈哈
+    /// 笑死
+    /// 就这
+    /// 
+    /// <main>
+    /// xxx
+    /// 
+    /// 用中括号[ ]括住的表示下列各行为同一个命名参数的可选值，
+    /// 如果没有中括号括住作为开头，而是用 # 分割，那么#之下读入的各行存入一个匿名参数里
+    /// 如果在行前标记数字和空白，这个数字表示该行的预期在随机结果中的频数，用于控制各项的出现频率，如果不标记默认值是1
+    /// <main>是主启动位置，脚本如果自动执行，会以该参数开始进行模板解析，参数名为main
+    /// 
+
     /// <summary>
     /// 脚本文件，根据特定DScript语法规则进行读取录入。
     /// 
@@ -93,9 +179,25 @@ namespace Kugua.Generators
         /// </summary>
         public List<DValue> AnonymousTemplates = new List<DValue>();
 
+
+        /// <summary>
+        /// 随机选择一个匿名模板
+        /// </summary>
+        public DValue RandomAnonymousTemplate
+        {
+            get
+            {
+                if (AnonymousTemplates == null || AnonymousTemplates.Count == 0) return null;
+                return AnonymousTemplates[MyRandom.Next(AnonymousTemplates.Count)];
+
+            }
+        }
+
         public const string SimAnonymousSplit = "#";
         public const string SimNamedSplitL = "[";
         public const string SimNamedSplitR = "]";
+        public const string SimStart = "main";
+        public const string SimNewLine = "#";
 
 
         public DScript()
@@ -139,7 +241,21 @@ namespace Kugua.Generators
                             AnonymousTemplates.Add(new DValue());
                             targetTemplate = AnonymousTemplates.Last();
                         }
-                        targetTemplate.Templates.Add(line.Trim());
+                        // 模板行的开头用数字和\t表示该行模板的频数，没有的话默认为10
+                        long freq = DValue.DefaultFrequent;
+                        string template = line;
+                        if (template.Contains('\t'))
+                        {
+                            if (!long.TryParse(template.Split('\t').First(), out freq))
+                            {
+                                freq = DValue.DefaultFrequent;
+                            }
+                            else
+                            {
+                                template = template.Substring(template.IndexOf('\t'));
+                            }
+                        }
+                        targetTemplate.Add(template.Trim().Replace(SimNewLine,"\r\n"),freq);
                     }
                 }
             }
@@ -151,6 +267,25 @@ namespace Kugua.Generators
 
             return success;
 
+        }
+
+        public string GetDefaultResult(string entryKey = null, List<DValue> ExtraParams = null)
+        {
+            List<DValue> Params = new List<DValue>();
+            if (ExtraParams != null) Params.AddRange(ExtraParams);
+            if (NamedTemplates.Count > 0) Params.AddRange(NamedTemplates.Values);
+
+            if (entryKey == null) entryKey = SimStart;
+
+            if (NamedTemplates.ContainsKey(entryKey))
+            {
+                return NamedTemplates[entryKey].Result(Params);
+            }
+            else if(entryKey == null && AnonymousTemplates.Count > 0) 
+            {
+                return RandomAnonymousTemplate.Result(Params);
+            }
+            return "";
         }
     }
 }
