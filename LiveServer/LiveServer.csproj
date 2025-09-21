@@ -30,8 +30,8 @@
     <Page Remove="Properties\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Electronicute.MeowMiraiLib" Version="8.1.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.8.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />

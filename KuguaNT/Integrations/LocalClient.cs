@@ -63,8 +63,12 @@ namespace Kugua
             try
             {
                 //Logger.Log($"[WS]{e.Message}", LogType.Net);
-                LocalBotInMsg msg = JsonConvert.DeserializeObject<LocalBotInMsg>(e.Message);
+                //LBotRequest msg = JsonConvert.DeserializeObject<LBotRequest>(e.Message);
+                LBotRequest msg = new LBotRequest();
                 JObject jo = JObject.Parse(e.Message);
+                msg.userId = jo["userId"].ToString();
+                msg.userName = jo["userName"].ToString();
+                msg.type = jo["type"].ToString();
                 // json:{userId=123123, userName=haha, type=gift, message=latiao*1}
                 //
                 //LocalBotInMsg msg = jo.ToObject<LocalBotInMsg>();
@@ -117,21 +121,42 @@ namespace Kugua
         {
             try
             {
-                List<Message> list = new List<Message>();
+                List<Message> msgs = new List<Message>();
+                
                 foreach (JToken item in JArray.Parse(messagestr))
                 {
-                    switch (item["type"].ToString())
+                    string typename = item["type"].ToString();
+                    string data = item["data"].ToString();
+                    switch (typename)
                     {
-                        case "At":
-                            list.Add(item.ToObject<At>());
-                            continue;
-                        default: break;
+                        case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(data)); break;
+                        case "image":
+                            //var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
+                            if (item["data"]["emoji_id"] != null)// .summary== "marketface")
+                            {
+                                // 市场表情，打印出来以便使用喵
+                                var mi = JsonConvert.DeserializeObject<ImageRecvMarketFace>(data);
+                                Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
+                                msgs.Add(mi);
+                            }
+                            else
+                            {
+                                // 普通发图，也可能是[动画表情]
+                                var ni = JsonConvert.DeserializeObject<ImageRecvNormal>(data);
+                                msgs.Add(ni);
+                            }
+
+                            //Logger.Log(data); 
+                            break;
+                        case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
+                        case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
+                        default: Logger.Log($"[0012] ParserPhase : Message Typo Error in {typename}"); break;
                     }
 
-                    Logger.Log($"{"[0012] ParserPhase : Message Typo Error in "}{{{item["type"]}}}");
+                    //Logger.Log($"{"[0012] ParserPhase : Message Typo Error in "}{{{item["type"]}}}");
                 }
 
-                return list;
+                return msgs;
             }
             catch
             {
@@ -144,7 +169,7 @@ namespace Kugua
         {
             if (messages == null) return;
 
-            var lomsg = new LocalBotOutMsg
+            var lomsg = new LBotResponse
             {
                 userId = userId,
                 userName = userName,
@@ -157,12 +182,12 @@ namespace Kugua
   
         //public delegate void HandleMessage(Message[] messages);
         //public HandleMessage handleMessage;
-        public class LocalBotOutMsg {
+        public class LBotResponse {
             public string userId { get; set; }
             public string userName { get; set; }
             public List<MessageInfo> messages { get; set; }
         }
-        public class LocalBotInMsg
+        public class LBotRequest
         {
             public string userId { get; set; }
             public string userName { get; set; }

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Windows.Forms;
-using System.Threading.Tasks;
-using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Runtime.CompilerServices;
 using System.Net.WebSockets;
 using WebSocket4Net;
-using MeowMiraiLib;
+using Kugua.Integrations.NTBot;
+using Message = Kugua.Integrations.NTBot.Message;
+using System.Text;
+using LiveServer.NTBot;
+using LiveServer.Blive;
 
 
 namespace LiveServer
@@ -119,12 +120,12 @@ namespace LiveServer
 
             if (IsVirtualGroup)
             {
-                LocalBotInMsg msg = new LocalBotInMsg
+                LBotRequest msg = new LBotRequest
                 {
                     userId = -1,
                     userName = "测试",
                     type = "danmu",
-                    messages = [new MeowMiraiLib.Msg.Type.Plain(message)]
+                    messages = { new MessageInfo( new Text(message))}
                 };
                 WebSocketServer.SendMessageAsync(msg);
 
@@ -148,17 +149,28 @@ namespace LiveServer
 
         }
 
-
-
-        public void virtualOutput(string result)
+        public void virtualPrintline(string text)
         {
-            if (IsVirtualGroup)
+            Invoke(new Action(() =>
             {
-                textLocalTestGroup.AppendText($"[bot]:{result}\r\n");
-            }
-            else
+                if (IsVirtualGroup)
+                {
+                    textLocalTestGroup.AppendText($"[bot]:{text}\r\n");
+                }
+                else
+                {
+                    textLocalTest.AppendText($"[bot]:{text}\r\n");
+                }
+            }));
+
+        }
+
+        public void virtualOutput(List<Message> msgs)
+        {
+            
+            foreach(var msg in msgs)
             {
-                textLocalTest.AppendText($"[bot]:{result}\r\n");
+                virtualPrintline(Util.Util.GetDesc(msg));
             }
 
         }
@@ -204,16 +216,16 @@ namespace LiveServer
             else
             {
                 serverRun = true;
-                string prefix = "http://localhost:8848/";
+                string prefix = "http://localhost:8849/";
                 SendMsgEvent($"开始启动监听{prefix}");
 
                 WebSocketServer.OnMessageReceived += (message) =>
                 {
-                    //SendMsgEvent("Delegate received message: " + message);
+                    SendMsgEvent("Delegate received message: " + message);
                     
                 };
 
-                WebSocketServer.Start("http://localhost:8848/");
+                WebSocketServer.Start(prefix);
 
                 //// 模拟延迟发送的消息
                 //await Task.Delay(2000);
@@ -339,17 +351,23 @@ namespace LiveServer
         public void HandleBotMsg(string msgStr)
         {
             JObject jo = JObject.Parse(msgStr);
-            LocalBotOutMsg msg = jo.ToObject<LocalBotOutMsg>();
-            msg.messages = WebSocketServer.RectifyMessage(jo["messages"].ToString());
+            LBotResponse msg = new LBotResponse();
+            msg.userId = int.Parse(jo["userId"].ToString());
+            msg.userName = jo["userName"].ToString();
+            
+            // jo.ToObject<LBotResponse>();
+            List<Message> msgs = new List<Message>();
+            WebSocketServer.Parse(jo["messages"].ToString(), msgs);
 
             
 
             //TODO: 处理bot返回的消息，语音说出或者控制live2d
             //SendMsgEvent($"[BOT]@{msg.userId},{msg.messages.MGetPlainString()}");
-            virtualOutput(msg.messages.MGetPlainString());
+            virtualOutput(msgs);
         }
 
 
+       
 
     }
 

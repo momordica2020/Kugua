@@ -1,35 +1,36 @@
-﻿using System;
+﻿using ImageMagick;
+using Kugua.Integrations.NTBot;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OpenBLive.Runtime.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using Newtonsoft.Json;
 using System.Net;
-using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 using System.Net.WebSockets;
-using OpenBLive.Runtime.Utilities;
-using MeowMiraiLib.Msg.Type;
-using MeowMiraiLib;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 
-namespace LiveServer
+
+namespace LiveServer.NTBot
 {
 
 
-    public class LocalBotOutMsg
+    public class LBotResponse
     {
         public long userId;
         public string userName;
-        public MeowMiraiLib.Msg.Type.Message[] messages;
+        public List<MessageInfo> messages = new List<MessageInfo>();
     }
-    public class LocalBotInMsg
+    public class LBotRequest
     {
         public long userId;
         public string userName;
         public string type;
-        public MeowMiraiLib.Msg.Type.Message[] messages;
+        public List<MessageInfo> messages = new List<MessageInfo>();
     }
 
     public class WebSocketServer
@@ -146,80 +147,48 @@ namespace LiveServer
             }
             
         }
-        public static Message[] RectifyMessage(string messagestr)
+        public static void Parse(string messagestr, List<Message> msgs)
         {
             try
             {
-                List<Message> list = new List<Message>();
+                if (msgs == null) return;
                 foreach (JToken item in JArray.Parse(messagestr))
                 {
-                    switch (item["type"].ToString())
+                    var data = item["data"].ToString();
+                    var type = item["type"].ToString();
+                    switch (type)
                     {
-                        case "Source":
-                            list.Add(item.ToObject<Source>());
-                            continue;
-                        case "Quote":
-                            list.Add(new Quote(item["id"].ToObject<long>(), item["groupId"].ToObject<long>(), item["senderId"].ToObject<long>(), item["targetId"].ToObject<long>(), RectifyMessage(item["origin"].ToString())));
-                            continue;
-                        case "At":
-                            list.Add(item.ToObject<At>());
-                            continue;
-                        case "AtAll":
-                            list.Add(item.ToObject<AtAll>());
-                            continue;
-                        case "Face":
-                            list.Add(item.ToObject<Face>());
-                            continue;
-                        case "Plain":
-                            list.Add(item.ToObject<Plain>());
-                            continue;
-                        case "Image":
-                            list.Add(item.ToObject<Image>());
-                            continue;
-                        case "FlashImage":
-                            list.Add(item.ToObject<FlashImage>());
-                            continue;
-                        case "Voice":
-                            list.Add(item.ToObject<Voice>());
-                            continue;
-                        case "Xml":
-                            list.Add(item.ToObject<Xml>());
-                            continue;
-                        case "Json":
-                            list.Add(item.ToObject<Json>());
-                            continue;
-                        case "App":
-                            list.Add(item.ToObject<App>());
-                            continue;
-                        case "Poke":
-                            list.Add(item.ToObject<Poke>());
-                            continue;
-                        case "Dice":
-                            list.Add(item.ToObject<Dice>());
-                            continue;
-                        case "MarketFace":
-                            list.Add(item.ToObject<MarketFace>());
-                            continue;
-                        case "MusicShare":
-                            list.Add(item.ToObject<MusicShare>());
-                            continue;
-                        case "Forward":
-                            list.Add(item.ToObject<ForwardMessage>());
-                            continue;
-                        case "MiraiCode":
-                            list.Add(item.ToObject<MiraiCode>());
-                            continue;
+                        case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(data)); break;
+                        case "image":
+                            //var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
+                            if (item["data"]["emoji_id"] != null)// .summary== "marketface")
+                            {
+                                // 市场表情，打印出来以便使用喵
+                                var mi = JsonConvert.DeserializeObject<ImageRecvMarketFace>(data);
+                                Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
+                                msgs.Add(mi);
+                            }
+                            else
+                            {
+                                // 普通发图，也可能是[动画表情]
+                                var ni = JsonConvert.DeserializeObject<ImageRecvNormal>(data);
+                                msgs.Add(ni);
+                            }
+
+                            //Logger.Log(data); 
+                            break;
+                        case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
+                        case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
+                        default: break;
                     }
 
-                    Global.Log.Warn($"{"[0012] ParserPhase : Message Typo Error in "}{{{item["type"]}}}");
+                    //Log.Warn($"{"[0012] ParserPhase : Message Typo Error in "}{{{item["type"]}}}");
                 }
 
-                return list.ToArray();
             }
             catch
             {
-                Global.Log.Warn("[0013] ParserPhase : Message Error in {" + messagestr + "}");
-                return null;
+                //Log.Warn("[0013] ParserPhase : Message Error in {" + messagestr + "}");
             }
         }
 

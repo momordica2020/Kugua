@@ -10,8 +10,10 @@ using OpenBLive.Client.Data;
 using OpenBLive.Runtime;
 using OpenBLive.Runtime.Data;
 using OpenBLive.Runtime.Utilities;
+using Kugua.Integrations.NTBot;
+using LiveServer.NTBot;
 
-namespace LiveServer
+namespace LiveServer.Blive
 {
     
     internal class BServer
@@ -156,12 +158,12 @@ namespace LiveServer
         {
             FormMonitor.SendMsgEvent($"用户[{dm.uid}][{dm.open_id}][{dm.userName}]发送弹幕:{dm.msg}");
 
-            LocalBotInMsg msg = new LocalBotInMsg
+            LBotRequest msg = new LBotRequest
             {
                 userId = dm.uid,
                 userName = dm.userName,
                 type = "danmu",
-                messages = [new MeowMiraiLib.Msg.Type.Plain(dm.msg)]
+                messages = { new MessageInfo(new Text(dm.msg)) }
             };
             WebSocketServer.SendMessageAsync(msg);
         }
