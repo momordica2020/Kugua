@@ -399,8 +399,38 @@ namespace Kugua
         public bool IsReact { get { return React != null; } }
 
 
-
-
+        /// <summary>
+        /// 根据系统整体配置来决定是否可以输出
+        /// </summary>
+        /// <param name="targetId"></param>
+        /// <param name="isGroup"></param>
+        /// <returns></returns>
+        public bool CanSendout(string targetId,bool isGroup)
+        {
+            if(client is NTBot)
+            {
+                switch (Config.Instance.App.Avatar.answerState)
+                {
+                    case 0:
+                        return false;
+                    case 1:
+                        if (isGroup && Config.Instance.GroupHasAdminAuthority(targetId)) return true;
+                        return false;
+                    case 2:
+                        if (isGroup && Config.Instance.GroupHasAdminAuthority(targetId)) return true;
+                        else if (Config.Instance.UserHasAdminAuthority(targetId)) return true;
+                        return false;
+                    case 3:
+                    default:
+                        if (!isGroup && Config.Instance.AllowPlayer(targetId)) return true;
+                        if (isGroup && Config.Instance.AllowGroup(targetId)) return true;
+                        return false;
+                        break;
+                }
+            }
+            return true;
+            
+        }
 
 
 
@@ -662,7 +692,7 @@ namespace Kugua
         public void SendForward(Message[] _messages, string group = "")
         {
             if (string.IsNullOrWhiteSpace(group)) group = groupId;
-            if (client == null) return;
+            if (!CanSendout(group,true)) return;
 
             List<Message> nodes = new List<Message>();
             foreach(var msg in _messages)

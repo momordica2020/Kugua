@@ -375,6 +375,7 @@ namespace Kugua
                 
                 //if (id == App.Avatar.myQQ) return false;   // 不许套娃
                 Player u = UserInfo(id);
+                if (u == null) return false;
                 if (UserHasAdminAuthority(id)) return true;
                 if (u.Type == PlayerType.Blacklist || u.Is("黑名单")) return false;
                 if (u.Is("面试")) return false;//这个模式由astrbot接管
@@ -400,6 +401,7 @@ namespace Kugua
             if (string.IsNullOrWhiteSpace(userId)) return false;
             if (userId == App.Avatar.adminQQ) return true;
             var user = UserInfo(userId);
+            if (user == null) return false;
             if (user.Is("管理员")) return true;
             if (user.Type == PlayerType.Admin) return true;
             return false;

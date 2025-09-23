@@ -58,6 +58,13 @@
         /// </summary>
         public int answerState { get; set; }
         /// <summary>
+        /// debug日志输出等级
+        /// 0  不打印日志
+        /// 1  仅正式日志
+        /// 2  测试日志
+        /// </summary>
+        public int logState { get; set; }
+        /// <summary>
         /// 测试人员qq
         /// </summary>
         public string adminQQ { get; set; }

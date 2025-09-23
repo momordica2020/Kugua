@@ -19,7 +19,7 @@ namespace Kugua
         Net,
         Debug
     }
-    enum LogLevel
+    public enum LogLevel
     {
         Nope,
         System,
@@ -67,7 +67,7 @@ namespace Kugua
         private static readonly object lockObject = new object(); // 用于线程安全
 
         // 当前日志等级
-        static LogLevel logLevel = LogLevel.System;
+        public static LogLevel logLevel = LogLevel.System;
 
         public readonly string logFilePath;
 

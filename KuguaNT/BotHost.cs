@@ -68,6 +68,7 @@ namespace Kugua
                     Logger.Log("配置文件读取失败，中止运行");
                     return;
                 }
+                Logger.logLevel = (LogLevel)Config.Instance.App.Avatar.logState;
 
 
                 Logger.Log($"启用过滤器...");
