@@ -53,7 +53,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
             ModCommands.Add(new ModCommand(new Regex(@"^火星文[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleHX));
             ModCommands.Add(new ModCommand(new Regex(@"^研究一下[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper));
-            ModCommands.Add(new ModCommand(new Regex(@"^狗屁不通[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper2));
+            ModCommands.Add(new ModCommand(new Regex(@"^云杰说道[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper2));
             ModCommands.Add(new ModCommand(new Regex(@"^营销号[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper3));
 
 
@@ -160,7 +160,7 @@ namespace Kugua.Mods
         {
             string keyword = param[1];
 
-            var res = SpamText2.Get(keyword);
+            var res = $"云杰说道：暂且不知诸位朋友哪位，{SpamText2.Get(keyword)}";
 
             return res;
         }

@@ -49,11 +49,9 @@ namespace Kugua.Generators
             int endNum = (int)(essayNum * 0.15);
 
 
-            var themeVar = new DValue("xx", [theme]);
-            var allParams = TTemplate.NamedTemplates.Values.ToList();
-            allParams.Add(themeVar);
+            var themeVar = new DValue("x", [theme]);
 
-            string title = TTemplate.NamedTemplates["title"].Result(allParams);
+            string title = TTemplate.GetResult("title",[themeVar]);
             string begin = "";
             string body = "";
             string end = "";
@@ -65,17 +63,17 @@ namespace Kugua.Generators
 
             while (begin.Length < beginNum && tryCount-- > 0)
             {
-                begin += TTemplate.NamedTemplates["begin"].Result(allParams);
+                begin += TTemplate.GetResult("begin", [themeVar]) ;
             }
 
             while (body.Length < bodyNum && tryCount-- > 0)
             {
-                body += TTemplate.NamedTemplates["body"].Result(allParams);
+                body += TTemplate.GetResult("body", [themeVar]);
             }
 
             while (end.Length < endNum && tryCount-- > 0)
             {
-                end += TTemplate.NamedTemplates["end"].Result(allParams);
+                end += TTemplate.GetResult("end", [themeVar]);
             }
 
             return $"{title}\r\n{begin}\r\n{body}\r\n{end}";

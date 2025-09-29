@@ -32,7 +32,7 @@ namespace Kugua.Generators
                 int maxCount = 100;
                 while(maxCount-- > 0 && res.Length < length)
                 {
-                    res.Append(SpamTemplate.GetDefaultResult(null, param));
+                    res.Append(SpamTemplate.GetResult(null, param));
                     if (MyRandom.NextDouble <= 0.05) res.Append("\r\n");
                 }
                 //return SpamTemplate.GetDefaultResult(null, param);

@@ -30,7 +30,7 @@ namespace Kugua.Generators
                     new DValue("主题", [topic]),
                     new DValue("小编", ["我苦"]),
                 ];
-                return SpamTemplate.GetDefaultResult(null, param);
+                return SpamTemplate.GetResult(null, param);
             }
             catch (Exception ex)
             {

@@ -269,7 +269,15 @@ namespace Kugua.Generators
 
         }
 
-        public string GetDefaultResult(string entryKey = null, List<DValue> ExtraParams = null)
+
+        /// <summary>
+        /// 根据模板生成填充结果。
+        /// 如果不输入key，默认尝试使用命名启动变量[main]或随机的匿名变量作为初始模板
+        /// </summary>
+        /// <param name="entryKey"></param>
+        /// <param name="ExtraParams"></param>
+        /// <returns></returns>
+        public string GetResult(string entryKey = null, List<DValue> ExtraParams = null)
         {
             List<DValue> Params = new List<DValue>();
             if (ExtraParams != null) Params.AddRange(ExtraParams);
