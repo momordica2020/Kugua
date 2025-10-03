@@ -147,7 +147,7 @@ namespace Kugua.Mods
                 ModRaceHorse.Instance.Save();
                 HistoryManager.Instance.SaveAllToLocal(true);
                 ModTransShit.Instance.Save();
-
+                GameXiuxian.Save();
 
 
                 // 刷新群名

@@ -1,6 +1,7 @@
 ﻿using Kugua.Core;
 using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace Kugua.Integrations.AI
 {
@@ -138,6 +139,83 @@ namespace Kugua.Integrations.AI
         }
 
 
+        public static string SherpaOnnxTTS(string outputFile, string text, int soundid = 0)
+        {
+            //inputFile = Path.GetFullPath(inputFile);
+            //string outputFile = $"{Path.GetDirectoryName(inputFile)}\\{Path.GetFileNameWithoutExtension(inputFile)}_Inc.wav";
+            string sopath = "D:\\Downloads\\sherpa-onnx-v1.12.14-win-x64-cuda";
+            //string model = "vits-icefall-zh-aishell3";
+            string model = "vits-zh-hf-eula";
+
+            string cmd = $"{sopath}\\bin\\sherpa-onnx-offline-tts.exe";
+            string param = "";
+            param = $" --vits-model={sopath}\\{model}\\model.onnx   " +
+                $"--vits-lexicon={sopath}\\{model}\\lexicon.txt   " +
+                $"--vits-tokens={sopath}\\{model}\\tokens.txt   " +
+                $"--vits-dict-dir={sopath}\\{model}\\dict   " +
+                $"--sid={soundid}  " +
+                $"--output-filename={outputFile}   \"{text}\"";
+
+            //param = $" --vits-model={sopath}\\vits-zh-hf-eula\\eula.onnx   " +
+            //    $"--vits-lexicon={sopath}\\vits-zh-hf-eula\\lexicon.txt   " +
+            //    $"--vits-tokens={sopath}\\vits-zh-hf-eula\\tokens.txt   " +
+            //    $"--vits-dict-dir={sopath}\\vits-zh-hf-eula\\dict   " +
+            //    $"--sid={soundid}  " +
+            //    $"--output-filename={outputFile}   \"{text}\"";
+
+
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = cmd,
+                Arguments = param,
+                CreateNoWindow = true
+            };
+            process.StartInfo = startInfo;
+
+            process.Start();
+            process.WaitForExit();
+
+            int exitCode = process.ExitCode;
+            if (exitCode != 0)
+            {
+                Logger.Log($"语音合成失败。指令：{cmd} {param}");
+                //throw new Exception($"FFmpeg exited with code {exitCode}");
+            }
+
+            return outputFile;
+        }
+
+        public async Task TalkSingle2(MessageContext context, string input, bool reverse)
+        {
+            try
+            {
+                Logger.Log($"+))){input}");
+
+                string res = SherpaOnnxTTS($"D:\\Musics\\kuguaaudio\\{input}({DateTime.Now.ToString("yyyyMMDD-HHmmss")}).wav",input,0);
+
+                if (reverse)
+                {
+                    res = AudioUtil.WavReverse(res);
+                }
+
+
+                context.SendBack([new Record($"file://{res}")]);
+                Thread.Sleep(3000);
+                //System.IO.File.Delete(amrf);
+                //System.IO.File.Delete(resInc);
+                // 临时：用于存下来素材用
+                //File.Copy(res, $"D:/Musics/kuguaaudio/{input}({DateTime.Now.ToString("yyyyMMdd hhmmss")}).wav", true);
+                System.IO.File.Delete(res);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            
+        }
+
+
 
 
         public async void Talk(MessageContext context, string sentense, bool reverse = false)
@@ -148,7 +226,7 @@ namespace Kugua.Integrations.AI
             {
                 foreach (var ipt in inputs)
                 {
-                    await TalkSingle(context, ipt, reverse);
+                    await TalkSingle2(context, ipt, reverse);
                 }
             }
         }

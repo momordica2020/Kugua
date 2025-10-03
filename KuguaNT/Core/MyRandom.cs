@@ -189,6 +189,15 @@ namespace Kugua.Core
         }
 
 
+        /// <summary>
+        /// 字符串数组中的随机一个字符串
+        /// </summary>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        public static string NextString(IEnumerable<string> items)
+        {
+            return items.ToArray()[Next(items.Count())];
+        }
 
         public static int Next(IEnumerable<object> items)
         {
@@ -231,5 +240,7 @@ namespace Kugua.Core
             }
             return new string(stringChars);
         }
+
+
     }
 }

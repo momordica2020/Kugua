@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NvAPIWrapper.Net" Version="0.8.1.101" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.12.13" />
     <PackageReference Include="Prophecy" Version="1.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.1" />

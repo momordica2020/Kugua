@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.AI;
+﻿using Kugua.Core;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using System.Text.RegularExpressions;
 using System.Timers;
@@ -18,18 +19,26 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
 
+            ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), handleXiulian, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^突破$"), handleTupo, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^查询$"), handleInfo, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^重开$"), handeRestartXiuxian, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^(吃|使用)(.+)$"), handleUse, _needAsk: false));
 
             TaskTimer = new(1000 * 60); //ms
             TaskTimer.AutoReset = true;
             TaskTimer.Start();
             TaskTimer.Elapsed += TaskTimer_Elapsed;
 
+            GameXiuxian.Init();
+
             return true;
         }
 
         private void TaskTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            
+            GameXiuxian.Save();
+
         }
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
@@ -183,31 +192,43 @@ namespace Kugua.Mods
                 return "";
         }
 
+        public string handleXiulian(MessageContext context, string[] param)
+        {
+            return GameXiuxian.Action(context.userId, MyRandom.NextString(["战斗", "修炼", "奇遇", "夺宝"]));
+
+            //return null;
+        }
+
+        public string handleTupo(MessageContext context, string[] param)
+        {
+            return GameXiuxian.AddLevel(context.userId);
+
+            //return null;
+        }
+
+
+        public string handleInfo(MessageContext context, string[] param)
+        {
+            return GameXiuxian.Info(context.userId);
+
+            //return null;
+        }
+        public string handeRestartXiuxian(MessageContext context, string[] param)
+        {
+            return GameXiuxian.Restart(context.userId);
+
+            //return null;
+        }
+
+        public string handleUse(MessageContext context, string[] param)
+        {
+            string itemName = param[2];
+            return GameXiuxian.UseItem(context.userId, param[2]);
+
+            //return null;
+        }
+
+
     }
     public delegate string HandleKuguaOlCommandEvent(MessageContext context, string[] param, MessageContext context2);
-    public class KuguaOlCommand
-    {
-        public string Name;
-        public string[] Params;
-        public MessageContext context;
-        public HandleKuguaOlCommandEvent Callback;
-
-        public bool DealReact(MessageContext reactContext)
-        {
-            try
-            {
-                string callbackResult = Callback(context, Params, reactContext);
-                if (callbackResult == null)
-                {
-                    return true;
-                }
-
-            }catch(Exception ex)
-            {
-                Logger.Log(ex);
-                
-            }
-            return false;
-        }
-    }
 }
