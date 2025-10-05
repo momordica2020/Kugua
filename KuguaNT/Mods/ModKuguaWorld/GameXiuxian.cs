@@ -217,24 +217,47 @@ namespace Kugua.Mods{
             else
             {
                 var user = users[id];
+
+                if (user.CheckCooldown is string cooldownDesc)
+                {
+                    return cooldownDesc;
+                }
+
+
                 var level = user.prop["境界"];
                 var power = user.prop["灵力"];
                 if (power < getThisLevelFloorPower(level)) return $"突破失败，灵力不足（{power}/{getThisLevelFloorPower(level)}）";
-                if(MyRandom.NextDouble < 0.2)
+                int addLevel = 0;
+
+                List<string> newLevels = new List<string>();
+                int maxtime = 100;
+                while(getThisLevelFloorPower(level + addLevel) <= power && maxtime-- > 0)
                 {
-                    // fail
-                    res = AGdesc($"{user.race}{UserTemplateName}突破到{AGlevel(user.race,(int)level+1)}境界失败的过程");
-                    res = res.Replace(UserTemplateName, user.FullName);
-                    return res;
+                    if (MyRandom.NextDouble < 0.2)
+                    {
+                        //fail
+                        if (newLevels.Count <= 0)
+                        {
+                            res = AGdesc($"{user.race}{user.FullName}突破到{AGlevel(user.race, (int)level + 1)}境界失败的过程");
+                            //res = res.Replace(UserTemplateName, user.FullName);
+                            return res;
+                        }
+                        else
+                        {
+                            // half success
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        newLevels.Add(AGlevel(user.race, (int)(level + addLevel)));
+                        addLevel += 1;
+                        user.prop["境界"] += addLevel;
+                    }
                 }
-                else
-                {
-                    // success
-                    user.prop["境界"] += 1;
-                    res = AGdesc($"{user.race}{UserTemplateName}突破到{user.LevelName}境界成功的过程");
-                    res = res.Replace(UserTemplateName, user.FullName);
-                    Save(user);
-                }
+                res = AGdesc($"{user.race}{user.FullName}突破{string.Join("、", newLevels.Take(newLevels.Count-1))}境界,达到{newLevels.Last()}境界的过程");
+                Save(user);
+                return res;
                 
             }
             
@@ -279,14 +302,10 @@ namespace Kugua.Mods{
                 else
                 {
                     var user = users[id];
-                    var cooldown = new TimeSpan(0, 0, 5);
-                    if (DateTime.Now - user.lastPlayDate < cooldown)
+                    if (user.CheckCooldown is string cooldownDesc)
                     {
-                        // cooldown
-                        res = $"{user.FullName}修养生息，在{(cooldown - (DateTime.Now - user.lastPlayDate)).TotalMinutes:0.0}分钟之内不能轻举妄动";
-                        return res;
+                        return cooldownDesc;
                     }
-                    user.lastPlayDate = DateTime.Now;
 
                     string powerDesc = "";
                     string enemyDesc = "";
@@ -450,8 +469,12 @@ namespace Kugua.Mods{
             if (user2.id == user1.id)
             {
                 // 不合理的输入，自己打自己
-                return $"不是，哥们?";
+                return $" 不是，哥们?";
             }
+
+            if (user1.CheckCooldown is string desc1) return desc1;
+            else if (user1.CheckShuangxiuCooldown is string desc2) return desc2;
+            else if (user2.CheckShuangxiuCooldown is string desc3) return desc3;
 
             string desc = $"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}{action}";
             string end = "";
@@ -898,7 +921,11 @@ namespace Kugua.Mods{
         /// 记录一个冷却时间
         /// </summary>
         public DateTime lastPlayDate;
-        
+
+        /// <summary>
+        /// 互动的冷却
+        /// </summary>
+        public DateTime lastShuangxiuDate;
 
 
         public Dictionary<string, BigInteger> prop;
@@ -965,6 +992,52 @@ namespace Kugua.Mods{
             if(items == null) items = new List<XiuxianItem>();
             if (string.IsNullOrWhiteSpace(name)) return items;
             return items.Where(t => t.name.Contains(name)).ToList();
+        }
+
+
+
+        /// <summary>
+        /// 检查用户是否在活动冷却期，如果返回值不为null则说明需要冷却
+        /// </summary>
+        /// <returns></returns>
+        [JsonIgnore]
+        public string CheckCooldown
+        {
+            get
+            {
+                var cooldown = new TimeSpan(0, 5, 0);
+                if (DateTime.Now - lastPlayDate < cooldown)
+                {
+                    // cooldown
+                    string res = $"{FullName}修养生息，在{(cooldown - (DateTime.Now - lastPlayDate)).TotalMinutes:0.0}分钟之内不能轻举妄动";
+                    return res;
+                }
+                lastPlayDate = DateTime.Now;
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// 检查用户是否在双修和pk活动冷却期，如果返回值不为null则说明需要冷却
+        /// </summary>
+        /// <returns></returns>
+        [JsonIgnore]
+        public string CheckShuangxiuCooldown
+        {
+            get
+            {
+                var cooldown = new TimeSpan(6, 0, 0);
+                if (DateTime.Now - lastShuangxiuDate < cooldown)
+                {
+                    // cooldown
+                    string res = $"{FullName}在{(cooldown - (DateTime.Now - lastShuangxiuDate)).TotalMinutes:0.0}分钟之内需要调息静养";
+                    return res;
+                }
+                lastShuangxiuDate = DateTime.Now;
+                return null;
+            }
+
         }
     }
 }
