@@ -23,7 +23,10 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^突破$"), handleTupo, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^查询$"), handleInfo, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^重开$"), handeRestartXiuxian, _needAsk: false));
-            ModCommands.Add(new ModCommand(new Regex(@"^(吃|使用)(.+)$"), handleUse, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^(吃|使用|熔炼|炼化|卖)(.+)$"), handleUse, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^全部(吃|使用|熔炼|炼化|卖)$"), handleUseAll, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^与(.+)对战$"), handleDuizhan, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^与(.+)双修$"), handleShuangxiu, _needAsk: false));
 
             TaskTimer = new(1000 * 60); //ms
             TaskTimer.AutoReset = true;
@@ -192,6 +195,15 @@ namespace Kugua.Mods
                 return "";
         }
 
+
+
+        /// <summary>
+        /// 进行修炼
+        /// 修炼
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string handleXiulian(MessageContext context, string[] param)
         {
             return GameXiuxian.Action(context.userId, MyRandom.NextString(["战斗", "修炼", "奇遇", "夺宝"]));
@@ -199,6 +211,15 @@ namespace Kugua.Mods
             //return null;
         }
 
+
+
+        /// <summary>
+        /// 突破
+        /// 突破
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string handleTupo(MessageContext context, string[] param)
         {
             return GameXiuxian.AddLevel(context.userId);
@@ -207,12 +228,29 @@ namespace Kugua.Mods
         }
 
 
+
+        /// <summary>
+        /// 查询修仙个人信息
+        /// 查询
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string handleInfo(MessageContext context, string[] param)
         {
             return GameXiuxian.Info(context.userId);
 
             //return null;
         }
+
+
+        /// <summary>
+        /// 重置（转生）成一个新的修仙者
+        /// 重开
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string handeRestartXiuxian(MessageContext context, string[] param)
         {
             return GameXiuxian.Restart(context.userId);
@@ -220,15 +258,70 @@ namespace Kugua.Mods
             //return null;
         }
 
+        /// <summary>
+        /// 使用装备，模糊匹配道具名称，别输入太长会被忽略
+        /// 吃x/使用x/熔炼x/炼化x/卖x
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string handleUse(MessageContext context, string[] param)
         {
+            string action = param[1];
             string itemName = param[2];
-            return GameXiuxian.UseItem(context.userId, param[2]);
+            if (itemName.Length > 8) return "";
+            return GameXiuxian.UseItem(context.userId, itemName, action);
 
             //return null;
         }
 
 
+        /// <summary>
+        /// 以特定方式消耗所有道具
+        /// 全部吃/全部使用/全部熔炼/全部炼化/全部卖
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string handleUseAll (MessageContext context, string[] param)
+        {
+            string action = param[1];
+            return GameXiuxian.UseItem(context.userId, "", action);
+
+            //return null;
+        }
+
+
+        /// <summary>
+        /// 与特定玩家双修，可以输入q号或者修仙者名称
+        /// 与287859992双修/与荧瞳双修
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string handleShuangxiu(MessageContext context, string[] param)
+        {
+            string id2 = param[1];
+            return GameXiuxian.getShuangxiu(context.userId, id2, "双修");
+
+            //return null;
+        }
+
+
+        /// <summary>
+        /// 与特定玩家对战，可以输入q号或者修仙者名称
+        /// 与287859992对战/与荧瞳对战
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string handleDuizhan(MessageContext context, string[] param)
+        {
+            string id2 = param[1];
+            return GameXiuxian.getShuangxiu(context.userId, id2, "对战");
+
+            //return null;
+        }
     }
     public delegate string HandleKuguaOlCommandEvent(MessageContext context, string[] param, MessageContext context2);
 }

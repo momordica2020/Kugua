@@ -93,7 +93,7 @@ namespace Kugua.Core
         /// </summary>
         /// <param name="minValue"></param>
         /// <param name="maxValue">注意！maxValue值到达不了，实际范围在[min,max-1]</param>
-        /// <returns></returns>
+        /// <returns></returns> 
         public static BigInteger Next(BigInteger minValue, BigInteger maxValue)
         {
             try
