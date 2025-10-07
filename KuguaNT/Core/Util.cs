@@ -409,7 +409,25 @@ namespace Kugua.Core
             return ConvertToChinese(number);
         }
 
-        
+
+        /// <summary>
+        /// 简化为科学计数法，但只对超过特定值的数字才进行简化
+        /// </summary>
+        /// <param name="number"></param>
+        /// <param name="MinNum"></param>
+        /// <returns></returns>
+        public static string ToSci(this BigInteger number, int MinNum = 100000)
+        {
+            if (number <= MinNum) return $"{number.ToString()}";
+            int digitCount = number.ToString().Length; // 28 位
+            int cutLen = int.Min(digitCount, 15);
+            double mantissa = double.Parse(number.ToString().Substring(0, cutLen)) / Math.Pow(10, cutLen - 1); // 取前几位避免精度问题
+            int exponent = digitCount - 1; // 指数为位数-1
+            return $"{mantissa:F4} × 10^{exponent}";
+        }
+
+
+       
 
         /// <summary>
         /// 解析字符串为BigInteger
@@ -465,6 +483,10 @@ namespace Kugua.Core
 
             return isNegative ? -result : result;
         }
+
+
+
+
 
         /// <summary>
         /// 转换 BigInteger 为中文自然语言表示

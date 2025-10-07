@@ -14,7 +14,7 @@ namespace Kugua.Mods
         List<KuguaOlCommand> Commands = new List<KuguaOlCommand>();
 
         Dictionary<string, Game2048> games = new Dictionary<string, Game2048>();
-
+        XiuxianBotself botxiuxian = new XiuxianBotself();
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
@@ -27,6 +27,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^全部(吃|使用|熔炼|炼化|卖)$"), handleUseAll, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^与(.+)对战$"), handleDuizhan, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^与(.+)双修$"), handleShuangxiu, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^恢复活力$"), handleHuoli, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^恢复环境$"), handleZhongtian, _needAsk: false));
 
             TaskTimer = new(1000 * 60); //ms
             TaskTimer.AutoReset = true;
@@ -35,6 +37,8 @@ namespace Kugua.Mods
 
             GameXiuxian.Init();
 
+            if(GameXiuxian.users.ContainsKey(Config.Instance.BotQQ)) botxiuxian.bot = GameXiuxian.users[Config.Instance.BotQQ];
+
             return true;
         }
 
@@ -42,7 +46,19 @@ namespace Kugua.Mods
         {
             GameXiuxian.Save();
 
+
+            if( botxiuxian.play() is string str)
+            {
+                var context = new MessageContext
+                {
+                    groupId = botxiuxian.targetGroup,
+                    client = clientQQ,
+                };
+                context.SendBackText(str);
+            }
         }
+
+
 
         public override async Task<bool> HandleMessagesDIY(MessageContext context)
         {
@@ -206,7 +222,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         public string handleXiulian(MessageContext context, string[] param)
         {
-            return GameXiuxian.Action(context.userId, MyRandom.NextString(["战斗", "修炼", "奇遇", "夺宝"]));
+            return GameXiuxian.Cact(context.userId, MyRandom.NextString(["战斗", "修炼", "奇遇", "夺宝"]));
 
             //return null;
         }
@@ -222,7 +238,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         public string handleTupo(MessageContext context, string[] param)
         {
-            return GameXiuxian.AddLevel(context.userId);
+            return GameXiuxian.Ctupo(context.userId);
 
             //return null;
         }
@@ -238,7 +254,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         public string handleInfo(MessageContext context, string[] param)
         {
-            return GameXiuxian.Info(context.userId);
+            return GameXiuxian.Cinfo(context.userId);
 
             //return null;
         }
@@ -253,7 +269,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         public string handeRestartXiuxian(MessageContext context, string[] param)
         {
-            return GameXiuxian.Restart(context.userId);
+            return GameXiuxian.Crestart(context.userId);
 
             //return null;
         }
@@ -270,7 +286,7 @@ namespace Kugua.Mods
             string action = param[1];
             string itemName = param[2];
             if (itemName.Length > 8) return "";
-            return GameXiuxian.UseItem(context.userId, itemName, action);
+            return GameXiuxian.CuseItem(context.userId, itemName, action);
 
             //return null;
         }
@@ -286,7 +302,7 @@ namespace Kugua.Mods
         public string handleUseAll (MessageContext context, string[] param)
         {
             string action = param[1];
-            return GameXiuxian.UseItem(context.userId, "", action);
+            return GameXiuxian.CuseItem(context.userId, "", action);
 
             //return null;
         }
@@ -302,7 +318,7 @@ namespace Kugua.Mods
         public string handleShuangxiu(MessageContext context, string[] param)
         {
             string id2 = param[1];
-            return GameXiuxian.getShuangxiu(context.userId, id2, "双修");
+            return GameXiuxian.Cshuangxiu(context.userId, id2, "双修");
 
             //return null;
         }
@@ -318,10 +334,50 @@ namespace Kugua.Mods
         public string handleDuizhan(MessageContext context, string[] param)
         {
             string id2 = param[1];
-            return GameXiuxian.getShuangxiu(context.userId, id2, "对战");
+            return GameXiuxian.Cshuangxiu(context.userId, id2, "对战");
 
             //return null;
         }
+
+
+        /// <summary>
+        /// 充钱刷新cd
+        /// 恢复活力
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string handleHuoli(MessageContext context, string[] param)
+        {
+            return GameXiuxian.CrefreshCD(context.userId);
+
+            //return null;
+        }
+
+
+        /// <summary>
+        /// 无cd种田
+        /// 恢复环境
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string handleZhongtian(MessageContext context, string[] param)
+        {
+            return GameXiuxian.Cpaid(context.userId);
+
+            //return null;
+        }
+
+
+
+
+
+
+
+
+
+
     }
     public delegate string HandleKuguaOlCommandEvent(MessageContext context, string[] param, MessageContext context2);
 }

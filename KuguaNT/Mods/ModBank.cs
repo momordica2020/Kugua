@@ -31,7 +31,7 @@ namespace Kugua.Mods
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^签到$"),DailyAttendance));
-            ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), DailyWork));
+            //ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), DailyWork));
 
 
             ModCommands.Add(new ModCommand(new Regex(@"^发币(.+)"), AddBotMoney));

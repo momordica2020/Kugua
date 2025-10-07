@@ -443,6 +443,22 @@ namespace Kugua
             }
         }
 
+
+
+        /// <summary>
+        /// 拥有特定tag的首个群号
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        public string? GroupWithTag(string tag)
+        {
+            foreach(var g in groups)
+            {
+                if(g.Value.Is(tag)) return g.Key;
+            }
+            return null;
+        }
+
         /// <summary>
         /// 判断是否回复特定qq号的消息
         /// 根据personlevel配置来作判断

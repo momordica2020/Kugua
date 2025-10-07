@@ -1400,67 +1400,55 @@ namespace Kugua.Core
 
 
         /// <summary>
-        /// 图片抖动
+        /// 图片卷动
         /// </summary>
         /// <param name="img"></param>
         /// <returns></returns>
-        public static MagickImageCollection ImgRoll(MagickImageCollection img)
+        public static MagickImageCollection ImgRoll(MagickImageCollection img, double degree = 0, int looptime = 1)
         {
             try
             {
                 var images = new MagickImageCollection();
-                int frameCount = img.Count;
-                if (frameCount == 1)
+                uint frameDelay = 5;
+                List<MagickImage> frames = new List<MagickImage>();
+
+                img.Coalesce();
+
+                int frameCount = img.Count * looptime;
+                if (img.Count == 1) frameCount = 10;
+                int dx = (int)(img.First().Width * Math.Cos(degree) / frameCount);
+                int dy = (int)(-img.First().Height * Math.Sin(degree) / frameCount);
+                if (dx != 0 && dy != 0) frameCount *= ((int)(Util.LCM((Util.LCM(int.Abs(dx), img.First().Width) / img.First().Width), (Util.LCM(int.Abs(dy), img.First().Height) / img.First().Height))));
+                for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
                 {
-                    var imgg = img[0];
-                    uint frameDelay = 5;
-                    int frameMax = 10;
-                    for (int frameIndex = 0; frameIndex < frameMax; frameIndex++)
-                    {
-                        var frame = new MagickImage(
-                           MagickColor.FromRgba(255, 255, 255, 0),
-                           imgg.Width,
-                           imgg.Height
-                        );
-                        frame.Format = MagickFormat.Gif;
-                        frame.AnimationDelay = frameDelay;
-                        int y1 = (int)(imgg.Height * (((double)frameIndex) / frameMax - 1));
-                        int y2 = (int)(y1 + imgg.Height);
-                        int x = 0;
-                        frame.Composite(imgg, x, y1, CompositeOperator.Over);
-                        frame.Composite(imgg, x, y2, CompositeOperator.Over);
-                        frame.GifDisposeMethod = GifDisposeMethod.Background;
-                        images.Add(frame);
-                    }
+                    var imgg = img[frameIndex % img.Count];
+                    var frame = new MagickImage(
+                        MagickColor.FromRgba(255, 255, 255, 0),
+                        img.First().Width,
+                        img.First().Height
+                    );
+                    frame.Format = MagickFormat.Gif;
+                    frame.AnimationDelay = imgg.AnimationDelay;
+                    if (frame.AnimationDelay <= 0) frame.AnimationDelay = frameDelay;
+                    int x = (int)(frameIndex * dx % frame.Width);
+                    int y = (int)(frameIndex * dy % frame.Height);
+
+                    frame.Composite(imgg, x, y, CompositeOperator.Over);
+                    if (x > 0) frame.Composite(imgg, x - (int)frame.Width, y, CompositeOperator.Over);
+                    if (x < 0) frame.Composite(imgg, x + (int)frame.Width, y, CompositeOperator.Over);
+                    if (y > 0) frame.Composite(imgg, x, y - (int)frame.Height, CompositeOperator.Over);
+                    if (y < 0) frame.Composite(imgg, x, y + (int)frame.Height, CompositeOperator.Over);
+                    if (x > 0 && y > 0) frame.Composite(imgg, x - (int)frame.Width, y - (int)frame.Height, CompositeOperator.Over);
+                    if (x > 0 && y < 0) frame.Composite(imgg, x - (int)frame.Width, y + (int)frame.Height, CompositeOperator.Over);
+                    if (x < 0 && y > 0) frame.Composite(imgg, x + (int)frame.Width, y - (int)frame.Height, CompositeOperator.Over);
+                    if (x < 0 && y < 0) frame.Composite(imgg, x + (int)frame.Width, y + (int)frame.Height, CompositeOperator.Over);
+                    frame.GifDisposeMethod = GifDisposeMethod.Background;
+                    images.Add(frame);
                 }
-                else
-                {
-                    uint frameDelay = 5;
-                    int frameMax = 10;
-                    int fullframe = (int)Util.LCM(frameMax, img.Count);
-                    img.Coalesce();
-                    for (int frameIndex = 0; frameIndex < fullframe; frameIndex++)
-                    {
-                        var imgg = img[frameIndex];
-                        var frame = new MagickImage(
-                           MagickColor.FromRgba(255, 255, 255, 0),
-                           imgg.Width,
-                           imgg.Height
-                        );
-                        frame.Format = MagickFormat.Gif;
-                        //frame.AnimationDelay = ;
-                        int y1 = (int)(imgg.Height * (((double)frameIndex) / frameMax - 1));
-                        int y2 = (int)(y1 + imgg.Height);
-                        int x = 0;
-                        frame.Composite(imgg, x, y1, CompositeOperator.Over);
-                        frame.Composite(imgg, x, y2, CompositeOperator.Over);
-                        frame.GifDisposeMethod = GifDisposeMethod.Background;
-                        images.Add(frame);
-                    }
-                }
+
                 //images.Optimize();
                 images.OptimizeTransparency();
-                //images.Optimize();
+                images.Optimize();
                 return images;
             }
             catch (Exception ex)
@@ -1478,12 +1466,17 @@ namespace Kugua.Core
         /// <param name="img"></param>
         /// <param name="degree"></param>
         /// <returns></returns>
-        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 0.5)
+        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 0.5, bool change_size=true)
         {
             try
             {
                 uint width = (uint)(img.FirstOrDefault().Width * (1 + degree / 5.0));
                 uint height = (uint)(img.FirstOrDefault().Height * (1 + degree / 5.0));
+                if (!change_size)
+                {
+                    width = img.FirstOrDefault().Width;
+                    height = img.FirstOrDefault().Height;
+                }
 
                 var images = new MagickImageCollection();
                 int frameCount = img.Count;
@@ -1558,10 +1551,21 @@ namespace Kugua.Core
             MagickImageCollection img = new MagickImageCollection();
 
             var fullframes = Util.LCM(img1.Count, img2.Count);
-            uint i1w = img1.First().Width;
-            uint i1h = img1.First().Height;
-            uint i2w = img2.First().Width;
-            uint i2h = img2.First().Height;
+            uint i1w = 0, i1h = 0, i2w = 0, i2h = 0;
+            foreach (var f in img1)
+            {
+                i1w = uint.Max(i1w, f.Width);
+                i1h = uint.Max(i1h, f.Height);
+            }
+            foreach (var f in img2)
+            {
+                i2w = uint.Max(i2w, f.Width);
+                i2h = uint.Max(i2h, f.Height);
+            }
+            //uint i1w = img1.First().Width;
+            //uint i1h = img1.First().Height;
+            //uint i2w = img2.First().Width;
+            //uint i2h = img2.First().Height;
             float r1 = 1;
             float r2 = 1;
             if (horizional)  {
@@ -1571,25 +1575,30 @@ namespace Kugua.Core
                 if (i1w > i2w) r2 = ((float)i1w) / i2w;
                 else if (i1w < i2w) r1 = ((float)i2w) / i1w;
             }
-            for(int i = 0; i < fullframes; i++)
+            i1w = (uint)(i1w * r1);
+            i1h = (uint)(i1h * r1);
+            i2w = (uint)(i2w * r2);
+            i2h = (uint)(i2h * r2);
+            for (int i = 0; i < fullframes; i++)
             {
                 var img1f = img1[i % img1.Count];
                 var img2f = img2[i % img2.Count];
-                img1f.Resize((uint)(i1w * r1), (uint)(i1h * r1));
-                img2f.Resize((uint)(i2w * r2), (uint)(i2h * r2));
+                img1f.Resize(i1w, i1h);
+                img2f.Resize(i2w, i2h);
                 MagickImage frame = null;
                 if (horizional)
                 {
-                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), img1f.Width + img2f.Width, img1f.Height);
+                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), i1w + i2w, i1h);
                     frame.Composite(img1f, 0, 0, CompositeOperator.Over);
-                    frame.Composite(img2f, (int)img1f.Width, 0, CompositeOperator.Over);
+                    frame.Composite(img2f, (int)i1w, 0, CompositeOperator.Over);
                 }
                 else
                 {
-                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), img1f.Width, img1f.Height + img2f.Height);
+                    frame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), i1w, i1h + i2h);
                     frame.Composite(img1f, 0, 0, CompositeOperator.Over);
-                    frame.Composite(img2f, 0, (int)img1f.Height, CompositeOperator.Over);
+                    frame.Composite(img2f, 0, (int)i1h, CompositeOperator.Over);
                 }
+                frame.GifDisposeMethod = GifDisposeMethod.Background;
                 frame.Format = fullframes == 1 ? MagickFormat.Png : MagickFormat.Gif;
                 frame.AnimationDelay = 5;
                 img.Add(frame);

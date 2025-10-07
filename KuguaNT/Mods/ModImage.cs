@@ -42,20 +42,22 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^横拼$", RegexOptions.Singleline), combineH));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
 
-            ModCommands.Add(new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
-            ModCommands.Add(new ModCommand(new Regex(@"像素字(.*)", RegexOptions.Singleline), getPixelWords));
-            ModCommands.Add(new ModCommand(new Regex(@"抖(\S*)", RegexOptions.Singleline), getShake));
-            ModCommands.Add(new ModCommand(new Regex(@"滚动", RegexOptions.Singleline), getRoll));
-            ModCommands.Add(new ModCommand(new Regex(@"反色(\S*)", RegexOptions.Singleline), changeColor));
-            ModCommands.Add(new ModCommand(new Regex(@"(.+)倍速", RegexOptions.Singleline), setGifSpeed));
-            ModCommands.Add(new ModCommand(new Regex(@"镜像(.*)", RegexOptions.Singleline), setImgMirror));
-            ModCommands.Add(new ModCommand(new Regex(@"水平翻转(.*)", RegexOptions.Singleline), setImgHorzontalFlip));
-            ModCommands.Add(new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
-            ModCommands.Add(new ModCommand(new Regex(@"旋转(.*)", RegexOptions.Singleline), setImgRotate));
-            ModCommands.Add(new ModCommand(new Regex(@"抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
+            ModCommands.Add(new ModCommand(new Regex(@"^做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"^像素字(.*)", RegexOptions.Singleline), getPixelWords));
+            ModCommands.Add(new ModCommand(new Regex(@"^(内?)抖(\S*)", RegexOptions.Singleline), getShake));
+            ModCommands.Add(new ModCommand(new Regex(@"^滚动(\S*)", RegexOptions.Singleline), getRoll));
+            ModCommands.Add(new ModCommand(new Regex(@"^反色(\S*)", RegexOptions.Singleline), changeColor));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.+)倍速", RegexOptions.Singleline), setGifSpeed));
+            ModCommands.Add(new ModCommand(new Regex(@"^镜像(.*)", RegexOptions.Singleline), setImgMirror));
+            ModCommands.Add(new ModCommand(new Regex(@"^水平翻转(.*)", RegexOptions.Singleline), setImgHorzontalFlip));
+            ModCommands.Add(new ModCommand(new Regex(@"^垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
+            ModCommands.Add(new ModCommand(new Regex(@"^旋转(.*)", RegexOptions.Singleline), setImgRotate));
+            ModCommands.Add(new ModCommand(new Regex(@"^抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
+            ModCommands.Add(new ModCommand(new Regex(@"^([上下左右]+)切(.+)", RegexOptions.Singleline), setCut));
+            ModCommands.Add(new ModCommand(new Regex(@"^([横竖]*)缩放(.+)", RegexOptions.Singleline), setResize));
 
-            ModCommands.Add(new ModCommand(new Regex(@"网格化2(.*)", RegexOptions.Singleline), setPixelChange2));
-            ModCommands.Add(new ModCommand(new Regex(@"网格化(.*)", RegexOptions.Singleline), setPixelChange1));
+            ModCommands.Add(new ModCommand(new Regex(@"^网格化2(.*)", RegexOptions.Singleline), setPixelChange2));
+            ModCommands.Add(new ModCommand(new Regex(@"^网格化(.*)", RegexOptions.Singleline), setPixelChange1));
             
 
             return true;
@@ -565,8 +567,8 @@ namespace Kugua.Mods
         }
 
         /// <summary>
-        /// 图片抖动！数字是1~10的震级
-        /// 抖[图片]   抖1[图片]
+        /// 图片抖动！数字是震级，一般取0~1的小数
+        /// 抖[图片]/抖0,5[图片]/内抖0.3[图片]
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -591,43 +593,138 @@ namespace Kugua.Mods
             }
             else
             {
-                WaitNext(context, new ModCommand(new Regex(@"抖(\S*)", RegexOptions.Singleline), getShake));
+                WaitNext(context, new ModCommand(new Regex(@"^(内?)抖(\S*)", RegexOptions.Singleline), getShake));
 
             }
             return null;
         }
 
 
+        /// <summary>
+        /// 图片切
+        /// 右切50/左上切10%/上下左右切5.5%
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setCut(MessageContext context, string[] param)
+        {
+            bool up = false, down = false, left = false, right = false;
+            bool percent = false;
+            double inputval = 0;
+            if (param[1].Contains("上")) up = true;
+            if (param[1].Contains("下")) down = true;
+            if (param[1].Contains("左")) left = true;
+            if (param[1].Contains("右")) right = true;
+            if (param[2].EndsWith("%"))percent= true;
+            double.TryParse(param[2], out inputval);
+            string res = "";
+            if (inputval < 0) inputval = 0;
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                foreach (var img in oriImgs)
+                {
+                    uint originalWidth = img.First().Width;
+                    uint originalHeight = img.First().Height;
+                    var valh = inputval;
+                    var valw = inputval;
+                    int startX = left ? (int)valw : 0;
+                    int startY = up ? (int)valh : 0;
+                    uint newWidth = originalWidth - (uint)startX - (right ? (uint)valw : 0);
+                    uint newHeight = originalHeight - (uint)startY - (down ? (uint)valh : 0);
+                    res += $"{newWidth}x{newHeight}\r\n";
+                    if (percent)
+                    {
+                        valh = img.First().Height * inputval;
+                        valw = img.First().Width * inputval;
+                    }
+                    foreach (var frame in img)
+                    {
+                        
+                        frame.Crop(new MagickGeometry(startX, startY, newWidth, newHeight));
+                    }
+                }
+                context.SendBackImages(oriImgs, res);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"^([上下左右]+)切(.+)", RegexOptions.Singleline), setCut));
+
+            }
+            return null;
+        }
 
 
         /// <summary>
-        /// 图片竖滚 
-        /// 滚动[图片]
+        /// 图片缩放
+        /// 横缩放0.1/横竖缩放2.2/缩放0.5
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setResize(MessageContext context, string[] param)
+        {
+            bool virtical = false, horizional = false;
+            double inputval = 0;
+            if (string.IsNullOrWhiteSpace(param[1])) { virtical= true;horizional = true; }
+            if (param[1].Contains("横")) horizional = true;
+            if (param[1].Contains("竖")) virtical = true;
+            double.TryParse(param[2], out inputval);
+            if (inputval <= 0) inputval = 0.1;
+            string res = "";
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                foreach (var img in oriImgs)
+                {
+                    uint newW = (uint)(img.First().Width * (horizional ? inputval : 1));
+                    uint newH = (uint)(img.First().Height * (virtical ? inputval : 1));
+                    res += $"{newW}x{newH}\r\n";
+                    foreach (var frame in img)
+                    {
+                        frame.Resize(newW, newH);
+                    }
+                }
+                context.SendBackImages(oriImgs, res);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"^([横竖]*)缩放(.+)", RegexOptions.Singleline), setResize));
+
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 图片滚动，参数是方位的角度
+        /// 滚动90[图片]
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
         private string getRoll(MessageContext context, string[] param)
         {
-            //double degree = 5;
-            //if (!double.TryParse(param[1], out degree))
-            //{
-            //    degree = 5;
-            //}
+            double degree = 0;
+            if (!double.TryParse(param[1], out degree))
+            {
+                degree = 0;
+            }
+            degree = degree * Math.PI / 180;
             if (context.IsImage)
             {
                 var oriImgs = Network.DownloadImages(context);
                 var resImgs = new List<MagickImageCollection>();
                 foreach (var img in oriImgs)
                 {
-                    var res = ImageUtil.ImgShake(img);
+                    var res = ImageUtil.ImgRoll(img, degree, 1);
                     resImgs.Add(res);
                 }
                 context.SendBackImages(resImgs);
             }
             else
             {
-                WaitNext(context, new ModCommand(new Regex(@"滚动", RegexOptions.Singleline), getRoll));
+                WaitNext(context, new ModCommand(new Regex(@"^滚动(\S*)", RegexOptions.Singleline), getRoll));
 
             }
             return null;

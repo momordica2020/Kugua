@@ -31,7 +31,7 @@ namespace Kugua.Mods
         {
             ModCommands.Add(new ModCommand(new Regex(@"^发(\d+个)?红包(\S+)(.*)$", RegexOptions.Singleline), handleHongbao));
             ModCommands.Add(new ModCommand(new Regex(@"^开$", RegexOptions.Singleline), handleGetHongbao));
-
+            ModCommands.Add(new ModCommand(new Regex(@"^开$", RegexOptions.Singleline), handleGetHongbao, _needAsk:false));
 
             TaskTimer = new(1000 * 10); // 10s
             TaskTimer.AutoReset = true;
@@ -60,17 +60,17 @@ namespace Kugua.Mods
 
         }
 
-        public async override Task<bool> HandleMessagesDIY(MessageContext context)
-        {
-            //Logger.Log("= " + context.recvMessages.ToTextString());
-            if (context.recvMessages.ToTextString().Trim() == "开")
-            {
-                handleGetHongbao(context, new string[] { "开" });
-                return true;
-            }
+        //public async override Task<bool> HandleMessagesDIY(MessageContext context)
+        //{
+        //    //Logger.Log("= " + context.recvMessages.ToTextString());
+        //    if (context.recvMessages.ToTextString().Trim() == "开")
+        //    {
+        //        handleGetHongbao(context, new string[] { "开" });
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
             // 领群内红包
             private string handleGetHongbao(MessageContext context, string[] param)
         {
