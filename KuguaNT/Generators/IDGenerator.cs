@@ -27,7 +27,7 @@ namespace Kugua.Generators
                 if (string.IsNullOrWhiteSpace(userName)) return res;
                 
                 
-                res = $"用户：{userName}";
+                res += $"昵称：{userName}\r\n";
             }
             catch (Exception ex)
             {

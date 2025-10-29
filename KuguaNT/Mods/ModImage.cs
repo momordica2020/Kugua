@@ -2,6 +2,7 @@
 using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
 using System.Drawing;
@@ -46,18 +47,19 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^像素字(.*)", RegexOptions.Singleline), getPixelWords));
             ModCommands.Add(new ModCommand(new Regex(@"^(内?)抖(\S*)", RegexOptions.Singleline), getShake));
             ModCommands.Add(new ModCommand(new Regex(@"^滚动(\S*)", RegexOptions.Singleline), getRoll));
-            ModCommands.Add(new ModCommand(new Regex(@"^反色(\S*)", RegexOptions.Singleline), changeColor));
-            ModCommands.Add(new ModCommand(new Regex(@"^(.+)倍速", RegexOptions.Singleline), setGifSpeed));
+            ModCommands.Add(new ModCommand(new Regex(@"^反色$", RegexOptions.Singleline), changeColor));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.+)倍速$", RegexOptions.Singleline), setGifSpeed));
             ModCommands.Add(new ModCommand(new Regex(@"^镜像(.*)", RegexOptions.Singleline), setImgMirror));
             ModCommands.Add(new ModCommand(new Regex(@"^水平翻转(.*)", RegexOptions.Singleline), setImgHorzontalFlip));
             ModCommands.Add(new ModCommand(new Regex(@"^垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
             ModCommands.Add(new ModCommand(new Regex(@"^旋转(.*)", RegexOptions.Singleline), setImgRotate));
-            ModCommands.Add(new ModCommand(new Regex(@"^抠图(.*)", RegexOptions.Singleline), setRemoveBackground));
-            ModCommands.Add(new ModCommand(new Regex(@"^([上下左右]+)切(.+)", RegexOptions.Singleline), setCut));
-            ModCommands.Add(new ModCommand(new Regex(@"^([横竖]*)缩放(.+)", RegexOptions.Singleline), setResize));
+            ModCommands.Add(new ModCommand(new Regex(@"^抠图", RegexOptions.Singleline), setRemoveBackground));
+            ModCommands.Add(new ModCommand(new Regex(@"^([上下左右]+)切(.+)$", RegexOptions.Singleline), setCut));
+            ModCommands.Add(new ModCommand(new Regex(@"^([横竖]*)缩放(.+)$", RegexOptions.Singleline), setResize));
+            ModCommands.Add(new ModCommand(new Regex(@"^幻影$", RegexOptions.Singleline), setHYTK));
 
-            ModCommands.Add(new ModCommand(new Regex(@"^网格化2(.*)", RegexOptions.Singleline), setPixelChange2));
-            ModCommands.Add(new ModCommand(new Regex(@"^网格化(.*)", RegexOptions.Singleline), setPixelChange1));
+            ModCommands.Add(new ModCommand(new Regex(@"^网格化2$", RegexOptions.Singleline), setPixelChange2));
+            ModCommands.Add(new ModCommand(new Regex(@"^网格化$", RegexOptions.Singleline), setPixelChange1));
             
 
             return true;
@@ -616,36 +618,58 @@ namespace Kugua.Mods
             if (param[1].Contains("下")) down = true;
             if (param[1].Contains("左")) left = true;
             if (param[1].Contains("右")) right = true;
-            if (param[2].EndsWith("%"))percent= true;
-            double.TryParse(param[2], out inputval);
+            if (param[2].EndsWith("%"))
+            {
+                percent = true;
+                double.TryParse(param[2].TrimEnd('%'), out inputval);
+            }
+            else
+            {
+                double.TryParse(param[2], out inputval);
+            }
+                
+
+
+
+
             string res = "";
             if (inputval < 0) inputval = 0;
             if (context.IsImage)
             {
                 var oriImgs = Network.DownloadImages(context);
+                var newImgs = new List<MagickImageCollection>();
                 foreach (var img in oriImgs)
                 {
+                   
+
                     uint originalWidth = img.First().Width;
                     uint originalHeight = img.First().Height;
-                    var valh = inputval;
-                    var valw = inputval;
+                    int valh = 0;
+                    int valw = 0;
+                    if (percent)
+                    {
+                        valh = (int)(originalHeight * inputval);
+                        valw = (int)(originalWidth * inputval);
+                    }
+                    else if (double.Abs(inputval) < 1)
+                    {
+                        // 按比例
+                        valh = (int)(inputval * originalHeight);
+                        valw = (int)(inputval * originalWidth);
+                    }
+                    else
+                    {
+                        valh = (int)inputval;
+                        valw = (int)inputval;
+                    }
+                    newImgs.Add(ImageUtil.ImgCut(img, (up ? valh : 0), (down ? valh : 0), (left ? valw : 0), (right ? valw : 0)));
                     int startX = left ? (int)valw : 0;
                     int startY = up ? (int)valh : 0;
                     uint newWidth = originalWidth - (uint)startX - (right ? (uint)valw : 0);
                     uint newHeight = originalHeight - (uint)startY - (down ? (uint)valh : 0);
                     res += $"{newWidth}x{newHeight}\r\n";
-                    if (percent)
-                    {
-                        valh = img.First().Height * inputval;
-                        valw = img.First().Width * inputval;
-                    }
-                    foreach (var frame in img)
-                    {
-                        
-                        frame.Crop(new MagickGeometry(startX, startY, newWidth, newHeight));
-                    }
                 }
-                context.SendBackImages(oriImgs, res);
+                context.SendBackImages(newImgs, res);
             }
             else
             {
@@ -757,6 +781,30 @@ namespace Kugua.Mods
                     //Logger.Log("? == " + oriImg.Count);
                     context.SendBackImage(oriImg);
                 }
+            }
+
+            return null;
+
+
+        }
+
+        /// <summary>
+        /// 图片幻影坦克
+        /// 幻影[白底图片][黑底图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+
+        private string setHYTK(MessageContext context, string[] param)
+        {
+            if (!context.IsImage || context.Images.Count < 2) WaitNext(context, new ModCommand(new Regex(@"^幻影(.+)$", RegexOptions.Singleline), setHYTK));
+            else
+            {
+                MagickImage img1 = (MagickImage)Network.DownloadImage(context.Images[0].url).First();
+                MagickImage img2 = (MagickImage)Network.DownloadImage(context.Images[1].url).First();
+                var res = ImageUtil.ImageBlend(img1, img2);
+                context.SendBackImage(res);
             }
 
             return null;
@@ -1046,9 +1094,9 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string setRemoveBackground(MessageContext context, string[] param)
         {
-            double ro = 0;
-            if (!double.TryParse(param[1], out ro))
-            { ro = 0; }
+            //double ro = 0;
+            //if (!double.TryParse(param[1], out ro))
+            //{ ro = 0; }
             bool findImg = false;
             foreach (var item in context.recvMessages)
             {

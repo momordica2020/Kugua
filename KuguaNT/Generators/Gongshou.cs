@@ -1,11 +1,7 @@
-﻿using Kugua.Core;
-using Microsoft.AspNetCore.Identity.Data;
-using System.Text;
-
-namespace Kugua.Generators
+﻿namespace Kugua.Generators
 {
     /// <summary>
-    /// 攻守文模板填充相关
+    /// 攻受文模板填充相关
     /// </summary>
     public class Gongshou
     {

@@ -20,9 +20,11 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^开(.+)"), checkID));
             ModCommands.Add(new ModCommand(new Regex(@"^查IP(.+)"), checkIP));
             ModCommands.Add(new ModCommand(new Regex(@"^0[xX]([0-9A-Fa-f]+)$"), convertHex, _needAsk: false));
-            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, _needAsk: false));
-            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)([bB])$"), convertToByteNum, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)$"), convertToHex, _needAsk: true));
+            ModCommands.Add(new ModCommand(new Regex(@"^([0-9]+)([bB])$"), convertToByteNum, _needAsk: true));
             ModCommands.Add(new ModCommand(new Regex(@"^(.+)=$"), calculate, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^url=(.+)$"), UrlDecode, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^tourl=(.+)$"), UrlEncode, _needAsk: false));
 
             try
             {
@@ -192,5 +194,60 @@ namespace Kugua.Mods
             return "";
         }
 
+
+
+
+
+
+
+
+
+        /// <summary>
+        /// URL编码转正常字符
+        /// url=%2Findex.html%3FfromNormal
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string UrlDecode(MessageContext context, string[] param)
+        {
+            try
+            {
+                string data = param[1];
+                if (!string.IsNullOrWhiteSpace(data))
+                {
+                    return System.Web.HttpUtility.UrlDecode(data);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 转URL编码
+        /// tourl=?index哈哈
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string UrlEncode(MessageContext context, string[] param)
+        {
+            try
+            {
+                string data = param[1];
+                if (!string.IsNullOrWhiteSpace(data))
+                {
+                    return System.Web.HttpUtility.UrlEncode(data);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
     }
 }

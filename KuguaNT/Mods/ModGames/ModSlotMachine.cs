@@ -81,9 +81,9 @@ namespace Kugua.Mods
             if (history.ContainsKey(id))
             {
                 var h = history[id];
-                return $"玩老虎{h.playnum}次，共下{h.money.ToHans()}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
+                return $"玩🎰{h.playnum}次，共下{h.money.ToHans()}，胜率{h.winnum}-{h.losenum}({h.winP}%)";
             }
-            return "没有老虎游戏记录";
+            return "没有🎰游戏记录";
         }
 
         /// <summary>

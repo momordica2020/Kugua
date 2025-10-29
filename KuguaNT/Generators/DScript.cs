@@ -18,6 +18,9 @@ namespace Kugua.Generators
         private long AllFrequent = 0;
         public const long DefaultFrequent = 10;
 
+        //public int replaceCount = 0;
+        public const int MaxReplaceCount = 10000;
+
         public DValue(string name = "")
         {
             Name = name;
@@ -99,13 +102,14 @@ namespace Kugua.Generators
         /// </summary>
         /// <param name="ExistParams"></param>
         /// <returns></returns>
-        public string Result(IEnumerable<DValue> ExistParams = null)
+        public string Result(IEnumerable<DValue> ExistParams = null, int nowCount = 0)
         {
-            
             string result = GetTemplate;
             if (ExistParams == null || ExistParams.Count() <= 0) return result;
             bool final = true;
-            int loopCount = 255; // 防止循环卡死
+            // 防止全局循环卡死
+            if (nowCount++ > MaxReplaceCount) return result;
+            int loopCount = 255; // 防止单次替换循环卡死
             do
             {
                 loopCount -= 1;
@@ -116,7 +120,7 @@ namespace Kugua.Generators
                     {
                         int beginIndex = result.IndexOf(param.Name);
                         var resultOri = result + "";
-                        result = result.Substring(0, beginIndex) + param.Result(ExistParams) + result.Substring(beginIndex + param.Name.Length);
+                        result = result.Substring(0, beginIndex) + param.Result(ExistParams, nowCount) + result.Substring(beginIndex + param.Name.Length);
                         if(resultOri != result) final = false;
                     }
                 }

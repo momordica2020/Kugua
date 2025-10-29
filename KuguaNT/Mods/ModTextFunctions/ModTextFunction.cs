@@ -30,6 +30,7 @@ namespace Kugua.Mods
         //string duiP1f = "pairc.txt";
         //Dictionary<string, string[]> cf = new Dictionary<string, string[]>();
         //Dictionary<string, string[]> cf2 = new Dictionary<string, string[]>();
+       
 
         string randomch = "随机-随机汉字.txt";
         string randomChar = "";     
@@ -45,7 +46,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^大写(.+)", RegexOptions.Singleline), handleToUpper));
             ModCommands.Add(new ModCommand(new Regex(@"^小写(.+)", RegexOptions.Singleline), handleToLower));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序(.+)", RegexOptions.Singleline), handleShuffle));
-            ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受", RegexOptions.Singleline), handleGongshou));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受$", RegexOptions.Singleline), handleGongshou));
             ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline), handleRandomString));
             ModCommands.Add(new ModCommand(new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline), handleCutString));
             ModCommands.Add(new ModCommand(new Regex(@"^讽刺(.+)", RegexOptions.Singleline), handleJoke));
@@ -55,7 +56,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^研究一下[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper));
             ModCommands.Add(new ModCommand(new Regex(@"^云杰说道[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper2));
             ModCommands.Add(new ModCommand(new Regex(@"^营销号[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper3));
-
+            ModCommands.Add(new ModCommand(new Regex(@"^(.*)(.{1})什么$", RegexOptions.Singleline), handleEat));
+            ModCommands.Add(new ModCommand(new Regex(@"^(解梦|梦到|梦见)(.+)$", RegexOptions.Singleline), handleDream));
 
 
             string PluginPath = Config.Instance.FullPath("ModePath");
@@ -93,6 +95,12 @@ namespace Kugua.Mods
 
             // spam
             SpamText.Init(LocalStorage.Read($"{PluginPath}/spam.txt"));
+
+            // eat
+            EatText.Init(LocalStorage.Read($"{PluginPath}/data_eat.txt"));
+
+            // dream
+            DreamText.Init(LocalStorage.Read($"{PluginPath}/data_dream.txt"));
 
             // text module
             TextModules.Init(LocalStorage.Read($"{PluginPath}/data_hyly.txt"));
@@ -147,6 +155,13 @@ namespace Kugua.Mods
             return true;
         }
 
+        /// <summary>
+        /// 狗屁不通生成器
+        /// 研究一下：吃饭
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handlePaper(MessageContext context, string[] param)
         {
             string keyword = param[1];
@@ -156,6 +171,14 @@ namespace Kugua.Mods
             return res;
         }
 
+
+        /// <summary>
+        /// 讲车轱辘话
+        /// 云杰说道：吃饭
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handlePaper2(MessageContext context, string[] param)
         {
             string keyword = param[1];
@@ -165,6 +188,15 @@ namespace Kugua.Mods
             return res;
         }
 
+
+
+        /// <summary>
+        /// 模仿营销号
+        /// 营销号：吃饭
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private string handlePaper3(MessageContext context, string[] param)
         {
             string keyword = param[1];
@@ -177,7 +209,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 文本转煋文
-        /// 火星文 错的不是我，是世界！
+        /// 火星文：错的不是我，是世界！
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -384,7 +416,7 @@ namespace Kugua.Mods
                 string gong = param[1];
                 string shou = param[2];
                 if (string.IsNullOrWhiteSpace(gong) || string.IsNullOrWhiteSpace(shou)
-                    || gong.Length > 20 || shou.Length > 20)
+                    || gong.Length > 15 || shou.Length > 15)
                 {
                     return "";
                 }
@@ -465,7 +497,7 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// 垃圾文生成器
+        /// 营销号小编生成器
         /// 什么是：赛马
         /// </summary>
         /// <param name="context"></param>
@@ -751,8 +783,38 @@ namespace Kugua.Mods
 
 
 
+        /// <summary>
+        /// 随机回复
+        /// 今天吃什么/下午玩什么
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleEat(MessageContext context, string[] param)
+        {
+            string keyword = param[1];
+            string verb = param[2];
 
+            var res = EatText.Get(keyword, verb);
 
+            return res;
+        }
+
+        /// <summary>
+        /// 解梦
+        /// 解梦赛马/梦到苦瓜
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleDream(MessageContext context, string[] param)
+        {
+            string keyword = param[2];
+
+            var res = DreamText.Get(keyword);
+
+            return res;
+        }
 
     }
 }

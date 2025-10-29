@@ -8,18 +8,16 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.Drawing.Text;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ZhipuApi.Modules;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using Image = System.Drawing.Image;
 
 namespace Kugua.Core
 {
@@ -143,8 +141,8 @@ namespace Kugua.Core
                 // 获取图片宽高
                 uint width = image.Width;
                 uint height = image.Height;
-                int pos =  (int)degree;
-                
+                int pos = (int)degree;
+
                 // 裁剪右半部分
                 MagickGeometry rightHalfGeometry = new MagickGeometry((int)(width / 2), 0, width / 2, height);
                 using (var cropped = image.Clone())
@@ -155,28 +153,28 @@ namespace Kugua.Core
                         case 1:
                             cropped.Crop(new MagickGeometry(0, 0, width / 2, height)); // 裁切左半部分
                             cropped.Flop(); // 水平翻转
-                       
+
                             outputImage.Composite(cropped, (int)width / 2, 0, CompositeOperator.Src); // 覆盖到右侧
                             break;
 
                         case 2:
                             cropped.Crop(new MagickGeometry((int)width / 2, 0, width / 2, height)); // 裁切右半部分
                             cropped.Flop();
-                        
+
                             outputImage.Composite(cropped, 0, 0, CompositeOperator.Src); // 覆盖到左侧
                             break;
 
                         case 3:
                             cropped.Crop(new MagickGeometry(0, 0, width, height / 2)); // 裁切上半部分
                             cropped.Flip(); // 垂直翻转
-               
+
                             outputImage.Composite(cropped, 0, (int)height / 2, CompositeOperator.Src); // 覆盖到下半部分
                             break;
 
                         case 4:
                             cropped.Crop(new MagickGeometry(0, (int)height / 2, width, height / 2)); // 裁切下半部分
                             cropped.Flip(); // 垂直翻转
-      
+
                             outputImage.Composite(cropped, 0, 0, CompositeOperator.Src); // 覆盖到上半部分
                             break;
                         default: break;
@@ -205,6 +203,38 @@ namespace Kugua.Core
 
 
 
+        public static MagickImageCollection ImgCut(MagickImageCollection images, int top, int bottom, int left, int right)
+        {
+            if (images == null) return null;
+            var oriWidth = images.First().Width;
+            var oriHeight = images.First().Height;
+            uint newWidth = oriWidth - (uint)left - (uint)right;
+            uint newHeight = oriHeight - (uint)top - (uint)bottom;
+            if (images.Count == 1)
+            {
+                // single img
+                images.First().Crop(new MagickGeometry(left, top, (uint)newWidth, (uint)newHeight));
+                return images;
+            }
+
+            MagickImageCollection newImages = new MagickImageCollection();
+            images.Coalesce();
+            foreach (var frame in images)
+            {
+                MagickImage newFrame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), newWidth, newHeight);
+                newFrame.Format = MagickFormat.Gif;
+                newFrame.AnimationDelay = frame.AnimationDelay;
+                newFrame.Composite(frame, left, top, CompositeOperator.Over);
+                newFrame.GifDisposeMethod = GifDisposeMethod.Background;
+                newImages.Add(newFrame);
+            }
+            newImages.Optimize();
+
+            return newImages;
+        }
+
+
+
         /// <summary>
         /// gif图片调速
         /// </summary>
@@ -216,14 +246,14 @@ namespace Kugua.Core
             if (images == null) return null;
             images.Coalesce();
             if (images.Count <= 1)
-            { 
+            {
                 //skip;
             }
             else if (Math.Abs(speed) <= 0.001)
             {
                 // use first img
                 //var imgfirst = images.First();
-                while(images.Count>1)images.RemoveAt(1);
+                while (images.Count > 1) images.RemoveAt(1);
             }
             else
             {
@@ -269,7 +299,7 @@ namespace Kugua.Core
                     // 更新 images 为新的帧列表
                     while (images.Count > 0) images.RemoveAt(0);
                     images.AddRange(newImages);
-                    
+
 
                     // 计算新的 delay，使得总的动画长度符合加速后的比例
                     uint newDelaySum = targetDelaySum;
@@ -429,8 +459,8 @@ namespace Kugua.Core
         public static MagickImage GetColorSamples(List<string> colorCodes, int size = 80)
         {
             MagickImageCollection images = new MagickImageCollection();
-            
-            foreach(var colorCode in colorCodes)
+
+            foreach (var colorCode in colorCodes)
             {
                 images.Add(GetColorSample(colorCode, size));
             }
@@ -454,7 +484,7 @@ namespace Kugua.Core
         /// <param name="colorCode"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public static MagickImage GetColorSample(string colorCode, int size=80)
+        public static MagickImage GetColorSample(string colorCode, int size = 80)
         {
             MagickColor color = new MagickColor(colorCode);
             var image = new MagickImage(color, (uint)size, (uint)size);
@@ -514,7 +544,7 @@ namespace Kugua.Core
         public static List<MagickColor> ImageColorExtract(MagickImageCollection images, int colorCount = 3)
         {
             List<MagickColor> mainColors = new List<MagickColor>();
-            
+
             // 设置量化参数，提取指定数量的颜色
             var settings = new QuantizeSettings
             {
@@ -561,7 +591,7 @@ namespace Kugua.Core
                     image.Resize(smallW, smallH);
                     image.Resize(oriW, oriH);
                 }
-                
+
                 //if (no++ < 5) Logger.Log("! " + image.ColorFuzz);
                 image.ColorFuzz = new Percentage(5);
 
@@ -572,11 +602,11 @@ namespace Kugua.Core
                     var pixelColor = pixel.ToColor();
                     for (int iter = 0; iter < iterations; iter++)
                     {
-                            
+
                         var yuv = Rgb2Yuv(pixelColor.R, pixelColor.G, pixelColor.B);
                         // Apply green shift (UV shift)
                         yuv[1] = yuv[1] - 255; // Slight shift to simulate the green effect
-                                                // Convert back to RGB and set the pixel
+                                               // Convert back to RGB and set the pixel
                         int[] rgb = Yuv2Rgb(yuv[0], yuv[1], yuv[2]);
                         pixelColor.R = (ushort)rgb[0];
                         pixelColor.G = (ushort)rgb[1];
@@ -588,33 +618,33 @@ namespace Kugua.Core
                     // pixels.SetPixel(pixel);
 
                 }
-                
+
             }
             //MemoryStream ms = new MemoryStream();
-            
+
             //images.Optimize();
             //images.OptimizePlus();
-                
+
             var settings = new QuantizeSettings();
             settings.Colors = 256;
-                
+
             images.Quantize(settings);
             images.OptimizeTransparency();
-            for(int i =0;i<iterations;i++)
+            for (int i = 0; i < iterations; i++)
             {
-                    
-                using(MemoryStream mss=new MemoryStream())
+
+                using (MemoryStream mss = new MemoryStream())
                 {
                     foreach (var image in images)
                     {
                         //image.Format = MagickFormat.Jpeg;
-                        image.Quality = (uint)(quality*90 * MyRandom.NextDouble);
+                        image.Quality = (uint)(quality * 90 * MyRandom.NextDouble);
                         //image.Write(ms);
                     }
                     images.Write(mss);
                     byte[] imageBytess = mss.ToArray();
                     images = new MagickImageCollection(imageBytess);
-                } 
+                }
             }
             return images;
             //images.Write(ms);
@@ -622,7 +652,7 @@ namespace Kugua.Core
             ////Logger.Log("bytes => " + imageBytes.Length);
             //string base64String = Convert.ToBase64String(imageBytes);
             //return base64String;
-            
+
         }
 
 
@@ -681,7 +711,7 @@ namespace Kugua.Core
         static Bitmap ConvertBytesToBitmap(byte[] imageBytes)
         {
             if (imageBytes == null || imageBytes.Length == 0) return null;
-               
+
 
             using (MemoryStream memoryStream = new MemoryStream(imageBytes))
             {
@@ -736,7 +766,7 @@ namespace Kugua.Core
 
                 // 从图像四个角落开始，将接近背景色的区域设为透明
                 MakeEdgesTransparent(image, backgroundColor);
-                
+
 
             }
             catch (Exception ex)
@@ -764,7 +794,7 @@ namespace Kugua.Core
                         edgePixels.Add(pixels.GetPixel(x, i).ToColor());
                         edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1 - i).ToColor());
                     }
-                    
+
                     //edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1).ToColor());
                 }
 
@@ -798,7 +828,7 @@ namespace Kugua.Core
         /// </summary>
         private static void MakeEdgesTransparent(MagickImage image, List<IMagickColor<ushort>> backgroundColors)
         {
-            foreach(var backgroundColor in backgroundColors)
+            foreach (var backgroundColor in backgroundColors)
             {
                 // 使用FloodFill从四个角落开始，基于容差将背景色区域设为透明
                 using (var clone = image.Clone())
@@ -991,8 +1021,8 @@ namespace Kugua.Core
                     ImgRemoveBackground2((MagickImage)images[i]);
                     images[i].GifDisposeMethod = GifDisposeMethod.Background;
                     images[i].AnimationDelay = images[i].AnimationDelay;
-                    
-                    if(num==1) images[i].Format = MagickFormat.Png;
+
+                    if (num == 1) images[i].Format = MagickFormat.Png;
                     else images[i].Format = MagickFormat.Gif;
                     // img.Transparent(new MagickColor(0, 0, 0,0));
                     //if(i!=0) img.Alpha(AlphaOption.Copy);
@@ -1011,14 +1041,14 @@ namespace Kugua.Core
 
                 var settings = new QuantizeSettings();
                 settings.Colors = 256;
-                
+
                 images.Quantize(settings);
                 //images.OptimizeTransparency();
                 return images;
 
                 //using (MemoryStream ms = new MemoryStream())
                 //{
-                    
+
                 //    images.Write(ms,MagickFormat.Gif);
                 //    byte[] imageBytes = ms.ToArray();
                 //    string base64String = Convert.ToBase64String(imageBytes);
@@ -1079,7 +1109,7 @@ namespace Kugua.Core
                 // Convert to 0-255 range for image storage
                 pixel.SetChannel(0, (ushort)(65535 * (x * 0.5 + 0.5)));
                 pixel.SetChannel(1, (ushort)(65535 * (y * 0.5 + 0.5)));
-                pixel.SetChannel(2, (ushort)(65535 * (z * 0.5 + 0.5))); 
+                pixel.SetChannel(2, (ushort)(65535 * (z * 0.5 + 0.5)));
             }
             images.Add(frame);
             return images;
@@ -1091,7 +1121,7 @@ namespace Kugua.Core
         {
             InstalledFontCollection MyFont = new InstalledFontCollection();
             FontFamily[] MyFontFamilies = MyFont.Families;
-            foreach(var f in MyFontFamilies)
+            foreach (var f in MyFontFamilies)
             {
                 Logger.Log(f.Name);
             }
@@ -1173,7 +1203,7 @@ namespace Kugua.Core
                     );
             }
             return frame;
-         
+
         }
 
 
@@ -1189,8 +1219,8 @@ namespace Kugua.Core
             int slide = (int)(fontsize * 0.3);
             int lineMax = 10;
             int lineNum = text.Length / lineMax;
-            
-            uint width = (uint)(fontsize * Math.Min(lineMax,text.Length) + slide * 2);
+
+            uint width = (uint)(fontsize * Math.Min(lineMax, text.Length) + slide * 2);
             uint height = (uint)(fontsize * (lineNum + 1) + slide * 2);
 
             var images = new MagickImageCollection();
@@ -1199,7 +1229,7 @@ namespace Kugua.Core
             for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
             {
                 var frame = new MagickImage(
-                    MagickColor.FromRgba(255,255,255,0),
+                    MagickColor.FromRgba(255, 255, 255, 0),
                     width,
                     height
                 );
@@ -1207,24 +1237,24 @@ namespace Kugua.Core
                 frame.AnimationDelay = frameDelay;
                 for (int i = 0; i < text.Length; i++)
                 {
-                    
+
                     frame.Settings.Font = Fonts[MyRandom.Next(Fonts)];
                     frame.Settings.TextGravity = Gravity.West;
                     frame.Settings.FillColor = FontColors[MyRandom.Next(FontColors)];
                     frame.Settings.FontPointsize = fontsize + MyRandom.Next(-5, 5);
                     frame.Annotate(
-                        text[i].ToString(), 
+                        text[i].ToString(),
                         new MagickGeometry(
-                            (int)(i% lineMax * fontsize + MyRandom.Next(5,15) + slide),
-                            (int)(i / lineMax * fontsize + MyRandom.Next(-5,5) + slide),
-                            100, 
-                            100), 
-                        Gravity.Northwest, 
+                            (int)(i % lineMax * fontsize + MyRandom.Next(5, 15) + slide),
+                            (int)(i / lineMax * fontsize + MyRandom.Next(-5, 5) + slide),
+                            100,
+                            100),
+                        Gravity.Northwest,
                         MyRandom.NextDouble
                         );
                 }
 
-                
+
                 //// 添加干扰线
                 //int lineCount = 1;
                 //Drawables drawables = new Drawables();
@@ -1250,7 +1280,7 @@ namespace Kugua.Core
             return images;
             //using (MemoryStream ms = new MemoryStream())
             //{
-                
+
             //    images.Write(ms, MagickFormat.Gif);
             //    byte[] imageBytes = ms.ToArray();
             //    string base64String = Convert.ToBase64String(imageBytes);
@@ -1269,9 +1299,9 @@ namespace Kugua.Core
             //    //    TextGravity = Gravity.Center,
             //    //    FontPointsize = fontsize
             //    //};
-               
-                    
-               
+
+
+
             //    //return (MagickImage)image.Clone(); 
             //}
         }
@@ -1298,32 +1328,32 @@ namespace Kugua.Core
             uint height = (uint)(fontsize * (lineNum + 1) + slide * 2);
 
 
-                var image = new MagickImage(
-                    Config.Instance.FullPath("hongbao.png")
-                    //MagickColor.FromRgba(255, 255, 255, 0),
-                    //width,
-                    //height
+            var image = new MagickImage(
+                Config.Instance.FullPath("hongbao.png")
+            //MagickColor.FromRgba(255, 255, 255, 0),
+            //width,
+            //height
+            );
+
+            //frame.AnimationDelay = frameDelay;
+            image.Settings.Font = "华文细黑";
+            image.Settings.TextGravity = Gravity.West;
+            image.Settings.FillColor = MagickColor.FromRgb(0xD7, 0x99, 0x00);
+            image.Settings.FontPointsize = fontsize;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                image.Annotate(
+                text[i].ToString(),
+                new MagickGeometry(
+                    (int)(image.Width / 2 - width + i % lineMax * offsetsingle + offsetx),
+                   (int)(offsety - height / 2 + i / lineMax * offsetsingle),
+                    width,
+                    height),
+                Gravity.North, 0
                 );
 
-                //frame.AnimationDelay = frameDelay;
-                image.Settings.Font = "华文细黑";
-                image.Settings.TextGravity = Gravity.West;
-                image.Settings.FillColor = MagickColor.FromRgb(0xD7, 0x99, 0x00);
-                image.Settings.FontPointsize = fontsize;
-
-                for (int i = 0; i < text.Length; i++)
-                {
-                    image.Annotate(
-                    text[i].ToString(),
-                    new MagickGeometry(
-                        (int)(image.Width / 2 - width + i% lineMax * offsetsingle + offsetx),
-                       (int)(offsety - height / 2 + i/ lineMax * offsetsingle),
-                        width,
-                        height),
-                    Gravity.North, 0
-                    );
-
-                }
+            }
 
             image.Format = MagickFormat.Png;
             return image;
@@ -1343,8 +1373,8 @@ namespace Kugua.Core
         private static void AddRandomLines(MagickImage image, int lineCount)
         {
             Random random = new Random();
-            
-            
+
+
         }
 
 
@@ -1448,7 +1478,7 @@ namespace Kugua.Core
 
                 //images.Optimize();
                 images.OptimizeTransparency();
-                images.Optimize();
+                //images.Optimize();
                 return images;
             }
             catch (Exception ex)
@@ -1466,7 +1496,7 @@ namespace Kugua.Core
         /// <param name="img"></param>
         /// <param name="degree"></param>
         /// <returns></returns>
-        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 0.5, bool change_size=true)
+        public static MagickImageCollection ImgShake(MagickImageCollection img, double degree = 0.5, bool change_size = true)
         {
             try
             {
@@ -1480,7 +1510,7 @@ namespace Kugua.Core
 
                 var images = new MagickImageCollection();
                 int frameCount = img.Count;
-                if(frameCount == 1)
+                if (frameCount == 1)
                 {
                     var imgg = img[0];
                     uint frameDelay = 5;
@@ -1493,8 +1523,8 @@ namespace Kugua.Core
                         );
                         frame.Format = MagickFormat.Gif;
                         frame.AnimationDelay = frameDelay;
-                        double dx = width * ((MyRandom.NextDouble-0.5) * degree / 10);
-                        double dy = height * ((MyRandom.NextDouble-0.5) * degree / 10);
+                        double dx = width * ((MyRandom.NextDouble - 0.5) * degree / 10);
+                        double dy = height * ((MyRandom.NextDouble - 0.5) * degree / 10);
                         int x = (int)(width / 2 - imgg.Width / 2 + dx);
                         int y = (int)(height / 2 - imgg.Height / 2 + dy);
                         frame.Composite(imgg, x, y, CompositeOperator.Over);
@@ -1546,7 +1576,7 @@ namespace Kugua.Core
         /// <param name="img2"></param>
         /// <param name="horizional"></param>
         /// <returns></returns>
-        public static MagickImageCollection combineImage(MagickImageCollection img1,  MagickImageCollection img2, bool horizional = true)
+        public static MagickImageCollection combineImage(MagickImageCollection img1, MagickImageCollection img2, bool horizional = true)
         {
             MagickImageCollection img = new MagickImageCollection();
 
@@ -1568,9 +1598,9 @@ namespace Kugua.Core
             //uint i2h = img2.First().Height;
             float r1 = 1;
             float r2 = 1;
-            if (horizional)  {
+            if (horizional) {
                 if (i1h > i2h) r2 = ((float)i1h) / i2h;
-                else if (i1h < i2h)  r1 = ((float)i2h) / i1h;
+                else if (i1h < i2h) r1 = ((float)i2h) / i1h;
             } else {
                 if (i1w > i2w) r2 = ((float)i1w) / i2w;
                 else if (i1w < i2w) r1 = ((float)i2w) / i1w;
@@ -1579,6 +1609,8 @@ namespace Kugua.Core
             i1h = (uint)(i1h * r1);
             i2w = (uint)(i2w * r2);
             i2h = (uint)(i2h * r2);
+            img1.Coalesce();
+            img2.Coalesce();
             for (int i = 0; i < fullframes; i++)
             {
                 var img1f = img1[i % img1.Count];
@@ -1603,7 +1635,7 @@ namespace Kugua.Core
                 frame.AnimationDelay = 5;
                 img.Add(frame);
             }
-
+            img.OptimizeTransparency();
 
             return img;
         }
@@ -1618,173 +1650,91 @@ namespace Kugua.Core
 
 
 
+        /// <summary>
+        /// 幻影坦克（黑白）
+        /// </summary>
+        /// <param name="front"></param>
+        /// <param name="back"></param>
+        /// <returns></returns>
 
-
-
-
-
-
-    }
-
-
-    
-    /// <summary>
-    /// 计算图片相似度。基于区域哈希算法
-    /// </summary>
-    class ImageSimilar
-    {
-        Image SourceImg;
-
-        //public SimilarPhoto(string filePath)
-        //{
-        //    SourceImg = Image.FromFile(filePath);
-        //}
-
-        public ImageSimilar(string base64)
+        public static MagickImageCollection ImageBlend(MagickImage front, MagickImage back)
         {
-            if (!string.IsNullOrWhiteSpace(base64))
+            // 确保两张图尺寸相同
+            if (front.Width != back.Width || front.Height != back.Height)
             {
-                using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(base64)))
+                //Console.WriteLine("Warning: images have different sizes, resizing back to front size.");
+                back.Resize(front.Width, front.Height);
+                back.Extent(front.Width, front.Height, Gravity.Center, MagickColors.Black);
+            }
+
+            var res = new MagickImageCollection();
+
+            var frame = new MagickImage(MagickColor.FromRgba(0,0,0,0), front.Width, front.Height);
+            frame.Format = MagickFormat.Png;
+            res.Add(frame);
+            Logger.Log($"{front.Width},{front.Height} ||  {back.Width},{back.Height}");
+            // 获取像素集合
+            var frontPixels = front.GetPixels();
+            var backPixels = back.GetPixels();
+            var resPixels = frame.GetPixels();
+
+            // 亮度系数（与 Shader 完全一致）
+            const double rWeight = 0.222;
+            const double gWeight = 0.707;
+            const double bWeight = 0.071;
+            ushort[] pixel = new ushort[4];
+            const double MAX_16 = 65535.0;
+            // 显式双循环
+            for (int y = 0; y < front.Height; y++)
+            {
+                for (int x = 0; x < front.Width; x++)
                 {
-                    SourceImg = Image.FromStream(ms);
+                    // 读取前景像素 (R,G,B,A) → 仅用 RGB
+                    var fp = frontPixels.GetPixel(x, y);
+                    double fr = fp.GetChannel(0) / MAX_16;
+                    double fg = fp.GetChannel(1) / MAX_16;
+                    double fb = fp.GetChannel(2) / MAX_16;
+
+                    // 读取背景像素
+                    var bp = backPixels.GetPixel(x, y);
+                    double br = bp.GetChannel(0) / MAX_16;
+                    double bg = bp.GetChannel(1) / MAX_16;
+                    double bb = bp.GetChannel(2) / MAX_16;
+
+                    // ---- Shader: color1.rgb = dot(rgb, (.222,.707,.071)) ----
+                    double gray1 = fr * rWeight + fg * gWeight + fb * bWeight;
+
+                    // ---- Shader: color2.rgb = dot(...) * 0.3 ----
+                    double gray2 = (br * rWeight + bg * gWeight + bb * bWeight) * 0.3;
+
+                    // ---- Shader: a = 1 - color1.r + color2.r ----
+                    double a = 1.0 - gray1 + gray2;
+
+                    // 防止除以 0（理论上 a >= 0.0）
+                    double r = a > 1e-8 ? gray2 / a : 0.0;
+
+                    // 限制到 [0,1]
+                    r = Math.Clamp(r, 0.0, 1.0);
+                    a = Math.Clamp(a, 0.0, 1.0);
+
+                    // 转为 0~255 并写入结果
+                    ushort outR = (ushort)Math.Round(r * MAX_16);
+                    ushort outA = (ushort)Math.Round(a * MAX_16);
+
+                    // 写入单像素：R=G=B=r, A=a
+                    pixel[0] = (ushort)Math.Round(r * MAX_16);  // R
+                    pixel[1] = pixel[0];                     // G
+                    pixel[2] = pixel[0];                     // B
+                    pixel[3] = (ushort)Math.Round(a * MAX_16);  // A
+                    
+                    resPixels.SetArea(x, y, 1, 1, pixel);
                 }
             }
-        }
-
-        public ImageSimilar(Stream stream)
-        {
-            SourceImg = Image.FromStream(stream);
-        }
-
-        /// <summary>
-        /// 计算图片的像素哈希
-        /// </summary>
-        /// <param name="base64"></param>
-        /// <returns></returns>
-        public static string GetHashFromBase64(string base64)
-        {
-            var img = new ImageSimilar(base64);
-            return img.GetHash(base64);
-        }
-
-        public string GetHash(string base64)
-        {
-            var resized = ReduceSize();
-            var blurred = ApplyGaussianBlur(resized);
-            var grayValues = ReduceColor(blurred);
-            var median = CalcMedian(grayValues);
-            return ComputeBits(grayValues, median);
-        }
-
-        /// <summary>
-        /// Step 1 : Reduce size to 8*8
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <returns></returns>
-        private Image ReduceSize(int width = 8, int height = 8)
-        {
-            var destImage = new Bitmap(width, height);
-            using (var graphics = Graphics.FromImage(destImage))
-            {
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.DrawImage(SourceImg, 0, 0, width, height);
-            }
-            return destImage;
-        }
-
-        /// <summary>
-        /// （高斯模糊）​减少噪声干扰，提升特征稳定性。
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        private Bitmap ApplyGaussianBlur(Image image)
-        {
-            var blurred = new Bitmap(image.Width, image.Height);
-            using (var graphics = Graphics.FromImage(blurred))
-            using (var blurEffect = new ImageAttributes())
-            {
-                // 使用高斯模糊（需System.Drawing.Common）
-                blurEffect.SetColorMatrix(new ColorMatrix(new float[][]
-                {
-                    new float[] { 0.1f, 0.1f, 0.1f, 0, 0 },
-                    new float[] { 0.1f, 0.2f, 0.1f, 0, 0 },
-                    new float[] { 0.1f, 0.1f, 0.1f, 0, 0 },
-                    new float[] { 0, 0, 0, 1, 0 },
-                    new float[] { 0, 0, 0, 0, 1 }
-                }));
-                graphics.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height),
-                    0, 0, image.Width, image.Height, GraphicsUnit.Pixel, blurEffect);
-            }
-            return blurred;
-        }
-
-        /// <summary>
-        /// Step 2 : Reduce Color
-        /// </summary>
-        /// <param name="oriImage"></param>
-        /// <returns></returns>
-        private byte[] ReduceColor(Image image)
-        {
-
-            Bitmap bitMap = new Bitmap(image);
-            byte[] grayValues = new byte[image.Width * image.Height];
-
-            for (int x = 0; x < image.Width; x++)
-                for (int y = 0; y < image.Height; y++)
-                {
-                    Color color = bitMap.GetPixel(x, y);
-                    // 使用浮点系数计算
-                    //byte grayValue = (byte)((color.R * 30 + color.G * 59 + color.B * 11) / 100);
-                    byte grayValue = (byte)(color.R * 0.299 + color.G * 0.587 + color.B * 0.114);
-                    grayValues[x * image.Width + y] = grayValue;
-                }
-            return grayValues;
-
-        }
-
-
-        /// <summary>
-        /// 计算归一化汉明距离（相似度的百分比，范围在0~1）
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public static double CalcSimilarDegree(string a, string b)
-        {
-            if (a.Length != b.Length) throw new ArgumentException();
-            int differences = a.Zip(b, (c1, c2) => c1 != c2 ? 1 : 0).Sum();
-            return 1.0 - (double)differences / a.Length;
-        }
-
-        /// <summary>
-        /// 计算中位数.平均值对光照敏感，改用中位数提升鲁棒性
-        /// </summary>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        private byte CalcMedian(byte[] values)
-        {
-            var sorted = values.OrderBy(v => v).ToArray();
-            int mid = sorted.Length / 2;
-            return sorted.Length % 2 != 0 ? sorted[mid] : (byte)((sorted[mid - 1] + sorted[mid]) / 2);
-        }
-
-        private string ComputeBits(byte[] values, byte threshold, int width = 8)
-        {
-            var hash = new StringBuilder();
-            for (int i = 0; i < values.Length; i++)
-            {
-                // 差异哈希（比较右侧像素）
-                if (i % width != width - 1)
-                    hash.Append(values[i] > values[i + 1] ? "1" : "0");
-            }
-            return hash.ToString();
+            return res;
         }
 
 
 
-    }
+
+    } 
 }
