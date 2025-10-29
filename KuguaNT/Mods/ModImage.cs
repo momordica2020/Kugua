@@ -56,7 +56,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^抠图", RegexOptions.Singleline), setRemoveBackground));
             ModCommands.Add(new ModCommand(new Regex(@"^([上下左右]+)切(.+)$", RegexOptions.Singleline), setCut));
             ModCommands.Add(new ModCommand(new Regex(@"^([横竖]*)缩放(.+)$", RegexOptions.Singleline), setResize));
-            ModCommands.Add(new ModCommand(new Regex(@"^幻影$", RegexOptions.Singleline), setHYTK));
+            ModCommands.Add(new ModCommand(new Regex(@"^(彩色)?幻影(坦克)?$", RegexOptions.Singleline), setHYTK));
 
             ModCommands.Add(new ModCommand(new Regex(@"^网格化2$", RegexOptions.Singleline), setPixelChange2));
             ModCommands.Add(new ModCommand(new Regex(@"^网格化$", RegexOptions.Singleline), setPixelChange1));
@@ -798,13 +798,24 @@ namespace Kugua.Mods
 
         private string setHYTK(MessageContext context, string[] param)
         {
-            if (!context.IsImage || context.Images.Count < 2) WaitNext(context, new ModCommand(new Regex(@"^幻影(.+)$", RegexOptions.Singleline), setHYTK));
+            
+            if (!context.IsImage || context.Images.Count < 2) WaitNext(context, new ModCommand(new Regex(@"^(彩色)?幻影(坦克)?$", RegexOptions.Singleline), setHYTK));
             else
             {
                 MagickImage img1 = (MagickImage)Network.DownloadImage(context.Images[0].url).First();
                 MagickImage img2 = (MagickImage)Network.DownloadImage(context.Images[1].url).First();
-                var res = ImageUtil.ImageBlend(img1, img2);
-                context.SendBackImage(res);
+                if (!string.IsNullOrWhiteSpace(param[1]))
+                {
+                    var res = ImageUtil.ImageBlendColorful(img1, img2);
+                    context.SendBackImage(res);
+                }
+                else
+                {
+                    var res = ImageUtil.ImageBlend(img1, img2);
+                    context.SendBackImage(res);
+                }
+                
+                
             }
 
             return null;
