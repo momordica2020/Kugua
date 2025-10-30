@@ -5,9 +5,11 @@ using Kugua.Integrations.NTBot;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
+using OpenAI;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.Numerics;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ZhipuApi.Modules;
@@ -24,8 +26,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
 
-            //ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
-            //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
+            ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
+            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
@@ -866,38 +868,23 @@ namespace Kugua.Mods
         private string genImg(MessageContext context, string[] param)
         {
             var desc = param[1];
-            if (context.IsImage)
-            {
-                // 以图生图
+            //if (context.IsImage)
+            //{
+            //    // 以图生图
 
-                desc += LLM.Instance.HSGetImgDesc(context.PNG1Base64, "请用200字以内的文字描述这张图的内容，务必注意细节。注意强调艺术风格、肢体动作、表情、物品的位置等。", "png");
-                context.SendBackText(desc);
-                if (desc.Contains("ERROR")) return null;
-            }
-            else if (string.IsNullOrWhiteSpace(desc))
+            //    desc += LLM.Instance.HSGetImgDesc(context.PNG1Base64, "请用200字以内的文字描述这张图的内容，务必注意细节。注意强调艺术风格、肢体动作、表情、物品的位置等。", "png");
+            //    context.SendBackText(desc);
+            //    if (desc.Contains("ERROR")) return null;
+            //}
+            //else 
+            if (string.IsNullOrWhiteSpace(desc))
             {
                 WaitNext(context, new ModCommand(new Regex(@"生图(.*)", RegexOptions.Singleline), genImg));
                 return null;
             }
-            
-            if (!string.IsNullOrWhiteSpace(desc))
-            {
-                if(ModBank.Instance.GetPay(context.userId, LLM.ImgMoneyCost))
-                {
-                    if(!LLM.Instance.ZPImage(context, desc))
-                    {
-                        // fail
-                        ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, LLM.ImgMoneyCost, out _);
-                    }
-                    return null;
-                }
-                else
-                {
-                    return $"{ModBank.unitName}不够，每次需{LLM.ImgMoneyCost.ToHans()}";
-                } 
-            }
 
-            return "";
+            return GenerateImageAndSendback(context, desc, null);
+
         }
 
 
@@ -913,46 +900,52 @@ namespace Kugua.Mods
             var lang = param[1];
             if (lang == "外") lang = "德";
             var desc = param[2];
-            if (context.IsImage)
-            {
-                // 以图生图
+            //if (context.IsImage)
+            //{
+            //    // 以图生图
+            //    desc = ModTranslate.getTrans(desc, lang);
+            //    context.SendBackText(desc);
 
-                desc += LLM.Instance.ZPGetImgDesc(context.PNG1Base64, "请用详细文字描述这张图的内容，以便我根据你的描述用AI生成新的图片。注意强调艺术风格、肢体动作、表情、物品的位置等。");
-                desc = ModTranslate.getTrans(desc, lang);
-                context.SendBackText(desc);
-
-                if (desc.Contains("ERROR")) return null;
-            }
-            else if (string.IsNullOrWhiteSpace(desc))
+            //    if (desc.Contains("ERROR")) return null;
+            //}
+            //else 
+            if (string.IsNullOrWhiteSpace(desc))
             {
                 WaitNext(context, new ModCommand(new Regex(lang + @"语生图(.*)", RegexOptions.Singleline), genImg2));
                 return null;
             }
 
+            desc = ModTranslate.getTrans(desc, lang);
+            // TODO image to image
+            return GenerateImageAndSendback(context, desc, null);
 
-            if (!string.IsNullOrWhiteSpace(desc))
+        }
+
+        string GenerateImageAndSendback(MessageContext context, string prompt, string[] oriImages = null)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) return "";
+            BigInteger imgCost = BigInteger.Max(1000, context.User.Money / 33);
+            if (ModBank.Instance.GetPay(context.userId, imgCost))
             {
-                if (!string.IsNullOrWhiteSpace(desc))
+                var imgBase64 = LLM.Instance.HSGetImg(prompt);
+                if (imgBase64 == null)
                 {
-                    if (ModBank.Instance.GetPay(context.userId, LLM.ImgMoneyCost))
-                    {
-                        desc = ModTranslate.getTrans(desc, lang);
-                        if (!LLM.Instance.ZPImage(context, desc))
-                        {
-                            // fail
-                            ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, LLM.ImgMoneyCost, out _);
-                        }
-                        return null;
-                    }
-                    else
-                    {
-                        return $"{ModBank.unitName}不够，每次需{LLM.ImgMoneyCost.ToHans()}";
-                    }
+                    // 生图出错，返还钱币
+                    ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, imgCost, out _);
+                    return "画不出来";
                 }
+                else
+                {
+                    context.SendBack([new ImageSend($"base64://{imgBase64}")]);
+                    return null;
 
+                }
+                
             }
-
-            return "";
+            else
+            {
+                return $"{ModBank.unitName}不够，以你的身价得花{imgCost.ToHans()}";
+            }
         }
 
         /// <summary>

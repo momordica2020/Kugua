@@ -60,9 +60,10 @@ namespace Kugua
                     using (HttpResponseMessage response = client.GetAsync(url).Result)
                     {
                         response.EnsureSuccessStatusCode(); // 确保请求成功
-
+                        Directory.CreateDirectory(Path.GetDirectoryName(localPath));
                         // 读取图片内容
                         using (var stream = response.Content.ReadAsStream())
+                            
                         using (var fileStream = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None))
                         {
                             stream.CopyTo(fileStream); // 将内容写入本地文件
@@ -94,7 +95,7 @@ namespace Kugua
                     using (HttpResponseMessage response = await client.GetAsync(url))
                     {
                         response.EnsureSuccessStatusCode(); // 确保请求成功
-
+                        Directory.CreateDirectory(Path.GetDirectoryName(localPath));
                         // 读取图片内容
                         using (var stream = await response.Content.ReadAsStreamAsync())
                         using (var fileStream = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None))

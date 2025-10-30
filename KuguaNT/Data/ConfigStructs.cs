@@ -9,6 +9,8 @@
         public string ResourcePath { get; set; }
 
         public AvatarConfigs Avatar { get; set; }
+
+        public AIConfigs AI {  get; set; }
         public NetConfigs Net { get; set; }
 
         public Dictionary<string, Resource> Resources { get; set; }
@@ -74,7 +76,15 @@
         public string adminGroup { get; set; }
     }
 
+    public class AIConfigs
+    {
+        public string HSApiKey { get; set; }
+        public string HSApiUrl { get; set; }
+        public string HSModelNameVision { get; set; }
+        public string HSModelNameChat { get; set; }
 
+        public string HSModelNameImage {  get; set; }
+    }
     #endregion
 
 

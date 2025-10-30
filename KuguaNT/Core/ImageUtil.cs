@@ -1390,17 +1390,18 @@ namespace Kugua.Core
             try
             {
                 // 构建 FFmpeg 命令
-                string ffmpegCommand = $"-i \"{videoUrl}\" -vf \"select=eq(n\\,0)\" -q:v 2 -frames:v 1 \"{outputImagePath}\"";
+                string ffmpegCommand = $" -i \"{videoUrl}\" -vf \"select=eq(n\\,0)\" -q:v 2 -frames:v 1 \"{outputImagePath}\"";
                 Logger.Log(ffmpegCommand);
                 // 启动 FFmpeg 进程
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
-                    FileName = "D:\\ffmpeg\\bin\\ffmpeg.exe ", // FFmpeg 可执行文件路径
+                    FileName = "ffmpeg",///"D:\\ffmpeg\\bin\\ffmpeg.exe", // FFmpeg 可执行文件路径
                     Arguments = ffmpegCommand,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
                     CreateNoWindow = true
+                    //RedirectStandardOutput = true,
+                    //RedirectStandardError = true,
+                    //UseShellExecute = false,
+                    //CreateNoWindow = true
                 };
 
                 using (Process process = new Process { StartInfo = startInfo })

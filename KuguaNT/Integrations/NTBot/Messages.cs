@@ -262,11 +262,13 @@ namespace Kugua.Integrations.NTBot
         public string file { get; set; }
         public string? url { get; set; }
 
-        public int? cache { get; set; }
+        public int? file_size { get; set; }
 
-        public int? proxy { get; set; }
+        //public int? cache { get; set; }
 
-        public int? timeout { get; set; } // 下载超时时间
+        //public int? proxy { get; set; }
+
+        //public int? timeout { get; set; } // 下载超时时间
         public Video()
         {
 
@@ -276,13 +278,7 @@ namespace Kugua.Integrations.NTBot
             this.file = file;
         }
 
-        public Video(string file, int cache, int proxy, int timeout = 3)
-        {
-            this.file = file;
-            this.cache = cache;
-            this.proxy = proxy;
-            this.timeout = timeout;
-        }
+
     }
 
     /// <summary>

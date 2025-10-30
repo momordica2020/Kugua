@@ -61,7 +61,7 @@ namespace Kugua.Mods
         {
             try
             {
-                ModCommands.Add(new ModCommand(new Regex(@"^搬史(启动|停止)$", RegexOptions.Singleline), setState));
+                ModCommands.Add(new ModCommand(new Regex(@"^转发(启动|停止)$", RegexOptions.Singleline), setState));
 
 
                 ModCommands.Add(new ModCommand(new Regex(@"^转发情况$", RegexOptions.Singleline), showList));
@@ -132,13 +132,13 @@ namespace Kugua.Mods
             try
             {
                 if (!context.IsAdminUser) return "";
-                var state = param[1];
-                if(state == "启动")
+                var command = param[1];
+                if(command == "启动")
                 {
                     config.open = true;
                     Save();
                     return "搬史启动。";
-                }else if (state == "停止")
+                }else if (command == "停止")
                 {
                     config.open = false;
                     Save();
@@ -440,7 +440,11 @@ namespace Kugua.Mods
         /// <param name="e"></param>
         private void TaskTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            if (!config.open) return;
+
+
+
+
+          
             
 
 
@@ -448,8 +452,13 @@ namespace Kugua.Mods
 
             foreach(ShitTarget target in ShitTargets)
             {
+                
+
+
+
                 if (target.groupinfo.tags.Contains("slow"))
                 {
+                    if (config.open == false) continue;
                     Logger.Log($"slow {target.groupinfo.targetId}库存{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
 
                     if (target.spanM < 10)
@@ -458,9 +467,9 @@ namespace Kugua.Mods
 
                     }
                 }
-                    
-                else if (target.groupinfo.tags.Contains("AI")) { }
-                else { continue; }
+                else if (target.groupinfo.tags.Contains("无条件")) { }
+                else if (config.open == false) continue;
+                else { }
                 var goodshits = target.getBestAIShits();
                 Logger.Log($"{target.groupinfo.targetId}库存{goodshits.Count}/{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
                 if (goodshits==null || goodshits.Count<1) continue;
@@ -531,7 +540,9 @@ namespace Kugua.Mods
 
                 LocalStorage.WriteResource(configfile, JsonConvert.SerializeObject(config));
 
-                LocalStorage.WriteResource(hashfile, string.Join("\r\n", oldHash.ToArray()));
+                var allHash = oldHash.ToList();
+                foreach(var hs in shithash.Keys)if(!allHash.Contains(hs)) allHash.Add(hs);
+                LocalStorage.WriteResource(hashfile, string.Join("\r\n", allHash));
             }
             catch (Exception ex)
             {
@@ -734,19 +745,23 @@ namespace Kugua.Mods
             try
             {
                 //Logger.Log($"!config.open?{!config.open}");
-                if (config.open && ShitSource.ContainsKey(context.groupId))
+                if (true || config.open)
                 {
-                    var source = ShitSource[context.groupId];
-                    if (!string.IsNullOrWhiteSpace(source.tags) &&  source.tags.Contains("全转"))
+                    if (ShitSource.ContainsKey(context.groupId))
                     {
-                        addNewShit(context, config.min_score + 1);
+                        var source = ShitSource[context.groupId];
+                        if (!string.IsNullOrWhiteSpace(source.tags) && source.tags.Contains("全转"))
+                        {
+                            addNewShit(context, config.min_score + 1);
+                        }
+                        else
+                        {
+                            addNewShit(context);
+                        }
+
                     }
-                    else
-                    {
-                        addNewShit(context);
-                    }
-                    
                 }
+
             }
             catch (Exception ex)
             {
@@ -866,9 +881,6 @@ namespace Kugua.Mods
             createGroup = _context.groupId;
             createUser = _context.userId;
             score = 0;
-            //AIscore = 0;
-            //published = false;
-            //publishedAI = false;
             isForward = false;
             isVideo = false;
 
@@ -908,10 +920,27 @@ namespace Kugua.Mods
                     //    //break;
 
                     //}
+                    
+                    string localVideoPath = Config.Instance.FullPath($"Temp\\{video.file}");
+                    Network.Download(video.url, localVideoPath);
+                    //Logger.Log($"{video.url} |||||||||| {localVideoPath}");
+                    string localFramePath = localVideoPath.Replace("mp4", "jpg");
+                    if (ImageUtil.CaptureFirstFrame(localVideoPath, localFramePath))
+                    {
+                        var base64 = Convert.ToBase64String(File.ReadAllBytes(localFramePath));
+                        var hash = ImageSimilar.GetHashFromBase64(base64);
+                        Logger.Log($"   VIDEO HASH    ={hash}");
+                        //break;
+                        
+                        
+                        isVideo = true;
+                        _hashs.Add(Util.ComputeHash(hash));
+                        File.Delete(localFramePath);
+                        File.Delete(localVideoPath);
 
-                    Logger.Log($"<hashvideo>{video.file}");
-                    isVideo = true;
-                    _hashs.Add(Util.ComputeHash(video.file));
+                    }
+
+                    
                     //_hash = Util.ComputeHash(_hash + video.file);
 
                 }
