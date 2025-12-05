@@ -53,7 +53,7 @@ namespace Kugua.Mods
                 foreach (var prop in user.prop)
                 {
                     if (prop.Value == 0) continue;
-                    else if (prop.Key == "灵力") res += $"{prop.Key}：{prop.Value.ToSci()} / {GetLevelPower(user.level).ToSci()}\r\n";
+                    else if (prop.Key == "灵力") res += $"{prop.Key}：{(prop.Value>= GetLevelPower(user.level)?"【可突破】":"")}{prop.Value.ToSci()} / {GetLevelPower(user.level).ToSci()}\r\n";
                     else res += $"{prop.Key}：{prop.Value.ToSci()}\r\n";
                 }
 
@@ -77,7 +77,11 @@ namespace Kugua.Mods
 
 
 
-
+        /// <summary>
+        /// 突破
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static string Ctupo(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) return "";
@@ -144,7 +148,14 @@ namespace Kugua.Mods
 
             return res;
         }
+        
 
+
+        /// <summary>
+        /// 重开
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static string Crestart(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) return "";
@@ -167,6 +178,14 @@ namespace Kugua.Mods
             return res;
         }
 
+
+
+        /// <summary>
+        /// 发布行动指令。包括修炼、夺宝之类
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public static string Cact(string id, string action)
         {
             if (string.IsNullOrWhiteSpace(id)) return "";
@@ -199,7 +218,11 @@ namespace Kugua.Mods
 
                     //string action = MyRandom.NextString(["战斗", "修炼", "奇遇", "夺宝"]);
                     string area = AGarea(user,action);
-
+                    if (user.items.Count > 0 && MyRandom.NextDouble < 0.3)
+                    {
+                        // lost item
+                        lostitemDesc = $"，消耗了{getLostItem(user)}";
+                    }
                     if (user.prop["灵力"] >= GetLevelPower(user.level))
                     {
                         // reach floor.
@@ -212,12 +235,8 @@ namespace Kugua.Mods
                         else
                         {
                             // 灵力达到上限时候的格斗或者寻宝
-                            if (user.items.Count > 0 && MyRandom.NextDouble < 0.3)
-                            {
-                                // lost item
-                                lostitemDesc = $"，消耗了{getLostItem(user)}";
-                            }
-                            else if (MyRandom.NextDouble < 0.7)
+                            
+                            if (MyRandom.NextDouble < 0.1)
                             {
                                 newitemDesc = $"一无所获";
                             }
@@ -232,20 +251,15 @@ namespace Kugua.Mods
                     else
                     {
                         //res = $"{user.FullName}开始{action}……\r\n";
-                        BigInteger addMax = user.level * 130;
-                        BigInteger addMin = user.level * -60;
+                        ;
+                        BigInteger addMax = GetLevelPower(user.level) * 100 / 500;
+                        BigInteger addMin = GetLevelPower(user.level) * -100 / 5000;
                         BigInteger addBase = MyRandom.Next(addMin, addMax);
                         BigInteger add = addBase;
                         user.prop["灵力"] += add;
                         powerDesc = $"{(add > 0 ? $"获取{add.ToSci()}" : $"失去{(-add).ToSci()}")}点灵力";
 
-                        if (user.items.Count > 0 && MyRandom.NextDouble < 0.1)
-                        {
-                            // lost item
-                            lostitemDesc = $"，消耗了{getLostItem(user)}";
-                        }
-
-                        if (MyRandom.NextDouble < 0.2)
+                        if (MyRandom.NextDouble < 0.5)
                         {
                             // get item
                             newitemDesc = $"，获得了{getNewItem(user, $"在{area}{action}")}";
@@ -280,7 +294,7 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// itemName是模糊匹配所有
+        /// 使用物品。其中itemName字段是模糊匹配
         /// </summary>
         /// <param name="id"></param>
         /// <param name="itemName"></param>
@@ -327,6 +341,13 @@ namespace Kugua.Mods
         }
 
 
+        /// <summary>
+        /// 双修或者切磋
+        /// </summary>
+        /// <param name="id1"></param>
+        /// <param name="id2"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public static string Cshuangxiu(string id1,string id2, string action)
         {
             if (string.IsNullOrWhiteSpace(id1)) return "";
@@ -455,6 +476,13 @@ namespace Kugua.Mods
 
         }
 
+
+
+        /// <summary>
+        /// 刷新修炼的冷却期
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static string CrefreshCD(string id)
         {
             if (!users.ContainsKey(id))
@@ -492,7 +520,11 @@ namespace Kugua.Mods
 
 
 
-
+        /// <summary>
+        /// 助人为乐，无偿奉献
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static string Cpaid(string id)
         {
             if (!users.ContainsKey(id))
@@ -518,13 +550,13 @@ namespace Kugua.Mods
                         user.prop["灵力"] -= paid;
                         string end = "";
                         var checknum = MyRandom.NextDouble;
-                        if (checknum < 0.15)
+                        if (checknum < 0.3)
                         {
                             user.lastPlayDate = user.lastPlayDate.AddDays(-2);
                             user.lastShuangxiuDate = user.lastShuangxiuDate.AddDays(-2);
                             end = "完全恢复了他的活力";
                         }
-                        else if(checknum < 0.4)
+                        else if(checknum < 0.8)
                         {
                             string pname = MyRandom.NextString(["灵石", "神识", "气血", "机缘"]);
                             if (!helptarget.prop.ContainsKey(pname)) helptarget.prop[pname] = 0;

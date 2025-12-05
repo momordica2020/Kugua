@@ -682,6 +682,30 @@ namespace Kugua
             return "";
         }
 
+        /// <summary>
+        /// 消息长度，用于计算转发消息是否超过5MB限制
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns></returns>
+        public static int MessageSize(Message[] messages)
+        {
+            int res = 0;
+
+            foreach (var msg in messages)
+            {
+                if (msg is Text text)
+                {
+                    res += Encoding.UTF8.GetByteCount(text.text);
+                }
+                else if (msg is ImageSend img)
+                {
+                    res += Encoding.UTF8.GetByteCount(img.file);
+                }
+            }
+
+                return res;
+        }
+
 
 
         /// <summary>
@@ -692,19 +716,40 @@ namespace Kugua
         public void SendForward(Message[] _messages, string group = "")
         {
             if (string.IsNullOrWhiteSpace(group)) group = groupId;
-            if (!CanSendout(group,true)) return;
+            if (!CanSendout(group, isGroup:true)) return;
 
-            List<Message> nodes = new List<Message>();
-            foreach(var msg in _messages)
+            if (_messages == null || _messages.Length == 0) return;
+            // 每组最多10条
+            const int BatchSize = 10;                    
+            var nodes = new List<Message>();
+            const int MaxMessageSize = 5 * 1024 * 1024; // 5MB
+            const int MaxMessageCount = 100;
+            int currentMessageSize = 0;
+            int currentMessageCount = 0;
+
+
+            for (int i = 0; i < _messages.Length; i += BatchSize)
             {
+                var batch = _messages.Skip(i)
+                                     .Take(BatchSize)
+                                     .ToArray();
+                currentMessageSize += MessageSize(batch);
+                currentMessageCount += batch.Length;
+                if (currentMessageSize >= MaxMessageSize || currentMessageCount > MaxMessageCount)
+                {
+                    client.SendForwardMessageToGroup(group, nodes);
+                    nodes.Clear();
+                    currentMessageSize = 0;
+                    currentMessageCount = 0;
+                    continue;
+                }
+                var contentList = batch.Select(msg => new MessageInfo(msg)).ToList();
+
                 nodes.Add(new ForwardNodeNew
                 {
                     user_id = Config.Instance.BotQQ,
                     nickname = Config.Instance.BotName,
-                    content = new List<MessageInfo>()
-                    {
-                        new MessageInfo(msg)
-                    }
+                    content = contentList
                 });
             }
 

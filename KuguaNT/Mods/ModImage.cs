@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Numerics;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ZhipuApi.Modules;
@@ -39,8 +40,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^拆$", RegexOptions.Singleline), unzipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^拆(.+)x(.+)$", RegexOptions.Singleline), unzipImage));
             ModCommands.Add(new ModCommand(new Regex(@"^删(.+)$", RegexOptions.Singleline), removeGifFrame));
-            ModCommands.Add(new ModCommand(new Regex(@"^拆序列帧(.*)$", RegexOptions.Singleline), unzipGifFrameImg));
-            ModCommands.Add(new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^拆帧(.*)$", RegexOptions.Singleline), unzipGifFrameImg));
+            ModCommands.Add(new ModCommand(new Regex(@"^合(\S*)$", RegexOptions.Singleline), zipGif));
             ModCommands.Add(new ModCommand(new Regex(@"^竖拼$", RegexOptions.Singleline), combineV));
             ModCommands.Add(new ModCommand(new Regex(@"^横拼$", RegexOptions.Singleline), combineH));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
@@ -62,7 +63,8 @@ namespace Kugua.Mods
 
             ModCommands.Add(new ModCommand(new Regex(@"^网格化2$", RegexOptions.Singleline), setPixelChange2));
             ModCommands.Add(new ModCommand(new Regex(@"^网格化$", RegexOptions.Singleline), setPixelChange1));
-            
+
+            ModCommands.Add(new ModCommand(new Regex(@"^摸摸$", RegexOptions.Singleline), setTouchBall));
 
             return true;
         }
@@ -164,7 +166,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 拆序列帧，即将帧图像合并成条图
-        /// 拆序列帧 [图片]
+        /// 拆帧 [图片]
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -189,7 +191,7 @@ namespace Kugua.Mods
                 context.SendBackImage(res, $"一共{imgs.Count}帧");
             }
 
-            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆序列帧$", RegexOptions.Singleline), unzipGifFrameImg));
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^拆帧$", RegexOptions.Singleline), unzipGifFrameImg));
             return null;
         }
 
@@ -250,8 +252,8 @@ namespace Kugua.Mods
         }
 
         /// <summary>
-        /// 合并图片序列到一个gif里
-        /// 合 [图片1][图片2]
+        /// 合并图片序列到一个gif里，或者合并序列帧
+        /// 合 [图片1][图片2]/ 合 3x4 [图片]
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -265,28 +267,63 @@ namespace Kugua.Mods
                 MagickImageCollection images = new MagickImageCollection();
                 uint minH = 400;
                 uint minW = 400;
-                foreach(var img in context.Images)
+                if (context.Images.Count >= 2)
                 {
-                    var thisimgs = Network.DownloadImage(img.url);
-                    thisimgs.Coalesce();
-                    foreach (var thisimg in thisimgs)
+                    // multi images => gif
+                    foreach (var img in context.Images)
                     {
-                        thisimg.Format = MagickFormat.Gif;
-                        thisimg.AnimationDelay = 5;
-                        thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+                        var thisimgs = Network.DownloadImage(img.url);
+                        thisimgs.Coalesce();
+                        foreach (var thisimg in thisimgs)
+                        {
+                            thisimg.Format = MagickFormat.Gif;
+                            thisimg.AnimationDelay = 5;
+                            thisimg.GifDisposeMethod = GifDisposeMethod.Background;
 
-                        if (thisimg.Height < thisimg.Width)
-                        {
-                            uint targetWidth = (uint)((double)thisimg.Width / thisimg.Height * minH);
-                            thisimg.Resize(targetWidth, minH);
+                            if (thisimg.Height < thisimg.Width)
+                            {
+                                uint targetWidth = (uint)((double)thisimg.Width / thisimg.Height * minH);
+                                thisimg.Resize(targetWidth, minH);
+                            }
+                            else
+                            {
+                                uint targetHeight = (uint)((double)thisimg.Height / thisimg.Width * minW);
+                                thisimg.Resize(minW, targetHeight);
+                            }
+
+                            images.Add(thisimg);
                         }
-                        else
+                    }
+
+                }
+                else if(context.Images.Count==1)
+                {
+                    // sprite frame => gif
+                    int row = 1;
+                    int col = 1;
+                    if (param[1].Length > 1 && param[1].Contains('x'))
+                    {
+                        row = int.Parse(param[1].Split('x')[0]);
+                        col = int.Parse(param[1].Split('x')[1]);
+                        if (row <= 0) row = 1;
+                        if (col <= 0) col = 1;
+                    }
+                    var thisimg = Network.DownloadImage(context.Images.First().url).First();
+                    uint frameW = (uint)(thisimg.Width / col);
+                    uint frameH = (uint)(thisimg.Height / row);
+                    for (int r = 0; r < row; r++)
+                    {
+                        for (int c = 0; c < col; c++)
                         {
-                            uint targetHeight = (uint)((double)thisimg.Height / thisimg.Width * minW);
-                            thisimg.Resize(minW, targetHeight);
+                            MagickGeometry cropGeometry = new MagickGeometry((int)(c * frameW), (int)(r * frameH), frameW, frameH);
+                            MagickImage frameImg = (MagickImage)thisimg.Clone();
+                            frameImg.Crop(cropGeometry);
+                            frameImg.ResetPage();
+                            frameImg.Format = MagickFormat.Gif;
+                            frameImg.AnimationDelay = 5;
+                            frameImg.GifDisposeMethod = GifDisposeMethod.Background;
+                            images.Add(frameImg);
                         }
-                            
-                        images.Add(thisimg);
                     }
                 }
 
@@ -295,7 +332,7 @@ namespace Kugua.Mods
             }
 
 
-            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^合$", RegexOptions.Singleline), zipGif));
+            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^合(\S*)$", RegexOptions.Singleline), zipGif));
             return null;
         }
 
@@ -316,6 +353,7 @@ namespace Kugua.Mods
                 var imgs = Network.DownloadImage(context.Images.First().url);
                 imgs.Coalesce();
                 List<Message> msgs = new List<Message>();
+                msgs.Add(new Text($"一共{imgs.Count()}张"));
                 
                 foreach(var img in imgs)
                 {
@@ -355,7 +393,7 @@ namespace Kugua.Mods
                 var imgs = Network.DownloadImage(context.Images.First().url);
                 imgs.Coalesce();
                 List<Message> msgs = new List<Message>();
-
+                msgs.Add(new Text($"一共{imgs.Count()}张"));
                 foreach (var img in imgs)
                 {
                     List<MagickImage> subImages = new List<MagickImage>();
@@ -1211,11 +1249,47 @@ namespace Kugua.Mods
             }
             else
             {
-                WaitNext(context, new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setImgVerticalFlip));
+                WaitNext(context, new ModCommand(new Regex(@"垂直翻转(.*)", RegexOptions.Singleline), setTouchBall));
 
             }
             return null;
         }
+
+
+
+        /// <summary>
+        /// 图像摸摸
+        /// 摸摸[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string setTouchBall(MessageContext context, string[] param)
+        {
+            if (context.IsImage)
+            {
+                var oriImgs = Network.DownloadImages(context);
+                var newImgs = new List<MagickImageCollection>();
+                foreach (var img in oriImgs)
+                {
+                    newImgs.Add(ImageUtil.ToElasticBounceGif(img));
+                }
+                context.SendBackImages(newImgs);
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"摸摸", RegexOptions.Singleline), setImgVerticalFlip));
+
+            }
+            return null;
+        }
+
+
+
+
+
+
+
 
         bool DealEmojiMix(MessageContext context, List<string> emojiList)
         {

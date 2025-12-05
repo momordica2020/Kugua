@@ -84,6 +84,8 @@
         public string HSModelNameChat { get; set; }
 
         public string HSModelNameImage {  get; set; }
+
+        public string GeminiApiKey {  get; set; }
     }
     #endregion
 

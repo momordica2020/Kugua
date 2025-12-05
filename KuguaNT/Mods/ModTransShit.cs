@@ -196,7 +196,8 @@ namespace Kugua.Mods
             };
 
             //context.SendBack([res]);
-            context.client.SendForwardMessageToGroup(context.groupId, res);
+            context.SendForward(res.ToArray());
+            //context.client.SendForwardMessageToGroup(context.groupId, res);
             return null;
         }
 
@@ -486,7 +487,8 @@ namespace Kugua.Mods
                 }
                 else
                 {
-                    context.client.SendForwardMessageToGroup(target.groupinfo.targetId, context.recvMessages);
+                    context.Send(context.recvMessages.ToArray(), target.groupinfo.targetId, isGroup:true);
+                    //context.SendForward(context.recvMessages.ToArray(), target.groupinfo.targetId);//.SendForwardMessageToGroup(target.groupinfo.targetId, context.recvMessages);
                 }
                 Logger.Log($"{target.groupinfo.targetId}=>[{shit.score}]");
                 target.shits.Remove(shit);

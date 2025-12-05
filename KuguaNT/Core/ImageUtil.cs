@@ -76,9 +76,9 @@ namespace Kugua.Core
             var result = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), (uint)totalWidth, (uint)totalHeight);
 
             // 拼接图像
-            for (int col = 0; col < totalCols; col++)
+            for (int row = 0; row < totalRows; row++) 
             {
-                for (int row = 0; row < totalRows; row++)
+                for (int col = 0; col < totalCols; col++)
                 {
                     int x = (int)(col * imageWidth);  // 水平偏移
                     int y = (int)(row * imageHeight); // 垂直偏移
@@ -213,7 +213,8 @@ namespace Kugua.Core
             if (images.Count == 1)
             {
                 // single img
-                images.First().Crop(new MagickGeometry(left, top, (uint)newWidth, (uint)newHeight));
+                images.First().Crop(new MagickGeometry(left, top, newWidth, newHeight));
+                images.First().ResetPage();
                 return images;
             }
 
@@ -221,10 +222,10 @@ namespace Kugua.Core
             images.Coalesce();
             foreach (var frame in images)
             {
-                MagickImage newFrame = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), newWidth, newHeight);
+                var newFrame = frame.Clone();
+                newFrame.Crop(new MagickGeometry(left, top, newWidth, newHeight));
+                newFrame.ResetPage();
                 newFrame.Format = MagickFormat.Gif;
-                newFrame.AnimationDelay = frame.AnimationDelay;
-                newFrame.Composite(frame, left, top, CompositeOperator.Over);
                 newFrame.GifDisposeMethod = GifDisposeMethod.Background;
                 newImages.Add(newFrame);
             }
@@ -1858,6 +1859,58 @@ namespace Kugua.Core
             }
             return result;
             
+        }
+
+
+
+
+
+
+
+        /// <summary>
+        /// 将一张图片变成 10 帧“弹性压扁 → 回弹 → 轻微超伸 → 恢复”的透明 GIF 动画
+        /// </summary>
+        /// <param name="source">原始图片（支持透明）</param>
+        /// <returns>MagickImageCollection（已设置好 Delay 和 Loop）</returns>
+        public static MagickImageCollection ToElasticBounceGif(MagickImageCollection source)
+        {
+            var originalWidth = source.First().Width;
+            var originalHeight = source.First().Height;
+
+            var frames = new MagickImageCollection();
+            var frameAnimNum = 10;
+            var frameNum = Util.LCM(source.Count, frameAnimNum);
+            
+            // 10 帧关键参数
+            var scaleX = new[] { 1.00, 1.08, 1.18, 1.25, 1.20, 1.10, 0.95, 0.98, 1.00, 1.00 };
+            var scaleY = new[] { 1.00, 0.88, 0.70, 0.58, 0.70, 0.92, 1.15, 1.08, 1.02, 1.00 };
+            var delay = new[] { 10, 8, 7, 8, 7, 6, 8, 8, 10, 10 }; // 单位：1/100 秒
+
+            for (int i = 0; i < frameNum; i++)
+            {
+                // 克隆一份原始图（保持透明通道）
+                using var frame = source[i % source.Count].Clone();
+
+                uint newW = (uint)Math.Round(originalWidth * scaleX[i % frameAnimNum]);
+                uint newH = (uint)Math.Round(originalHeight * scaleY[i % frameAnimNum]);
+
+                frame.LiquidRescale(newW, newH, 1.0, 0.0); // 最后一个参数是刚性保护（0=完全弹性）
+
+                // 放进和原图一样大的透明画布中央（保证所有帧尺寸一致）
+                var canvas = new MagickImage(MagickColors.Transparent, originalWidth, originalHeight);
+                int offsetX = (int)(originalWidth - frame.Width) / 2;
+                int offsetY = (int)(originalHeight - frame.Height) / 2;
+                canvas.Composite(frame, offsetX, offsetY, CompositeOperator.Over);
+
+                canvas.AnimationDelay = (uint)delay[i % frameAnimNum];
+                canvas.GifDisposeMethod = GifDisposeMethod.Background;
+                canvas.Format = MagickFormat.Gif;
+
+                frames.Add(canvas);
+            }
+            frames.OptimizeTransparency();
+
+            return frames;
         }
 
 

@@ -15,8 +15,15 @@ namespace Kugua.Mods{
         public static string AGgetEnemys(string area, int maxnum)
         {
             string res = "";
-
-            var enemylists = AGwordlist($"{area}场景里的{maxnum}种敌人");
+            var enemylists = new List<string>();
+            if (maxnum <= 1)
+            {
+                enemylists.Add(AGwordSingle($"{area}场景里的敌人"));
+            }
+            else
+            {
+                enemylists = AGwordlist($"{area}场景里的{maxnum}种敌人");
+            }
             if (enemylists.Where(e => e == area).FirstOrDefault() is string enemyWrongName) enemylists.Remove(enemyWrongName);
             for(int i = 0; i < Math.Min(maxnum, enemylists.Count); i++)
             {
@@ -154,6 +161,14 @@ namespace Kugua.Mods{
             return res;
         }
 
+
+        public static string AGwordSingle(string use)
+        {
+            //string res;
+            return LLM.Instance.HSSendSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，生成相应的词语，你不要做任何解释，如果遇到模糊就随便生成即可，只能返回纯文本的词语生成结果，不同项使用中文逗号隔开。",
+                $"{use}").Split([',', '，'], StringSplitOptions.TrimEntries).First();
+
+        }
         public static List<string> AGwordlist(string use)
         {
             //string res;

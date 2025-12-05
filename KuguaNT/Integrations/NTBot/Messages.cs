@@ -153,11 +153,11 @@ namespace Kugua.Integrations.NTBot
         /// base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==
         /// </summary>
         //public string file { get; set; }
-        public string type { get; set; }  // 可选项，flash表示闪照
-        //public string? url { get; set; }   // 图片 URL
-        public int? cache { get; set; }   // 图片缓存标志
-        public int? proxy { get; set; }   // 是否使用代理
-        public int? timeout { get; set; } // 下载超时时间
+        //public string type { get; set; }  // 可选项，flash表示闪照
+        ////public string? url { get; set; }   // 图片 URL
+        //public int? cache { get; set; }   // 图片缓存标志
+        //public int? proxy { get; set; }   // 是否使用代理
+        //public int? timeout { get; set; } // 下载超时时间
 
         public ImageSend()
         {
@@ -169,14 +169,14 @@ namespace Kugua.Integrations.NTBot
             this.file = file;
         }
 
-        public ImageSend(string file, string type, int cache = 1, int proxy = 0, int timeout = 3)
-        {
-            this.file = file;
-            this.type = type;
-            this.cache = cache;
-            this.proxy = proxy;
-            this.timeout = timeout;
-        }
+        //public ImageSend(string file, string type, int cache = 1, int proxy = 0, int timeout = 3)
+        //{
+        //    this.file = file;
+        //    this.type = type;
+        //    this.cache = cache;
+        //    this.proxy = proxy;
+        //    this.timeout = timeout;
+        //}
 
         public ImageSend(MagickImage image)
         {

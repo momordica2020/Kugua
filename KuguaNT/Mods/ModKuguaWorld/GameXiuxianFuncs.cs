@@ -188,10 +188,10 @@ namespace Kugua.Mods{
         {
             string desc = "";
             //var newitem = new XiuxianItem();
-            var listdesc = AGwordlist($"{user.race}{UserTemplateName}在{action}时获得的1个{MyRandom.NextString(["物品","装备","法宝"])}");
+            var itemname = AGwordSingle($"{user.race}{UserTemplateName}在{action}时获得的{MyRandom.NextString(["物品","装备","法宝"])}");
             //newitem.num += 1;
-            foreach (var itemname in listdesc)
-            {
+           // foreach (var itemname in listdesc)
+           // {
                 bool exist = false;
                 foreach (var item in user.items)
                 {
@@ -214,7 +214,7 @@ namespace Kugua.Mods{
                     user.items.Add(item);
                     desc += $"{item.name}({item.desc})、";
                 }
-            }
+           // }
             desc = desc.TrimEnd('、');
 
             return desc;
