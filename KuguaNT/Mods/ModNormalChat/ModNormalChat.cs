@@ -7,16 +7,17 @@ using System.Text.RegularExpressions;
 using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
 using Microsoft.VisualBasic;
 using SuperSocket.ClientEngine;
 
 
-namespace Kugua.Mods
+namespace Kugua.Mods.ModNormalChat
 {
     /// <summary>
     /// 随机回复，龚诗似的
     /// </summary>
-    public class ModRandomChat : Mod
+    public partial class ModNormalChat : Mod
     {
         //private static readonly Lazy<ModRandomChat> instance = new Lazy<ModRandomChat>(() => new ModRandomChat());
         //public static ModRandomChat Instance => instance.Value;
@@ -27,7 +28,7 @@ namespace Kugua.Mods
         string PluginPath;
 
         Dictionary<string, string> wordReplace = new Dictionary<string, string>();
-        Dictionary<string, ModeInfo> modedict = new Dictionary<string, ModeInfo>();
+        Dictionary<string, ChatMode> modedict = new Dictionary<string, ChatMode>();
 
 
         MD5 md5 = MD5.Create();
@@ -47,8 +48,9 @@ namespace Kugua.Mods
         {
             try
             {
-                ModCommands.Add(new ModCommand(new Regex(@"^模式列表"), printModeList));
-                ModCommands.Add(new ModCommand(new Regex(@"^(清空|清除|删除)记忆"), clearMemory));
+                ModCommands.Add(new ModCommand(new Regex(@"^模式列表$"), printModeList));
+                ModCommands.Add(new ModCommand(new Regex(@"^(清空|清除|删除)记忆$"), clearMemory));
+                ModCommands.Add(new ModCommand(new Regex(@"^看看prompt$"), showPrompt));
                 ModCommands.Add(new ModCommand(new Regex(@"^prompt=(.*)", RegexOptions.Singleline), setPrompt));
 
 
@@ -175,7 +177,7 @@ namespace Kugua.Mods
                 //}
                 // load modes
 
-                modedict = new Dictionary<string, ModeInfo>();
+                modedict = new Dictionary<string, ChatMode>();
                 List<string> modelines = LocalStorage.ReadLines($"{PluginPath}/{modeIndexName}").ToList();
                 foreach (var line in modelines)
                 {
@@ -193,18 +195,18 @@ namespace Kugua.Mods
                         {
                             modeConfigs = new string[1] { "默认" };
                         }
-                        modedict[modeName] = new ModeInfo(modeName, modeConfigs, LocalStorage.ReadLines($"{PluginPath}/{modeName}.txt").ToList());
+                        modedict[modeName] = new ChatMode(modeName, modeConfigs, LocalStorage.ReadLines($"{PluginPath}/{modeName}.txt").ToList());
                     }
                     catch (Exception ex)
                     {
                         Logger.Log($"模式行[ {line} ]加载失败，{ex.Message}\r\n{ex.StackTrace}");
                     }
                 }
-                modedict["测试"] = new ModeInfo { name = "测试", config = { "隐藏" } };
+                modedict["测试"] = new ChatMode { name = "测试", config = { "隐藏" } };
                 // modedict["AI"] = new ModeInfo { name = "AI", config = { "隐藏" } };
-                modedict["喷人"] = new ModeInfo { name = "喷人", config = { } };
-                modedict["语音"] = new ModeInfo { name = "语音", config = { } };
-                modedict["本草"] = new ModeInfo { name = "本草", config = { } };
+                modedict["喷人"] = new ChatMode { name = "喷人", config = { } };
+                modedict["语音"] = new ChatMode { name = "语音", config = { } };
+                modedict["本草"] = new ChatMode { name = "本草", config = { } };
                 //modedict["西医"] = new ModeInfo { name = "西医", config = { } };
 
 
@@ -263,7 +265,18 @@ namespace Kugua.Mods
         }
 
 
-
+        /// <summary>
+        /// 查看现在AI的预设文本
+        /// 看看prompt
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string showPrompt(MessageContext context, string[] param)
+        {
+            context.SendBackText($"已对话{LLM.Instance.GetChatCounts(context)}次", isAt:true);
+            return LLM.Instance.GetPrompt(context);
+        }
 
         /// <summary>
         /// 设置AI的预设文本
@@ -275,7 +288,7 @@ namespace Kugua.Mods
         private string setPrompt(MessageContext context, string[] param)
         {
             string prompt = param[1].Trim();
-            LLM.Instance.SetPrompt(context.groupId, context.userId, prompt);
+            LLM.Instance.SetPrompt(context, prompt);
             return $"*以更新AI模式的prompt，并重置了记忆！开始对话吧";
         }
 
@@ -297,7 +310,7 @@ namespace Kugua.Mods
                     return printModeList(context, param);
                 }
                 //ModeInfo mode = null;
-                if (modedict.TryGetValue(modeName, out ModeInfo mode))
+                if (modedict.TryGetValue(modeName, out ChatMode mode))
                 {
                     // 模式存在
                     if (mode.config.Contains("隐藏"))
@@ -358,7 +371,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string clearMemory(MessageContext context, string[] param)
         {
-            LLM.Instance.ClearMemory(context.groupId, context.userId);
+            LLM.Instance.ClearMemory(context);
             LLM.Instance.SaveMemory();
             return $"*以清空AI模式下与你的聊天历史记录，并恢复默认prompt";
         }
@@ -372,7 +385,7 @@ namespace Kugua.Mods
             if (context.IsGroup && context.Group.Is("少话"))return true;
             if (context.IsPrivate && context.User.Is("少话")) return true;
 
-            ModeInfo modeTrigger = null;
+            ChatMode modeTrigger = null;
             if (context.IsGroup && context.IsAskme)
             {
                 // 群内
@@ -428,7 +441,7 @@ namespace Kugua.Mods
         /// <param name="results">输出结果</param>
         /// <returns>若结果不空，返回true，空则返回false</returns>
 
-        bool handleChatResults(ModeInfo mode, MessageContext context, out IEnumerable<string> results)
+        bool handleChatResults(ChatMode mode, MessageContext context, out IEnumerable<string> results)
         {
             List<string> answer = new List<string>();
             try
@@ -443,8 +456,8 @@ namespace Kugua.Mods
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         //GPT.Instance.OllamaReply(context);
-                        
-                        var res = LLM.Instance.HSChat(context);
+                        if (!context.IsAdminUser) break;
+                        var res = LLM.Instance.Chat(context, context.Texts);
                         if (!string.IsNullOrWhiteSpace(res))
                         {
                             context.SendBackText(res, true, true);
@@ -485,12 +498,12 @@ namespace Kugua.Mods
                             sendString += rs + "。";
                             if (sendString.Length > 50)
                             {
-                                LLM.Instance.Talk(context, sendString);
+                                LLM.Instance.Speech(context, sendString);
                                 sendString = "";
                             }
 
                         }
-                        if (sendString.Length > 0) LLM.Instance.Talk(context, sendString);
+                        if (sendString.Length > 0) LLM.Instance.Speech(context, sendString);
                         break;
                     default:
                         answer.Add(mode.getRandomSentence());
@@ -514,7 +527,7 @@ namespace Kugua.Mods
 
             if (context.IsImage)
             {
-                res = LLM.Instance.HSGetImgDesc(context.PNG1Base64, "详细描述此图，并解释其深层含义和意图", "png");
+                res = LLM.Instance.ChatSingleWithImage( "详细描述此图，并解释其深层含义和意图", context.PNG1Base64, "png");
             }
             if (!string.IsNullOrWhiteSpace(res))
             {
@@ -527,7 +540,7 @@ namespace Kugua.Mods
 
         }
 
-        private ModeInfo getUserMode(Player player)
+        private ChatMode getUserMode(Player player)
         {
             if (player==null || player.Tags == null) return null;
             foreach (var tag in player.Tags)
@@ -535,7 +548,7 @@ namespace Kugua.Mods
                 if (tag.EndsWith("模式"))
                 {
                     string findName = tag.Substring(0, tag.Length - 2);
-                    if (modedict.TryGetValue(findName, out ModeInfo mode))
+                    if (modedict.TryGetValue(findName, out ChatMode mode))
                     {
                         return mode;
                     }
@@ -544,7 +557,7 @@ namespace Kugua.Mods
             return null;
         }
 
-        private ModeInfo getGroupMode(Playgroup group)
+        private ChatMode getGroupMode(Playgroup group)
         {
             if (group == null || group.Tags != null)
             {
@@ -553,7 +566,7 @@ namespace Kugua.Mods
                     if (tag.EndsWith("模式"))
                     {
                         string findName = tag.Substring(0, tag.Length - 2);
-                        ModeInfo mode = null;
+                        ChatMode mode = null;
                         if (modedict.TryGetValue(findName, out mode))
                         {
                             return mode;
@@ -936,97 +949,6 @@ namespace Kugua.Mods
             }
 
             return res;
-        }
-
-
-
-
-
-        class ModeInfo
-        {
-            public string name;
-            public List<string> config;
-            List<string> sentences;
-            // public int 
-            public ModeInfo()
-            {
-                config = new List<string>();
-                sentences = new List<string>();
-            }
-
-            public ModeInfo(string _name, ICollection<string> _config, ICollection<string> _sentences)
-            {
-                name = _name;
-                config = _config.ToList();
-                sentences = _sentences.ToList();
-            }
-
-            public string getRandomSentence(string seed = "")
-            {
-
-                int maxsnum = 5;
-                int maxslen = 7;
-                int maxwordnum = 4;
-
-                if (config.Contains("单句"))
-                {
-                    maxslen = 1;
-                    maxwordnum = 1;
-                    maxsnum = 1;
-                }
-                if (config.Contains("句内不拼接"))
-                {
-                    maxwordnum = 1;
-                    maxslen = 1;
-                }
-
-
-                string result = "";
-                //byte[] md5data = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-                string[] sgn1 = new string[] { ",", "，", "；", "、" };
-                string[] sgn2 = new string[] { "\r\n", "。", "。", "。", "？", "！", "…", "——" };
-                string[] sgn3 = new string[] { "\r\n", "。", "？", "！", "…", "——", "??", "...", "：", "?!", "???", "!!", "！！！" };
-
-                int sn = MyRandom.Next(1, maxsnum);
-
-                for (int i = 0; i < sn; i++)
-                {
-                    int thislen = MyRandom.Next(1, maxslen);
-                    StringBuilder thissentence = new StringBuilder();
-                    int wordnum = 0;
-                    while (thissentence.Length < thislen && wordnum < maxwordnum)
-                    {
-                        wordnum++;
-                        thissentence.Append(sentences[MyRandom.Next(0, sentences.Count - 1)]);
-                    }
-                    if (thissentence.Length > 0 && !sgn1.Contains(thissentence.ToString().Last().ToString()) && !sgn2.Contains(thissentence.ToString().Last().ToString()))
-                    {
-                        if (config.Contains("无标点")) thissentence.Append(" ");
-                        else thissentence.Append(sgn1[MyRandom.Next(sgn1.Length)]);
-                        result += thissentence.ToString();
-                        if (result.Length > 0)
-                        {
-                            if (config.Contains("无标点")) ;
-                            else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[MyRandom.Next(sgn3.Length)];
-                            else result = result.Substring(0, result.Length - 1) + sgn2[MyRandom.Next(sgn2.Length)];
-                        }
-
-                    }
-                    else
-                    {
-                        result += thissentence.ToString();
-                    }
-                }
-                if (string.IsNullOrWhiteSpace(result))
-                {
-                    if (config.Contains("无标点")) result = " ";
-                    else if (config.Contains("乱打标点")) result = result.Substring(0, result.Length - 1) + sgn3[MyRandom.Next(sgn3.Length)];
-                    else result = result.Substring(0, result.Length - 1) + sgn2[MyRandom.Next(sgn2.Length)];
-                }
-
-
-                return result;
-            }
         }
 
 

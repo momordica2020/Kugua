@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators.Base
 {
     
     public class KSParser

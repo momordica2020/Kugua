@@ -1,13 +1,35 @@
-﻿using Kugua.Core;
-using System.Text;
-
-namespace Kugua.Generators
+﻿namespace Kugua.Integrations.Generators.Base
 {
-    /// <summary>
-    /// 解梦的随机模板填充相关
-    /// </summary>
-    public class DreamText
+    public abstract class GeneratorBase
     {
+
+        public abstract void Init(string data);
+        
+        public abstract void Generate();
+    }
+
+
+    public class GeneratorWithDScript : GeneratorBase
+    {
+        protected DScript Template = new DScript();
+        public override void Init(string data)
+        {
+            Template.Load(data);
+        }
+        public override void Generate()
+        {
+            // Implementation of generation logic
+        }
+    }
+
+
+
+
+
+
+    public class GeneratorBase1
+    {
+        public string Path;
         static DScript DreamTemplate = new DScript();
 
         public static void Init(string data)
@@ -39,7 +61,5 @@ namespace Kugua.Generators
 
             return "";
         }
-
-
     }
 }

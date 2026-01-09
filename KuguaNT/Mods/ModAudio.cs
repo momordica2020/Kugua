@@ -1,6 +1,7 @@
 ﻿using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods
@@ -15,11 +16,11 @@ namespace Kugua.Mods
 
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^点歌(.+)"), getMusic));
-            ModCommands.Add(new ModCommand(new Regex(@"^反向点歌(.+)"), getMusicReverse));
+            ModCommands.Add(new ModCommand(new Regex(@"^点歌[∶|:|：|\s](.+)"), getMusic));
+            ModCommands.Add(new ModCommand(new Regex(@"^反向点歌[∶|:|：|\s](.+)"), getMusicReverse));
             ModCommands.Add(new ModCommand(new Regex(@"^说[∶|:|：](.+)", RegexOptions.Singleline), say));
             ModCommands.Add(new ModCommand(new Regex(@"^反着说[∶|:|：](.+)", RegexOptions.Singleline), sayReverse));
-            ModCommands.Add(new ModCommand(null, dealRecord,_needAsk:false, _useAudio:true));
+            //ModCommands.Add(new ModCommand(null, dealRecord,_needAsk:false, _useAudio:true));
 
 
             musicDownloader = new MusicDownloader();
@@ -243,33 +244,33 @@ namespace Kugua.Mods
         }
 
 
-        /// <summary>
-        /// 语音识别
-        /// 
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        private string dealRecord(MessageContext context, string[] param)
-        {
-            if (!context.IsAdminUser) return "";
-            var r = context.Audios;
-            string content = "";
-            if (r.Count > 0)
-            {
-                Thread.Sleep(1000);
-                string file = AudioUtil.SilkV32Mp3(r.First().path, false);
-                content = $"{file}";
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    content = LLM.HSRecognizeAudio(file);
-                }
+        ///// <summary>
+        ///// 语音识别
+        ///// 
+        ///// </summary>
+        ///// <param name="context"></param>
+        ///// <param name="param"></param>
+        ///// <returns></returns>
+        //private string dealRecord(MessageContext context, string[] param)
+        //{
+        //    if (!context.IsAdminUser) return "";
+        //    var r = context.Audios;
+        //    string content = "";
+        //    if (r.Count > 0)
+        //    {
+        //        Thread.Sleep(1000);
+        //        string file = AudioUtil.SilkV32Mp3(r.First().path, false);
+        //        content = $"{file}";
+        //        if (!string.IsNullOrWhiteSpace(content))
+        //        {
+        //            content = LLM.HSRecognizeAudio(file);
+        //        }
 
-            }
+        //    }
 
 
-            return content;
-        }
+        //    return content;
+        //}
 
 
 
@@ -285,7 +286,7 @@ namespace Kugua.Mods
             string speakSentence = param[1];
             if (string.IsNullOrWhiteSpace(speakSentence)) return "";
 
-            LLM.Instance.Talk(context, $"{speakSentence}");
+            LLM.Instance.Speech(context, $"{speakSentence}");
 
 
             return null;
@@ -303,7 +304,7 @@ namespace Kugua.Mods
             string speakSentence = param[1];
             if (string.IsNullOrWhiteSpace(speakSentence)) return "";
 
-            LLM.Instance.Talk(context, $"{speakSentence}", true);
+            LLM.Instance.Speech(context, $"{speakSentence}", true);
 
 
             return null;

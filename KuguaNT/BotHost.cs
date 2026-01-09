@@ -5,6 +5,8 @@ using Kugua.Integrations.NTBot;
 using Kugua.Mods;
 using Kugua.Integrations.AI;
 using Kugua.Core;
+using Kugua.Mods.Base;
+using Kugua.Mods.ModNormalChat;
 
 
 
@@ -101,7 +103,7 @@ namespace Kugua
                     ModTransShit.Instance,
 
                     // 这个模块会用闲聊收尾
-                    new ModRandomChat(),
+                    new ModNormalChat(),
 
                 };
 

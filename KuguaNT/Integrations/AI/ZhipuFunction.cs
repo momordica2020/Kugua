@@ -3,19 +3,15 @@ using ZhipuApi.Modules;
 
 namespace Kugua.Integrations.AI
 {
-    public partial class LLM
+    public class ZhipuFunction
     {
-        string speak_sentense(string chatid, string param)
+        public string speak_sentense(string chatid, string param)
         {
             try
             {
                 string speakWords = (string)(JsonObject.Parse(param)["sentense"]);
-                if (ChatMessageContext[chatid] != null)
-                {
-                    Talk(ChatMessageContext[chatid], speakWords);
-                    return "语音发送成功";
-                }
-
+                LLM.Instance.Speech(LLM.Instance.GetChatContext(chatid).LastMessageContext, speakWords);
+                return "语音发送成功";
             }
             catch (Exception ex)
             {

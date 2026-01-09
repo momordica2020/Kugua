@@ -169,6 +169,21 @@ namespace Kugua
 
         public bool IsAskme;
 
+        public List<At> Ats {             
+            get
+            {
+                List<At> ats = new List<At>();
+                if (recvMessages != null)
+                {
+                    foreach (var it in recvMessages)
+                    {
+                        if (it is At at) ats.Add(at);
+                    }
+                }
+                return ats;
+            }
+        }
+
         public NTBot client { get; set; }
 
         public List<Message> recvMessages;
@@ -203,7 +218,40 @@ namespace Kugua
                 return null;
             }
         }
+        public List<string> PNGBase64s
+        {
+            get
+            {
+                if (IsImage)
+                {
+                    var res = new List<string>();
+                    foreach(var it in Images)
+                    {
+                        if (it is ImageBasic img)
+                        {
+                            var currentFrame = Network.DownloadImage(img.url).First();
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                // 将帧转换为 PNG 格式并写入 MemoryStream
+                                currentFrame.Format = MagickFormat.Png; // 显式设置输出格式为 PNG
+                                currentFrame.Write(ms);
+                                var imageBytes = ms.ToArray();
+                                var imgBase64 = Convert.ToBase64String(imageBytes);
+                                res.Add( imgBase64);
+                            }
 
+
+                        }
+                    }
+                    return res;
+
+
+                }
+
+
+                return null;
+            }
+        }
         public List<ImageBasic> Images
         {
             get

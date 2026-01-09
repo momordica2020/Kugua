@@ -80,10 +80,10 @@
     {
         public string HSApiKey { get; set; }
         public string HSApiUrl { get; set; }
-        public string HSModelNameVision { get; set; }
-        public string HSModelNameChat { get; set; }
+        public string HSModelVision { get; set; }
+        public string HSModelChat { get; set; }
 
-        public string HSModelNameImage {  get; set; }
+        public string HSModelImage {  get; set; }
 
         public string GeminiApiKey {  get; set; }
     }

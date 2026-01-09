@@ -1,7 +1,7 @@
 ﻿using Kugua.Core;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 苏联笑话的模板填充相关

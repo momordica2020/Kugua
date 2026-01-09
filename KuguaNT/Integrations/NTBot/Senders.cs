@@ -386,6 +386,7 @@ namespace Kugua.Integrations.NTBot
     public class get_group_member_list : SenderData
     {
         public string group_id;
+        public bool no_cache = false;
         //return
         //public string group_id;
         //[get_group_member_info]
@@ -411,7 +412,11 @@ namespace Kugua.Integrations.NTBot
         //public array emotion_list;
         //[get_group_member_info]
     }
+    public class get_ocr : SenderData
+    {
+        public string image;
 
+    }
 
     public class get_cookies: SenderData
     {

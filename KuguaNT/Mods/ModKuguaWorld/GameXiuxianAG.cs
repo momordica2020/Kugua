@@ -148,7 +148,7 @@ namespace Kugua.Mods{
         {
             //string res;
             string style = MyRandom.NextString(NovelStyles);
-            return LLM.Instance.HSSendSingle($"作为文章修改器，把情节润色为相应{style}风格的段落，你只能返回纯文本，尽量在{maxlen}字以内，必须包含我给出的所有数值参数。必须使用{style}风格",
+            return LLM.Instance.ChatSingle($"作为文章修改器，把情节润色为相应{style}风格的段落，你只能返回纯文本，尽量在{maxlen}字以内，必须包含我给出的所有数值参数。必须使用{style}风格",
                 $"{use}");
 
         }
@@ -156,7 +156,7 @@ namespace Kugua.Mods{
         public static BigInteger AGsetNum(string use)
         {
             BigInteger res = 0;
-            BigInteger.TryParse(LLM.Instance.HSSendSingle($"作为{MyRandom.NextString(NovelScene)}RPG数值计算器模块，你只能返回代表结果的数值，如果遇到模糊就随便给个数字即可，不要做任何解释，不输出任何额外内容。",
+            BigInteger.TryParse(LLM.Instance.ChatSingle($"作为{MyRandom.NextString(NovelScene)}RPG数值计算器模块，你只能返回代表结果的数值，如果遇到模糊就随便给个数字即可，不要做任何解释，不输出任何额外内容。",
                 $"{use}"),out res);
             return res;
         }
@@ -165,14 +165,14 @@ namespace Kugua.Mods{
         public static string AGwordSingle(string use)
         {
             //string res;
-            return LLM.Instance.HSSendSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，生成相应的词语，你不要做任何解释，如果遇到模糊就随便生成即可，只能返回纯文本的词语生成结果，不同项使用中文逗号隔开。",
+            return LLM.Instance.ChatSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，生成相应的词语，你不要做任何解释，如果遇到模糊就随便生成即可，只能返回纯文本的词语生成结果，不同项使用中文逗号隔开。",
                 $"{use}").Split([',', '，'], StringSplitOptions.TrimEntries).First();
 
         }
         public static List<string> AGwordlist(string use)
         {
             //string res;
-            return LLM.Instance.HSSendSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，生成相应的词语序列，你不要做任何解释，如果遇到模糊就随便生成即可，只能返回纯文本，不同项使用中文逗号隔开。",
+            return LLM.Instance.ChatSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，生成相应的词语序列，你不要做任何解释，如果遇到模糊就随便生成即可，只能返回纯文本，不同项使用中文逗号隔开。",
                 $"{use}").Split([',', '，'], StringSplitOptions.TrimEntries).ToList();
 
         }
@@ -180,7 +180,7 @@ namespace Kugua.Mods{
         public static string AGchooseOne(string use, IEnumerable<string> exists)
         {
             //string res;
-            return LLM.Instance.HSSendSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，帮我选取一个词汇，你只能返回选择的结果结果词汇，如果遇到模糊就随便给个词即可，不要做任何解释。",
+            return LLM.Instance.ChatSingle($"扮演{MyRandom.NextString(NovelScene)}撰写bot，帮我选取一个词汇，你只能返回选择的结果结果词汇，如果遇到模糊就随便给个词即可，不要做任何解释。",
                 $"{use}{((exists == null || exists.Count() <= 0) ? "" : $" 待选列表：{string.Join("、", exists)}")}");
 
         }
@@ -191,7 +191,7 @@ namespace Kugua.Mods{
         public static string AGword(string use, IEnumerable<string> exists = null)
         {
             //string res;成“
-            string res = LLM.Instance.HSSendSingle($"作为{MyRandom.NextString(NovelScene)}小说辅助生成器模块，生成相应的专有词汇，你只能返回一个结果词汇，不要与已有的重复。如果遇到模糊就随便给个词即可，不要做任何解释和额外输出。",
+            string res = LLM.Instance.ChatSingle($"作为{MyRandom.NextString(NovelScene)}小说辅助生成器模块，生成相应的专有词汇，你只能返回一个结果词汇，不要与已有的重复。如果遇到模糊就随便给个词即可，不要做任何解释和额外输出。",
                 $"{use}{((exists == null || exists.Count()<=0) ? "" : $" 已有的包括：{string.Join("、", exists)}")}");
 
             if (res.Contains("：")) res = res.Substring(res.IndexOf("：")).Trim('：');
@@ -208,7 +208,7 @@ namespace Kugua.Mods{
         public static bool AGjudge(XiuxianItem item, string use)
         {
             //string res;
-            string res= LLM.Instance.HSSendSingle($"作为RPG规则判断者，你只能返回单个数字表示判断结果，1是允许，0是不许。",
+            string res= LLM.Instance.ChatSingle($"作为RPG规则判断者，你只能返回单个数字表示判断结果，1是允许，0是不许。",
                 $"物品：{item.name}({item.desc}),{use}");
             return res.Trim() == "1";
         }

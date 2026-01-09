@@ -102,6 +102,23 @@ namespace Kugua.Core
 
             return sb.ToString();
         }
+
+        /// <summary>
+        /// 字符串是否包含符号
+        /// </summary>
+        /// <param name="ori"></param>
+        /// <returns></returns>
+        public static bool ContainsSymbol(string ori)
+        {
+            foreach (var c in ori)
+            {
+                if (IsSymbol(c))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         #endregion
 
 

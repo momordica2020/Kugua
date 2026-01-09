@@ -1,5 +1,6 @@
 ﻿using Kugua.Core;
-using Kugua.Generators;
+using Kugua.Integrations.Generators;
+using Kugua.Mods.Base;
 using Microsoft.JSInterop;
 using System;
 using System.Collections;
@@ -41,15 +42,15 @@ namespace Kugua.Mods
 
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^反转(.+)", RegexOptions.Singleline), handleReverse));
-            ModCommands.Add(new ModCommand(new Regex(@"^逐行反转(.+)", RegexOptions.Singleline), handleReverseByLine));
-            ModCommands.Add(new ModCommand(new Regex(@"^大写(.+)", RegexOptions.Singleline), handleToUpper));
-            ModCommands.Add(new ModCommand(new Regex(@"^小写(.+)", RegexOptions.Singleline), handleToLower));
-            ModCommands.Add(new ModCommand(new Regex(@"^乱序(.+)", RegexOptions.Singleline), handleShuffle));
+            ModCommands.Add(new ModCommand(new Regex(@"^反转[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleReverse));
+            ModCommands.Add(new ModCommand(new Regex(@"^逐行反转[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleReverseByLine));
+            ModCommands.Add(new ModCommand(new Regex(@"^大写[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleToUpper));
+            ModCommands.Add(new ModCommand(new Regex(@"^小写[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleToLower));
+            ModCommands.Add(new ModCommand(new Regex(@"^乱序[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleShuffle));
             ModCommands.Add(new ModCommand(new Regex(@"^(.+)攻(.+)受$", RegexOptions.Singleline), handleGongshou));
             ModCommands.Add(new ModCommand(new Regex(@"^随机(\d+)(?:\*(\d+))?", RegexOptions.Singleline), handleRandomString));
             ModCommands.Add(new ModCommand(new Regex(@"^(\d+)切(?:(\d+)次)?(.+)", RegexOptions.Singleline), handleCutString));
-            ModCommands.Add(new ModCommand(new Regex(@"^讽刺(.+)", RegexOptions.Singleline), handleJoke));
+            ModCommands.Add(new ModCommand(new Regex(@"^讽刺[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleJoke));
             ModCommands.Add(new ModCommand(new Regex(@"^历史上的(\S+)", RegexOptions.Singleline), handleHistoryToday));
             ModCommands.Add(new ModCommand(new Regex(@"^什么是[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handleSalad));
             ModCommands.Add(new ModCommand(new Regex(@"^火星文[∶|:|：|\s]+(.+)", RegexOptions.Singleline), handleHX));
@@ -58,6 +59,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^营销号[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper3));
             ModCommands.Add(new ModCommand(new Regex(@"^(.*)(.{1})什么$", RegexOptions.Singleline), handleEat));
             ModCommands.Add(new ModCommand(new Regex(@"^(解梦|梦到|梦见)(.+)$", RegexOptions.Singleline), handleDream));
+
+            
 
 
             string PluginPath = Config.Instance.FullPath("ModePath");
@@ -307,7 +310,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// zz笑话生成器，输入格式：“事件=A，好人=B，坏人=C，坏人2=D，本国=E，敌国=F”也可以不全填
-        /// 讽刺 好人=bot，坏人=我，事件=乐bot
+        /// 讽刺：好人=bot，坏人=我，事件=乐bot
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -432,7 +435,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 乱序字符串
-        /// 乱序12345
+        /// 乱序：12345
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -445,7 +448,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 反转字符串
-        /// 反转12345
+        /// 反转：12345
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -459,7 +462,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 逐行反转字符串
-        /// 逐行反转 第一行\n第二行
+        /// 逐行反转：第一行\n第二行
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -473,7 +476,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 英文转大写
-        /// 大写 abc
+        /// 大写：abc
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -485,7 +488,7 @@ namespace Kugua.Mods
 
         /// <summary>
         /// 英文转小写
-        /// 小写 ABC
+        /// 小写：ABC
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
@@ -794,7 +797,7 @@ namespace Kugua.Mods
         {
             string keyword = param[1];
             string verb = param[2];
-
+            if (keyword.Length >= 20 || Util.ContainsSymbol(keyword)) return "";
             var res = EatText.Get(keyword, verb);
 
             return res;

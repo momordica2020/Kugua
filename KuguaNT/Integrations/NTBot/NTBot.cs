@@ -1,10 +1,11 @@
-﻿using ChatGPT.Net.DTO.ChatGPTUnofficial;
-using Kugua.Core;
+﻿using Kugua.Core;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
 using System.Text.Json.Nodes;
 using WebSocket4Net;
 using ZhipuApi;
@@ -391,6 +392,84 @@ namespace Kugua.Integrations.NTBot
 
         }
 
+
+
+        /// <summary>
+        /// 读取群成员列表
+        /// </summary>
+        /// <param name="groupid"></param>
+        /// <returns></returns>
+        public List<get_group_member_info_reply> GetGroupMemberList(string groupid)
+        {
+            List<get_group_member_info_reply> res = new List<get_group_member_info_reply>();
+            try
+            {
+
+                string uri = Config.Instance.App.Net.QQHTTP + "/get_group_member_list";
+                string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new get_group_member_list { group_id=groupid, no_cache=false }), false).Result;
+                //Logger.Log(json);
+                JObject jo = JObject.Parse(json);
+                if (jo["status"].ToString() == "ok")
+                {
+                    
+                    foreach (var item in jo["data"].ToArray())
+                    {
+                        var memberinfo = JsonConvert.DeserializeObject<get_group_member_info_reply>(item.ToString());
+                        res.Add(memberinfo);
+                        Logger.Log($"{memberinfo.user_id}[{memberinfo.nickname}]");
+                        //string gid = item["group_id"].ToString();
+                        //string gname = item["group_name"].ToString();
+                        //Config.Instance.GroupInfo(gid).Name = gname;
+                        //Logger.Log($"更新群成员列表[{gid}]{gname}({item["member_count"]}/{item["max_member_count"]})");
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return res;
+        }
+
+
+
+        /// <summary>
+        /// OCR
+        /// </summary>
+        /// <param name="groupid"></param>
+        /// <returns></returns>
+        public string GetOCR(string imgpath)
+        {
+            StringBuilder sb = new StringBuilder();
+            try
+            {
+
+                string uri = Config.Instance.App.Net.QQHTTP + "/ocr_image";
+                string json = Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new get_ocr { image = imgpath }), false).Result;
+                //Logger.Log(json);
+                JObject jo = JObject.Parse(json);
+                if (jo["status"].ToString() == "ok")
+                {
+
+                    foreach (var item in jo["data"].ToArray())
+                    {
+                        sb.AppendLine(item["text"].ToString());
+                        Logger.Log($"{item["text"]}");
+                        //string gid = item["group_id"].ToString();
+                        //string gname = item["group_name"].ToString();
+                        //Config.Instance.GroupInfo(gid).Name = gname;
+                        //Logger.Log($"更新群成员列表[{gid}]{gname}({item["member_count"]}/{item["max_member_count"]})");
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return sb.ToString();
+        }
 
         public async Task<string> Send(SenderData sender)
         {

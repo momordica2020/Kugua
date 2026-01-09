@@ -8,7 +8,7 @@ namespace Kugua.Integrations.AI
     /// <summary>
     ///  函数
     /// </summary>
-    public partial class LLM
+    public class OllamaFunctions
     {
         #region 功能函数
 
@@ -110,7 +110,7 @@ namespace Kugua.Integrations.AI
             return string.IsNullOrWhiteSpace(plainText) ? $"访问{url}出错" : plainText;
         }
 
-        public static async Task<string> GetCurrentTimeInTimeZone(string[] param)
+        public async Task<string> GetCurrentTimeInTimeZone(string[] param)
         {
             var timeZoneName = param[0].Trim();
             try
@@ -135,7 +135,7 @@ namespace Kugua.Integrations.AI
             return $"北京时间：{DateTime.Now.ToString("F")}";
         }
 
-        private async Task<string> GetRunPython(string[] param)
+        public async Task<string> GetRunPython(string[] param)
         {
             string pythonCode = param[0];
 
@@ -177,78 +177,78 @@ namespace Kugua.Integrations.AI
             }
         }
 
-        /// <summary>
-        /// 发送语音给用户
-        /// 参数：
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        private async Task<string> GetSpeak(string[] param)
-        {
-            string speakWords = param[0];
-            string chatid = param[1];
+        ///// <summary>
+        ///// 发送语音给用户
+        ///// 参数：
+        ///// </summary>
+        ///// <param name="param"></param>
+        ///// <returns></returns>
+        //private async Task<string> GetSpeak(string[] param)
+        //{
+        //    string speakWords = param[0];
+        //    string chatid = param[1];
 
 
-            try
-            {
+        //    try
+        //    {
 
-                if (ChatMessageContext[chatid] != null)
-                {
-                    Talk(ChatMessageContext[chatid], speakWords);
-                    return "语音发送成功";
-                }
+        //        if (ChatMessageContext[chatid] != null)
+        //        {
+        //            Talk(ChatMessageContext[chatid], speakWords);
+        //            return "语音发送成功";
+        //        }
 
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-
-
-
-            return "语音发送失败";
-        }
-
-        private async Task<string> GetImage(string[] param)
-        {
-            string imageUrl = param[0];
-            string chatid = param[1];
-            try
-            {
-                if (ChatMessageContext[chatid] != null)
-                {
-                    if (IsValidUrl(imageUrl))
-                    {
-                        Logger.Log(imageUrl);
-                        var base64data = await Network.DownloadImageUrlToBase64(imageUrl);
-                        if (base64data.Length > 0)
-                        {
-                            ChatMessageContext[chatid].SendBack([new ImageSend("base64://{base64data}")]);
-                            return "图片发送成功！";
-                        }
-                    }
-                    else
-                    {
-                        return "图片发送失败，这不是一个可解析的URL";
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Log(ex);
+        //    }
 
 
 
 
-            return "图片发送失败";
-        }
+        //    return "语音发送失败";
+        //}
 
-        public bool IsUniKey(string param)
-        {
-            return new Regex(@"\d+_\d+").IsMatch(param);
-        }
+        //private async Task<string> GetImage(string[] param)
+        //{
+        //    string imageUrl = param[0];
+        //    string chatid = param[1];
+        //    try
+        //    {
+        //        if (ChatMessageContext[chatid] != null)
+        //        {
+        //            if (IsValidUrl(imageUrl))
+        //            {
+        //                Logger.Log(imageUrl);
+        //                var base64data = await Network.DownloadImageUrlToBase64(imageUrl);
+        //                if (base64data.Length > 0)
+        //                {
+        //                    ChatMessageContext[chatid].SendBack([new ImageSend("base64://{base64data}")]);
+        //                    return "图片发送成功！";
+        //                }
+        //            }
+        //            else
+        //            {
+        //                return "图片发送失败，这不是一个可解析的URL";
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Log(ex);
+        //    }
+
+
+
+
+        //    return "图片发送失败";
+        //}
+
+        //public bool IsUniKey(string param)
+        //{
+        //    return new Regex(@"\d+_\d+").IsMatch(param);
+        //}
 
 
         #endregion

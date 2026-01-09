@@ -5,7 +5,10 @@ using System.Diagnostics;
 
 namespace Kugua.Integrations.AI
 {
-    public partial class LLM
+    /// <summary>
+    /// 语音输出的模型
+    /// </summary>
+    public class LLMSpeech
     {
         #region 说话模块
 

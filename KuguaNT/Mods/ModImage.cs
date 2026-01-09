@@ -2,15 +2,18 @@
 using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Serialization;
 using NvAPIWrapper.Native.GPU;
 using OpenAI;
+using OpenAI.Responses;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Numerics;
 using System.Runtime.InteropServices.Marshalling;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ZhipuApi.Modules;
@@ -27,8 +30,13 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^来点(\S+)"), getSome));
             ModCommands.Add(new ModCommand(new Regex(@"^动(\S+)"), getMoveEmoji));
 
-            ModCommands.Add(new ModCommand(new Regex(@"^生图(.*)", RegexOptions.Singleline), genImg));
-            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^群(\S*)的头像$"), getGroupAvatar));
+            ModCommands.Add(new ModCommand(new Regex(@"^(\S+)的头像$"), getUserAvatar));
+
+
+            ModCommands.Add(new ModCommand(new Regex(@"^(\S*)生图(.*)", RegexOptions.Singleline), genImg));
+            //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
             ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
@@ -45,8 +53,12 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^竖拼$", RegexOptions.Singleline), combineV));
             ModCommands.Add(new ModCommand(new Regex(@"^横拼$", RegexOptions.Singleline), combineH));
             ModCommands.Add(new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
+            ModCommands.Add(new ModCommand(new Regex(@"^gif$", RegexOptions.Singleline), webpToGif));
 
-            ModCommands.Add(new ModCommand(new Regex(@"^做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"^识图$", RegexOptions.Singleline), GetOCR));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^做旧(\S*)$", RegexOptions.Singleline), getOldJpg));
+            ModCommands.Add(new ModCommand(new Regex(@"^(遗像|遗照)$", RegexOptions.Singleline), getYixiang));
             ModCommands.Add(new ModCommand(new Regex(@"^像素字(.*)", RegexOptions.Singleline), getPixelWords));
             ModCommands.Add(new ModCommand(new Regex(@"^(内?)抖(\S*)", RegexOptions.Singleline), getShake));
             ModCommands.Add(new ModCommand(new Regex(@"^滚动(\S*)", RegexOptions.Singleline), getRoll));
@@ -159,6 +171,44 @@ namespace Kugua.Mods
 
 
             if (!findImg) WaitNext(context, new ModCommand(new Regex(@"^乱序$", RegexOptions.Singleline), randGif));
+            return null;
+        }
+        /// <summary>
+        /// webp=>gif
+        /// gif [图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string webpToGif(MessageContext context, string[] param)
+        {
+            if (context.IsImage)
+            {
+                List<MagickImageCollection> images = new List<MagickImageCollection>();
+                foreach (var img in context.Images)
+                {
+                    var thisimgs = Network.DownloadImage(img.url);
+                    thisimgs.Coalesce();
+                    foreach (var thisimg in thisimgs)
+                    {
+                        thisimg.Format = MagickFormat.Gif;
+                        thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+                    }
+                    thisimgs.OptimizeTransparency();
+                    images.Add(thisimgs);
+                    
+                }
+                context.SendBackImages(images);
+                //var randImgs = Util.FisherYates2(images);
+                //images.Clear();
+                //foreach (var img in randImgs) images.Add(img);
+                //images.OptimizeTransparency();
+
+            }
+            else
+            {
+                WaitNext(context, new ModCommand(new Regex(@"^gif$", RegexOptions.Singleline), webpToGif));
+            }
             return null;
         }
 
@@ -580,7 +630,6 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string getOldJpg(MessageContext context, string[] param)
         {
-            bool findImg = false;
             double quality = 0.75;
             if (param.Length >= 2)
             {
@@ -590,23 +639,81 @@ namespace Kugua.Mods
             }
 
 
-            foreach (var item in context.recvMessages)
+            foreach (var item in context.Images)
             {
-                //Logger.Log(item.type);
-                if (item is ImageBasic itemImg)
-                {
-                    var oriImg = Network.DownloadImage(itemImg.url);
-                    //Logger.Log("? == " + oriImg.Count);
-                    context.SendBackImage(ImageUtil.ImgGreen(oriImg, (int)(50 * (1 - quality)), quality));
-                    findImg = true;
-                }
+                var oriImg = Network.DownloadImage(item.url);
+                context.SendBackImage(ImageUtil.ImgGreen(oriImg, (int)(50 * (1 - quality)), quality));
+                
             }
 
-            if (!findImg) WaitNext(context, new ModCommand(new Regex(@"做旧(\S*)", RegexOptions.Singleline), getOldJpg));
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"^做旧(\S*)$", RegexOptions.Singleline), getOldJpg));
             return null;
 
 
         }
+
+
+        /// <summary>
+        /// 图片文字识别（OCR）
+        /// 识图[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string GetOCR(MessageContext context, string[] param)
+        {
+            StringBuilder res = new StringBuilder();
+            foreach (var item in context.Images)
+            {
+                var oriImg = Network.DownloadImage(item.url);
+                foreach (var frame in oriImg)
+                {
+                    res.AppendLine(context.client.GetOCR($"base64://{frame.ToBase64()}"));
+                }
+                
+            }
+            if (res.Length>0) context.SendBackText(res.ToString());
+
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"^识图$", RegexOptions.Singleline), GetOCR));
+            return null;
+
+
+        }
+        /// <summary>
+        /// 黑白图像
+        /// 遗像[图片]/遗照[图片]
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getYixiang(MessageContext context, string[] param)
+        {
+            double quality = 0.75;
+            if (param.Length >= 2)
+            {
+                double.TryParse(param[1], out quality);
+                if (quality < 0.1) quality = 0.75;
+                if (quality > 0.95) quality = 0.95;
+            }
+
+            List<MagickImageCollection> imgs = new List<MagickImageCollection>();
+            foreach (var item in context.Images)
+            {
+                var oriImg = Network.DownloadImage(item.url);
+                foreach(var frame in oriImg)
+                {
+                    frame.Grayscale(PixelIntensityMethod.Rec601Luminance);
+                }
+                imgs.Add(oriImg);
+            }
+            if (imgs.Count > 0) context.SendBackImages(imgs);
+
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"^遗像$", RegexOptions.Singleline), getYixiang));
+            return null;
+
+
+        }
+
 
         /// <summary>
         /// 图片抖动！数字是震级，一般取0~1的小数
@@ -863,6 +970,99 @@ namespace Kugua.Mods
 
         }
 
+        private string getUserQQNumberByText(MessageContext context, string text)
+        {
+            
+            if (string.IsNullOrWhiteSpace(text)) return "";
+            
+            var qqMatch = Regex.Match(text, @"[1-9][0-9]{4,}");
+            if (qqMatch.Success)
+            {
+                return qqMatch.Value;
+            }
+            else if(text=="我")
+            {
+                return context.userId;
+            }
+            else if (text == "你")
+            {
+                return Config.Instance.BotQQ;
+            }
+            else if(context.Ats.Count > 0)
+            {
+                var at = context.Ats.First();
+                return at.qq;
+            }
+            else if(context.IsGroup)
+            {
+                var members = context.client.GetGroupMemberList(context.groupId);
+                try
+                {
+                    var q = members.Where(m=>m.nickname==text || m.card==text).FirstOrDefault().user_id;
+                    return q;
+                }
+                catch (Exception ex) { Logger.Log(ex); }
+                
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 获取用户头像图片
+        /// 我的头像/ 287859992的头像
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getUserAvatar(MessageContext context, string[] param)
+        {
+            var qq = getUserQQNumberByText(context, param[1]);
+            if (string.IsNullOrWhiteSpace(qq)) return "";
+            _ = context.SendBack([
+                new Text($"qq={qq}"),
+                new ImageSend($"https://q1.qlogo.cn/g?b=qq&nk={qq}&s=0")]);
+            return null;
+        }
+
+        /// <summary>
+        /// 获取群头像图片
+        /// 群的头像 / 群1005625206的头像
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string getGroupAvatar(MessageContext context, string[] param)
+        {
+            string groupid = "";
+            Match gm = Regex.Match(param[1], @"[1-9][0-9]{4,}");
+            if(gm.Success)
+            {
+                groupid = gm.Value;
+            }
+            if (string.IsNullOrWhiteSpace(groupid)) groupid = context.groupId;
+
+            List<Message> msgs = new List<Message>();
+            msgs.Add(new Text($"group={groupid}"));
+            int maxnum = 100;
+            int skilleft = 1;
+            for(int i=1;i<=maxnum;i++)
+            {
+                string uri = $"https://p.qlogo.cn/gh/0/{groupid}_{i}/0";
+                var img = Network.DownloadImage(uri);
+                if (img.First().Width < 41 && img.First().Height < 41)
+                {
+                    if(skilleft--<0) break;
+                }
+                else
+                {
+                    msgs.Add(new ImageSend(uri));
+                }
+            }
+            msgs.Insert(1, new Text($"共找到{msgs.Count-1}个历史头像"));
+            context.SendForward(msgs.ToArray());
+            
+            return null;
+        }
 
         /// <summary>
         /// emoji合成（直接发一到两个emoji给bot即可触发）/查看gif版的emoji（爱来自TG）
@@ -897,75 +1097,76 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// AI生成图片
-        /// 生图 一个小女孩在下雨天奔跑
+        /// AI生成图片，可以以图生图，加pro前缀可以改为nano pro，否则用2.5
+        /// 生图 [图片]将这张图改为真人风格 / pro生图 [图片]将这张图改为真人风格
         /// </summary>
         /// <param name="context"></param>
         /// <param name="param"></param>
         /// <returns></returns>
         private string genImg(MessageContext context, string[] param)
         {
-            var desc = param[1];
-            //if (context.IsImage)
-            //{
-            //    // 以图生图
-
-            //    desc += LLM.Instance.HSGetImgDesc(context.PNG1Base64, "请用200字以内的文字描述这张图的内容，务必注意细节。注意强调艺术风格、肢体动作、表情、物品的位置等。", "png");
-            //    context.SendBackText(desc);
-            //    if (desc.Contains("ERROR")) return null;
-            //}
-            //else 
-            if (string.IsNullOrWhiteSpace(desc))
-            {
-                WaitNext(context, new ModCommand(new Regex(@"生图(.*)", RegexOptions.Singleline), genImg));
-                return null;
-            }
-
-            return GenerateImageAndSendback(context, desc, null);
-
-        }
-
-
-        /// <summary>
-        /// AI生成图片
-        /// 外语生图 一个小女孩在下雨天奔跑
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        private string genImg2(MessageContext context, string[] param)
-        {
-            var lang = param[1];
-            if (lang == "外") lang = "德";
+            var type = param[1];
             var desc = param[2];
             //if (context.IsImage)
             //{
             //    // 以图生图
-            //    desc = ModTranslate.getTrans(desc, lang);
-            //    context.SendBackText(desc);
+            //    //
 
-            //    if (desc.Contains("ERROR")) return null;
+            //        //var res = LLM.Instance.GenerateImage(desc, context.PNGBase64s);
+            //        //context.SendBackText(desc);
+            //        //if (res.Contains("ERROR")) return null;
             //}
-            //else 
             if (string.IsNullOrWhiteSpace(desc))
             {
-                WaitNext(context, new ModCommand(new Regex(lang + @"语生图(.*)", RegexOptions.Singleline), genImg2));
+                WaitNext(context, new ModCommand(new Regex(@"(\S*)生图(.*)", RegexOptions.Singleline), genImg));
                 return null;
             }
 
-            desc = ModTranslate.getTrans(desc, lang);
-            // TODO image to image
-            return GenerateImageAndSendback(context, desc, null);
+            return GenerateImageAndSendback(context, desc, context.PNGBase64s, type);
 
         }
 
-        string GenerateImageAndSendback(MessageContext context, string prompt, string[] oriImages = null)
+
+        ///// <summary>
+        ///// AI生成图片
+        ///// 外语生图 一个小女孩在下雨天奔跑
+        ///// </summary>
+        ///// <param name="context"></param>
+        ///// <param name="param"></param>
+        ///// <returns></returns>
+        //private string genImg2(MessageContext context, string[] param)
+        //{
+        //    var lang = param[1];
+        //    if (lang == "外") lang = "德";
+        //    var desc = param[2];
+        //    //if (context.IsImage)
+        //    //{
+        //    //    // 以图生图
+        //    //    desc = ModTranslate.getTrans(desc, lang);
+        //    //    context.SendBackText(desc);
+
+        //    //    if (desc.Contains("ERROR")) return null;
+        //    //}
+        //    //else 
+        //    if (string.IsNullOrWhiteSpace(desc))
+        //    {
+        //        WaitNext(context, new ModCommand(new Regex(lang + @"语生图(.*)", RegexOptions.Singleline), genImg2));
+        //        return null;
+        //    }
+
+        //    desc = ModTranslate.getTrans(desc, lang);
+        //    // TODO image to image
+        //    return GenerateImageAndSendback(context, desc, null);
+
+        //}
+
+        string GenerateImageAndSendback(MessageContext context, string prompt, List<string> oriImages = null, string type="")
         {
-            if (string.IsNullOrWhiteSpace(prompt)) return "";
+            if (string.IsNullOrWhiteSpace(prompt)) return "(缺少描述)";
             BigInteger imgCost = BigInteger.Max(1000, context.User.Money / 33);
             if (ModBank.Instance.GetPay(context.userId, imgCost))
             {
-                var imgBase64 = LLM.Instance.HSGetImg(prompt);
+                var imgBase64 = LLM.Instance.GenerateImage(prompt,oriImages, type);
                 if (imgBase64 == null)
                 {
                     // 生图出错，返还钱币

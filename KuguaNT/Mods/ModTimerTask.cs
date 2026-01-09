@@ -2,6 +2,8 @@
 using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
+using Kugua.Mods.ModNormalChat;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -171,7 +173,7 @@ namespace Kugua.Mods
 
 
 
-            var r = LLM.Instance.HSGetImg("");
+            //var r = LLM.Instance.GetImg("");
 
 
 
@@ -257,7 +259,7 @@ namespace Kugua.Mods
                             groupId = g.Key,
                             client = clientQQ,
                         };
-                        var r = ModRandomChat.getHistoryReact(context);
+                        var r = ModNormalChat.ModNormalChat.getHistoryReact(context);
                         foreach (var item in r)
                         {
                             //Logger.Log($"length = {item.Length}");

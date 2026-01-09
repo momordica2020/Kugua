@@ -1,6 +1,7 @@
 ﻿using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -56,7 +57,7 @@ namespace Kugua.Mods
 
         private string sendMarketImage(MessageContext context, string[] param)
         {
-            context.SendBack([new MFace { 
+            _ = context.SendBack([new MFace {
                 emoji_id = "5e4d010e98d79f679823f99991fe3149",
                 emoji_package_id = "236841",
                 key="4dbea6017d4e07b2",

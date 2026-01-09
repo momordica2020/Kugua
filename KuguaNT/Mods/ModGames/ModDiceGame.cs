@@ -7,6 +7,7 @@ using System;
 using Kugua.Integrations.NTBot;
 using System.Numerics;
 using Kugua.Core;
+using Kugua.Mods.Base;
 
 
 namespace Kugua.Mods

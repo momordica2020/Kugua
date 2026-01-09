@@ -2,7 +2,7 @@ using Kugua.Core;
 using NvAPIWrapper.Native.Display;
 using System.Numerics;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators.Base
 {
     /// <summary>
     /// 用于定型文模板填充用

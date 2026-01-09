@@ -1,4 +1,5 @@
-﻿using Prophecy;
+﻿using Kugua.Mods.Base;
+using Prophecy;
 using Prophecy.Data;
 using System.Text;
 using System.Text.RegularExpressions;

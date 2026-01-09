@@ -1,7 +1,8 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations.Generators.Base;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 吃的的随机模板填充相关

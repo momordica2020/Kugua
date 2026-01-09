@@ -1,7 +1,8 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations.Generators.Base;
 using System.Text.RegularExpressions;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 基于模板的文本生成

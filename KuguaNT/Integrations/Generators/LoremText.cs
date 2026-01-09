@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using System;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 生成乱数假文

@@ -1,8 +1,9 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations.Generators.Base;
 using Microsoft.AspNetCore.Identity.Data;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 营销号文档模板填充相关

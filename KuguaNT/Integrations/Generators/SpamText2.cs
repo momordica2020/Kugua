@@ -1,13 +1,14 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations.Generators.Base;
 using Microsoft.AspNetCore.Identity.Data;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 另一种狗屁不通论文文档模板填充相关
     /// </summary>
-    public class SpamText3
+    public class SpamText2
     {
         static DScript SpamTemplate = new DScript();
 
@@ -27,10 +28,16 @@ namespace Kugua.Generators
                 if (string.IsNullOrWhiteSpace(topic)) return "";
 
                 List<DValue> param = [
-                    new DValue("主题", [topic]),
-                    new DValue("小编", ["我苦"]),
+                    new DValue("x", [topic]),
                 ];
-                return SpamTemplate.GetResult(null, param);
+                int maxCount = 100;
+                while(maxCount-- > 0 && res.Length < length)
+                {
+                    res.Append(SpamTemplate.GetResult(null, param));
+                    if (MyRandom.NextDouble <= 0.05) res.Append("\r\n");
+                }
+                //return SpamTemplate.GetDefaultResult(null, param);
+                return res.ToString();
             }
             catch (Exception ex)
             {

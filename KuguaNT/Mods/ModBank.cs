@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using ChatGPT.Net;
 using Kugua.Core;
+using Kugua.Mods.Base;
 
 
 namespace Kugua.Mods

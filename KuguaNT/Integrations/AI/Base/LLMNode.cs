@@ -1,4 +1,4 @@
-namespace Kugua.Integrations.AI
+namespace Kugua.Integrations.AI.Base
 {
 
     public enum LLMRole

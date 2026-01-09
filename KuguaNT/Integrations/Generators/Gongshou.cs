@@ -1,4 +1,6 @@
-﻿namespace Kugua.Generators
+﻿using Kugua.Integrations.Generators.Base;
+
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 攻受文模板填充相关

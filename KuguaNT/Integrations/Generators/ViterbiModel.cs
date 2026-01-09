@@ -1,6 +1,6 @@
 ﻿using Kugua.Mods;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     class ViterbiModel
     {

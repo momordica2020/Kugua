@@ -1,5 +1,5 @@
-﻿
-using Kugua.Generators;
+﻿using Kugua.Integrations.Generators;
+using Kugua.Mods.Base;
 using System;
 using System.Collections.Generic;
 using System.IO;

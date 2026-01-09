@@ -1,8 +1,9 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations.Generators.Base;
 using Microsoft.AspNetCore.Identity.Data;
 using System.Text;
 
-namespace Kugua.Generators
+namespace Kugua.Integrations.Generators
 {
     /// <summary>
     /// 户籍信息生成
@@ -28,6 +29,7 @@ namespace Kugua.Generators
                 
                 
                 res += $"昵称：{userName}\r\n";
+                res += $"真实姓名：{userName}\r\n";
             }
             catch (Exception ex)
             {
@@ -37,6 +39,13 @@ namespace Kugua.Generators
             return res;
         }
 
+
+
+
+        public static string GetChineseName(int length)
+        {
+            return "";
+        }
 
     }
 }

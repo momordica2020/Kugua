@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using Kugua.Core;
+using Kugua.Integrations.AI.Base;
+using System.ComponentModel;
 
 namespace Kugua.Integrations.AI
 {
@@ -10,9 +12,10 @@ namespace Kugua.Integrations.AI
     /// <summary>
     /// Ollama
     /// </summary>
-    public partial class LLM
+    public class Ollama : LLMBase
     {
-
+        OllamaFunctions funcs = new OllamaFunctions();
+        public string ModelName;
 
         static List<dynamic> OllamaTools = new List<dynamic>
         {
@@ -137,17 +140,17 @@ namespace Kugua.Integrations.AI
 
 
 
-        public async Task OllamaHandleMessageList(string chatId, List<dynamic> messages)
+        public async Task HandleMessageList(string chatId, List<dynamic> messages)
         {
             var msgRecently = messages.Last();
             if ((string)msgRecently.role == "user" || (string)msgRecently.role == "tool")
             {
                 // need ask
-                var responseJson = await OllamaSend(messages);
+                var responseJson = await Send(messages);
                 if (responseJson == null) return;
 
                 messages.Add(responseJson.message);
-                await OllamaHandleMessageList(chatId, messages);
+                await HandleMessageList(chatId, messages);
                 return;
             }
 
@@ -158,11 +161,11 @@ namespace Kugua.Integrations.AI
                 var toolCalls = msgRecently.tool_calls;
                 var content = msgRecently.content;
                 var availableFunctions = new Dictionary<string, Func<string[], Task<string>>>{
-                    { "在线搜索", GetWebContent },
-                    {"获取日期和时间",GetCurrentTimeInTimeZone },
-                    {"执行python语句",GetRunPython },
-                    { "发送语音", GetSpeak},
-                    {"发送图片", GetImage },
+                    { "在线搜索", funcs.GetWebContent },
+                    {"获取日期和时间",funcs.GetCurrentTimeInTimeZone },
+                    {"执行python语句",funcs.GetRunPython },
+                    //{ "发送语音", funcs.GetSpeak},
+                    //{"发送图片", funcs.GetImage },
                 };
 
 
@@ -226,14 +229,14 @@ namespace Kugua.Integrations.AI
                 if (!string.IsNullOrWhiteSpace(functionResponse))
                 {
                     messages.Add(new { role = "tool", content = functionResponse });
-                    await OllamaHandleMessageList(chatId, messages);
+                    await HandleMessageList(chatId, messages);
                 }
                 return;
             }
         }
 
 
-        private static async Task<dynamic> OllamaSend(List<object> _messages)
+        private async Task<dynamic> Send(List<object> _messages)
         {
             string jsonRequestBody = "";
             if (ModelName.Contains("qwen"))
@@ -363,46 +366,50 @@ namespace Kugua.Integrations.AI
 
 
 
-        public async void OllamaReply(MessageContext context)
+        //public override async Task<string> Chat(ChatContext context, string input)
+        //{
+        //    try
+        //    {
+        //        if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.OllamaUri)) return;
+        //        if (string.IsNullOrWhiteSpace(context.recvMessages.ToTextString())) return;
+        //        string chatId = LLM.Instance.GetChatContext(context).Id;
+        //        //string chatId = GetChatId(context.groupId, context.userId);
+        //        if (string.IsNullOrWhiteSpace(chatId)) return;
+        //        if (!ChatMessageList.ContainsKey(chatId))
+        //            ChatMessageList[chatId] = new List<dynamic> { new { role = "system", content = DefaultPrompt } };
+
+
+        //        //// if filtered pass
+        //        //if (!IOFilter.Instance.IsPass(input, FilterType.Normal))
+        //        //{
+        //        //    // filtered
+        //        //    return;
+        //        //}
+        //        ChatMessageContext[chatId] = context;
+        //        ChatMessageList[chatId].Add(new { role = "user", content = context.recvMessages.ToTextString() });
+
+        //        await OllamaHandleMessageList(chatId, ChatMessageList[chatId]);
+
+        //        string res = (string)ChatMessageList[chatId].Last().content;
+
+
+        //        res = res.Replace("\r\n\r\n", "\n").Replace("\n\n", "\n");
+        //        res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
+
+        //        if (string.IsNullOrWhiteSpace(res)) return;
+        //        context.SendBackText(res,true, true);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Log(ex);
+        //    }
+        //}
+
+
+        public override async Task<string> ChatAsync(ChatContext context)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.OllamaUri)) return;
-                if (string.IsNullOrWhiteSpace(context.recvMessages.ToTextString())) return;
-                string chatId = GetChatId(context.groupId, context.userId);
-                if (string.IsNullOrWhiteSpace(chatId)) return;
-                if (!ChatMessageList.ContainsKey(chatId))
-                    ChatMessageList[chatId] = new List<dynamic> { new { role = "system", content = GetDefaultPrompt() } };
-
-
-                //// if filtered pass
-                //if (!IOFilter.Instance.IsPass(input, FilterType.Normal))
-                //{
-                //    // filtered
-                //    return;
-                //}
-                ChatMessageContext[chatId] = context;
-                ChatMessageList[chatId].Add(new { role = "user", content = context.recvMessages.ToTextString() });
-
-                await OllamaHandleMessageList(chatId, ChatMessageList[chatId]);
-
-                string res = (string)ChatMessageList[chatId].Last().content;
-
-
-                res = res.Replace("\r\n\r\n", "\n").Replace("\n\n", "\n");
-                res = Filter.Instance.FiltingBySentense(res, FilterType.Normal);
-
-                if (string.IsNullOrWhiteSpace(res)) return;
-                context.SendBackText(res,true, true);
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
+             return String.Empty;
         }
-
-
-
     }
 }

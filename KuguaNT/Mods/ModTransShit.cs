@@ -1,6 +1,7 @@
 ﻿using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
+using Kugua.Mods.Base;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Newtonsoft.Json;
@@ -412,7 +413,7 @@ namespace Kugua.Mods
                     !string.IsNullOrWhiteSpace(shit.imgBase64)
                     && shit.score == 0)
                 {
-                    shit.score = LLM.Instance.HSGetImgScore(shit.imgBase64, shit.imgType);
+                    shit.score = LLM.Instance.GetImgScore(shit.imgBase64, shit.imgType);
                     
 
                     if (shit.score <= 0) shit.score = 1;
@@ -543,7 +544,8 @@ namespace Kugua.Mods
                 LocalStorage.WriteResource(configfile, JsonConvert.SerializeObject(config));
 
                 var allHash = oldHash.ToList();
-                foreach(var hs in shithash.Keys)if(!allHash.Contains(hs)) allHash.Add(hs);
+                var skeys = shithash.Keys;
+                foreach (var hs in skeys)if(!allHash.Contains(hs)) allHash.Add(hs);
                 LocalStorage.WriteResource(hashfile, string.Join("\r\n", allHash));
             }
             catch (Exception ex)
