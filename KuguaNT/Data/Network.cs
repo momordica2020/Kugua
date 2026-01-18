@@ -40,6 +40,12 @@ namespace Kugua
 
         public static void Download(string url, string localPath, bool useProxy=false)
         {
+            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                // 如果已经是本地文件，直接复制或返回
+                File.Copy(url, localPath, true);
+                return;
+            }
             HttpClientHandler handler = new HttpClientHandler
             {
                 UseProxy = useProxy,
