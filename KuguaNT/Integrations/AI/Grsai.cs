@@ -175,7 +175,7 @@ namespace Kugua.Integrations.AI
                     }
                     else if (status == "failed")
                     {
-                        Logger.Log("生成失败: " + data.GetProperty("failure_reason").GetString());
+                        Logger.Log($"生成失败: {data.GetProperty("failure_reason").GetString()}({data.GetProperty("error").GetString()})");
                         return null;
                     }
                 }
