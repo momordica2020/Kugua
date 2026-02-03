@@ -35,7 +35,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^(\S+)的头像$"), getUserAvatar));
 
 
-            ModCommands.Add(new ModCommand(new Regex(@"^(\S*)生图(.*)", RegexOptions.Singleline), genImg));
+            ModCommands.Add(new ModCommand(new Regex(@"^(\S*?)生图(.*)", RegexOptions.Singleline), genImg));
             //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
@@ -1097,7 +1097,7 @@ namespace Kugua.Mods
 
 
         /// <summary>
-        /// AI生成图片，可以以图生图，加pro前缀可以改为nano pro，否则用2.5
+        /// AI生成图片，可以以图生图，加pro前缀可以改为nano pro，否则用2.5。提示词会先转化为英语后生成
         /// 生图 [图片]将这张图改为真人风格 / pro生图 [图片]将这张图改为真人风格
         /// </summary>
         /// <param name="context"></param>
@@ -1116,12 +1116,19 @@ namespace Kugua.Mods
             //        //context.SendBackText(desc);
             //        //if (res.Contains("ERROR")) return null;
             //}
+            
             if (string.IsNullOrWhiteSpace(desc))
             {
                 WaitNext(context, new ModCommand(new Regex(@"(\S*)生图(.*)", RegexOptions.Singleline), genImg));
                 return null;
             }
-
+            if (type.EndsWith("语"))
+            {
+                var desc2 = ModTranslate.getTrans(desc, "英语");
+                if (string.IsNullOrWhiteSpace(desc2)) desc2 = desc;
+                desc = desc2;
+                type = "";
+            }
             return GenerateImageAndSendback(context, desc, context.PNGBase64s, type);
 
         }
@@ -1167,7 +1174,7 @@ namespace Kugua.Mods
             if (ModBank.Instance.GetPay(context.userId, imgCost))
             {
                 var imgBase64 = LLM.Instance.GenerateImage(prompt,oriImages, type);
-                if (imgBase64 == null)
+                if (imgBase64 == null || imgBase64.Count <= 0)
                 {
                     // 生图出错，返还钱币
                     ModBank.Instance.TransMoney(Config.Instance.BotQQ, context.userId, imgCost, out _);
@@ -1175,7 +1182,7 @@ namespace Kugua.Mods
                 }
                 else
                 {
-                    context.SendBack([new ImageSend($"base64://{imgBase64}")]);
+                    context.SendBack(imgBase64.Select(img=> new ImageSend($"base64://{img}")).ToArray());
                     return null;
 
                 }

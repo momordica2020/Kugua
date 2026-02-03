@@ -62,11 +62,11 @@ namespace Kugua.Integrations.AI
             throw new NotImplementedException();
         }
 
-        public async Task<string> GenerateImage(string prompt, List<string> inputImagesBase64, string type)
+        public async Task<List<string>> GenerateImage(string prompt, List<string> inputImagesBase64, string type)
         {
             if(inputImagesBase64 == null)inputImagesBase64 = new List<string>();
             Logger.Log($"生成图片...({prompt})(img:{inputImagesBase64.Count})({type})");
-
+            DateTime dt = DateTime.Now;
 
             // 1. 发起绘图请求
             string modelName = NanoName1;
@@ -81,8 +81,14 @@ namespace Kugua.Integrations.AI
 
             Logger.Log("生成图片 URL: " + imageUrl);
 
+            List<string> datas = new List<string>();
             // 3. 将结果 URL 转换为 Base64
-            return await DownloadImageAsBase64(imageUrl);
+            var img1 =  await DownloadImageAsBase64(imageUrl);
+            datas.Add(img1);
+
+            Logger.Log($"Grsai图片生成完成，耗时: {(DateTime.Now - dt).TotalSeconds} 秒 ({prompt})(img:{inputImagesBase64.Count})({type})");
+
+            return datas;
         }
 
 

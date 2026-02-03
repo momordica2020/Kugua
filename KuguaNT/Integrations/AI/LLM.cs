@@ -48,7 +48,7 @@ namespace Kugua.Integrations.AI
         /// 图片生成器
         /// </summary>
         ILLMImageGenerate imageModel;
-
+        ILLMImageGenerate imageModel2;
 
 
         //LLMBase funcModel;
@@ -64,10 +64,14 @@ namespace Kugua.Integrations.AI
 
         public void Init()
         {
-            chatModel = new Grsai();
-            chatSmallModel = new Huoshan();
-            imageModel = new Grsai();
-            imageRecognizeModel = new Huoshan();
+            var huoshan = new Huoshan();
+            var grsai = new Grsai();
+
+            chatModel = grsai;
+            chatSmallModel = huoshan;
+            imageModel = grsai;
+            imageModel2 = huoshan;
+            imageRecognizeModel = huoshan;
             speechModel = new LLMSpeech();
 
             LoadMemory();
@@ -337,17 +341,25 @@ namespace Kugua.Integrations.AI
             }
         }
 
-        public string GenerateImage(string input, List<string> inputImages = null, string type = "")
+        public List<string> GenerateImage(string input, List<string> inputImages = null, string type = "")
         {
-            if (imageModel != null)
+            if((type=="豆包" || inputImages==null ) && imageModel2 != null)
             {
-                return imageModel.GenerateImage(input, inputImages, type ).Result;
+                return imageModel2.GenerateImage(input, inputImages, type).Result;
+            }
+            else if (imageModel != null)
+            {
+                var res = imageModel.GenerateImage(input, inputImages, type ).Result;
+                if ((res == null || res.Count <= 0 ) && imageModel2!=null)
+                {
+                    return imageModel2.GenerateImage(input, inputImages, type).Result;
+                }
             }
             else
             {
                 Logger.Log("图片生成引擎为空");
             }
-            return string.Empty;
+            return null;
         }
 
         #endregion
