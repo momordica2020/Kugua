@@ -146,7 +146,7 @@ namespace Kugua
                     ClientX.ConnectAsync();
                     
                     
-
+                    ClientX.OnConnected += QQConnected;
                     ClientX.OnPrivateMessageReceive += OnPrivateMessageReceive;
                     ClientX.OnGroupMessageReceive += OnGroupMessageReceive;
                     //ClientX.OnTempMessageReceive += OnTempMessageReceive;
@@ -243,6 +243,13 @@ namespace Kugua
             }
             return res.ToString();
         }
+        
+
+
+        /// <summary>
+        /// 自检信息打印
+        /// </summary>
+        /// <returns></returns>
         public string SelfCheckInfo()
         {
             StringBuilder res = new StringBuilder();
@@ -321,9 +328,32 @@ namespace Kugua
 
 
         /// <summary>
-        /// 刷新好友列表并更新配置文件
+        /// 刷新qq信息
         /// </summary>
-        
+        void QQConnected(object _)
+        {
+            Logger.Log($"Napcat已建立连接");
+            try
+            {
+                var qqinfo = ClientX.GetLoginInfo().Result;
+                if (qqinfo == null || qqinfo.user_id == 0)
+                {
+                    Logger.Log($"从Napcat获取QQ信息失败");
+
+                }
+                else
+                {
+                    Config.Instance.App.Avatar.myQQ = qqinfo.user_id.ToString();
+                    Config.Instance.App.Avatar.myName = qqinfo.nickname;
+                }
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+
+               
+
+        }
 
 
 

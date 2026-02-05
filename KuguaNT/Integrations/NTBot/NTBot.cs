@@ -1,5 +1,6 @@
 ﻿using ImageMagick;
 using Kugua.Core;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,6 +34,8 @@ namespace Kugua.Integrations.NTBot
         // 摘要:
         //     重连标识
         public bool reconnecting { get; private set; }
+        
+        public Action<object> OnConnected { get; internal set; }
         public Action<private_message_event> OnPrivateMessageReceive { get; internal set; }
         public Action<group_message_event> OnGroupMessageReceive { get; internal set; }
 
@@ -45,8 +48,7 @@ namespace Kugua.Integrations.NTBot
 
 
         private CancellationTokenSource _reconnectCts = new CancellationTokenSource();
-
-
+        
 
         public NTBot(string url)
         {
@@ -56,8 +58,8 @@ namespace Kugua.Integrations.NTBot
             ws = new WebSocket(url);
             ws.Opened += delegate (object? s, EventArgs e)
             {
-                Logger.Log("[NT Socket] - Socket 已连接 -");
-                //client._OnServeiceConnected?.Invoke(e.ToString());
+                Logger.Log("[Napcat Socket] - 已连接 -");
+                client.OnConnected?.Invoke(e.ToString());
             };
             ws.Error += delegate (object? s, SuperSocket.ClientEngine.ErrorEventArgs e)
             {
@@ -164,7 +166,7 @@ namespace Kugua.Integrations.NTBot
                     // 仅在关闭/异常状态下尝试重连
                     if (ws.State == WebSocketState.Closed)
                     {
-                        Logger.Log($"[NT Socket] - 尝试重新连接 (间隔: {baseDelay}ms)", LogType.Debug);
+                        Logger.Log($"[Napcat Socket] - 尝试重新连接 (间隔: {baseDelay}ms)", LogType.Debug);
                         await ws.OpenAsync(); 
 
                         //Logger.Log("[NT Socket] - 重连成功");
@@ -206,6 +208,30 @@ namespace Kugua.Integrations.NTBot
             string res = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(new set_friend_add_request { flag = flag, approve=true}));
             Logger.Log(res);
         }
+
+
+        /// <summary>
+        /// 查询Napcat登录信息
+        /// </summary>
+        public async Task<login_info_response> GetLoginInfo()
+        {
+            login_info_response info = new login_info_response();
+            string uri = Config.Instance.App.Net.QQHTTP + "/get_login_info";
+            //Logger.Log(uri);
+            string json = await Network.PostJsonAsync(uri, "");
+            JObject jo = JObject.Parse(json);
+            try
+            {
+                info = JsonConvert.DeserializeObject<login_info_response>(jo["data"].ToString());
+                Logger.Log($"Napcat Login:{info.nickname}({info.user_id})");
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return info;
+            
+        }
+
 
         /// <summary>
         /// 获取转发内容详情

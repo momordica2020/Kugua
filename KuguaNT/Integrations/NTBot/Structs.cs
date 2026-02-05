@@ -458,7 +458,23 @@ namespace Kugua.Integrations.NTBot
         /// </summary>
         public long interval { get; set; } // 到下次心跳的间隔，单位毫秒
     }
+
+
+
+    public class login_info_response
+    {
+        public long user_id { get; set; }
+        public string nickname { get; set; }
+    }
     #endregion meta
+
+
+
+
+
+
+    #region legacy
+
     //    /// <summary>
     //    /// 信息类的公开定义
     //    /// </summary>
@@ -1073,5 +1089,6 @@ namespace Kugua.Integrations.NTBot
     //    }
     //}
 
+    #endregion
 
 }
