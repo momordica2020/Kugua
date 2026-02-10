@@ -354,6 +354,11 @@ namespace Kugua.Integrations.AI
                 {
                     return imageModel2.GenerateImage(input, inputImages, type).Result;
                 }
+                else
+                {
+                    return res;
+                }
+                    
             }
             else
             {
