@@ -42,9 +42,9 @@ namespace Kugua.Mods
 
 
             // clocks
-            ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)"), setClock));
-            ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+"), checkClock));
-            ModCommands.Add(new ModCommand(new Regex(@"^(删除闹钟|别[叫喊][了我]?)"), removeClock));
+            ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)$"), setClock));
+            ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+$"), checkClock));
+            ModCommands.Add(new ModCommand(new Regex(@"^(删除闹钟|别[叫喊][了我]?)$"), removeClock));
             
 
 

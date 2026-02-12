@@ -1,4 +1,5 @@
 ﻿using Kugua.Core;
+using Kugua.Integrations;
 using Kugua.Integrations.Generators;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
@@ -30,6 +31,8 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^url=(.+)$"), UrlDecode, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^tourl=(.+)$"), UrlEncode, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^加群[∶|:|：|\s]\s*(\S+)$"), AddGroupUrl));
+            ModCommands.Add(new ModCommand(new Regex(@"^缩短[∶|:|：|\s]\s*(\S+)$"), GenerateB32Url));
+
             try
             {
                 qqwry = new QQWry(Config.Instance.FullPath("qqwry.dat"));
@@ -257,6 +260,30 @@ namespace Kugua.Mods
         }
 
 
+        /// <summary>
+        /// 缩写b站视频链接
+        /// 缩短：https://www.bilibili.com/video/BV1e44y147nb
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string GenerateB32Url(MessageContext context, string[] param)
+        {
+            try
+            {
+                string url = param[1];
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    url = BiliShortLinkGenerator.GetB23OfAsync(url).Result;
+                    return url;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
         /// <summary>
         /// 根据群号获取直连链接
         /// 加群：123456789
