@@ -32,6 +32,15 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^tourl=(.+)$"), UrlEncode, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^加群[∶|:|：|\s]\s*(\S+)$"), AddGroupUrl));
             ModCommands.Add(new ModCommand(new Regex(@"^缩短[∶|:|：|\s]\s*(\S+)$"), GenerateB32Url));
+            ModCommands.Add(new ModCommand(new Regex(@"^体脂[∶|:|：|\s]\s*(\S+)$"), CalBMI1));
+
+
+
+
+
+
+
+
 
             try
             {
@@ -258,8 +267,38 @@ namespace Kugua.Mods
             }
             return "";
         }
-
-
+        /// <summary>
+        /// 计算体脂率（依靠身高体重年龄性别）
+        /// 体脂：170 90 25 1
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string CalBMI1(MessageContext context, string[] param)
+        {
+            try
+            {
+                string para = param[1];
+                if (!string.IsNullOrWhiteSpace(para))
+                {
+                    var paras = para.Split([' ', '，', ','], StringSplitOptions.RemoveEmptyEntries);
+                    double h = double.Parse(paras[0]);
+                    double w = double.Parse(paras[1]);
+                    int a = 30;
+                    if (paras.Count() >2) a = int.Parse(paras[2]);
+                    bool isMale = true;
+                    if (paras.Count() > 3 && paras[3]=="0") isMale = false;
+                    var res = BodyFatCalculator.CalculateByBMI(h, w, a, isMale);
+                    return $"身高{h}cm，体重{w}kg,{a}岁的{(isMale?"男":"女")}性BMI={res:f2}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            return "";
+        }
+        
         /// <summary>
         /// 缩写b站视频链接
         /// 缩短：https://www.bilibili.com/video/BV1e44y147nb
