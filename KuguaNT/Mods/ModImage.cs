@@ -174,7 +174,7 @@ namespace Kugua.Mods
             return null;
         }
         /// <summary>
-        /// webp=>gif
+        /// webp=>gif，单张图的话会变成png
         /// gif [图片]
         /// </summary>
         /// <param name="context"></param>
@@ -188,13 +188,22 @@ namespace Kugua.Mods
                 foreach (var img in context.Images)
                 {
                     var thisimgs = Network.DownloadImage(img.url);
-                    thisimgs.Coalesce();
-                    foreach (var thisimg in thisimgs)
+                    if (thisimgs.Count <= 1)
                     {
-                        thisimg.Format = MagickFormat.Gif;
-                        thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+                        thisimgs.First().Format = MagickFormat.Png;
                     }
-                    thisimgs.OptimizeTransparency();
+                    else
+                    {
+                        thisimgs.Coalesce();
+                        foreach (var thisimg in thisimgs)
+                        {
+
+                            thisimg.Format = MagickFormat.Gif;
+                            thisimg.GifDisposeMethod = GifDisposeMethod.Background;
+                        }
+                        thisimgs.OptimizeTransparency();
+                    }
+
                     images.Add(thisimgs);
                     
                 }

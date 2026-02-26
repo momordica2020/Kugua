@@ -75,7 +75,7 @@ namespace Kugua.Mods
                 succeed = getProof(trynum);
                 if (succeed)
                 {
-                    return finalproof;
+                    return $"{message} = {finalproof}";
                 }
             }
             else
