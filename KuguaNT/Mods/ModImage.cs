@@ -1133,7 +1133,8 @@ namespace Kugua.Mods
             }
             if (type.EndsWith("语"))
             {
-                var desc2 = ModTranslate.getTrans(desc, "英语");
+                if (type == "外语") type = "英语";
+                var desc2 = ModTranslate.getTrans(desc, type);
                 if (string.IsNullOrWhiteSpace(desc2)) desc2 = desc;
                 desc = desc2;
                 type = "";

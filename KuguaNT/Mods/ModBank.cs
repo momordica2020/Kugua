@@ -212,6 +212,7 @@ namespace Kugua.Mods
                     }
                     else
                     {
+
                         context.SendBackText($"系统里找不到昵称 {target} ，转币失败。可以输入qq号码直接转");
                         return "";
                     }
@@ -489,7 +490,7 @@ namespace Kugua.Mods
             {
                 StringBuilder sb = new StringBuilder();
                 int maxnum = 10;
-                var users = Config.Instance.users.Values.Where(p=>p.UseTimes > 0).ToList();
+                var users = Config.Instance.users.Values.Where(p=>p.Money > 0).ToList();
                 users.Sort((left, right) =>
                 {
                     return left.Money.CompareTo(right.Money);
