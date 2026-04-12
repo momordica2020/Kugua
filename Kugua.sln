@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35327.3
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11626.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiveServer", "LiveServer\LiveServer.csproj", "{81058996-963F-449B-B294-C29C6C4271C4}"
 EndProject
@@ -20,6 +20,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KuguaNT", "KuguaNT\KuguaNT.csproj", "{F8DED0A3-ADD2-49BE-A610-3D1C10AF8BD3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramManager", "TelegramManager\TelegramManager.csproj", "{8845373A-BADF-4FAC-94E3-29E4C75C3588}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuguaSdk", "KuguaSdk\KuguaSdk.csproj", "{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuguaHost", "KuguaHost\KuguaHost.csproj", "{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,22 @@ Global
 		{8845373A-BADF-4FAC-94E3-29E4C75C3588}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8845373A-BADF-4FAC-94E3-29E4C75C3588}.Release|x64.ActiveCfg = Release|Any CPU
 		{8845373A-BADF-4FAC-94E3-29E4C75C3588}.Release|x64.Build.0 = Release|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Debug|x64.Build.0 = Debug|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|x64.ActiveCfg = Release|Any CPU
+		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|x64.Build.0 = Release|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|x64.Build.0 = Debug|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|x64.ActiveCfg = Release|Any CPU
+		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

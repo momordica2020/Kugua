@@ -1,0 +1,6 @@
+@KuguaHost_HostAddress = http://localhost:5129
+
+GET {{KuguaHost_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

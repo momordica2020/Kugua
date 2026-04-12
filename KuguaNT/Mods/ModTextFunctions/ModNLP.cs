@@ -122,7 +122,11 @@ namespace Kugua.Mods
 
 
 
-        // 汉字获取拼音首字母
+        /// <summary>
+        /// 汉字获取拼音首字母
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns></returns>
         public string GetPinyinSingle(char character)
         {
             if (IsHan(character)) // 汉字范围

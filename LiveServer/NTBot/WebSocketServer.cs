@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 
 
-namespace LiveServer.NTBot
+namespace KuguaServer.NTBot
 {
 
 

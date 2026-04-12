@@ -1,4 +1,4 @@
-﻿namespace LiveServer
+﻿namespace KuguaServer
 {
     partial class FormMonitor
     {

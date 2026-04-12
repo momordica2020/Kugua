@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ImageMagick;
 using Kugua.Integrations.NTBot;
 
-namespace LiveServer.Util
+namespace KuguaServer.Util
 {
     public class Util
     {

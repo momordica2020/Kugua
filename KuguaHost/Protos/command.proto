@@ -1,0 +1,31 @@
+﻿syntax = "proto3";
+
+package plugin.v1;
+
+option csharp_namespace = "Plugin.V1";
+import "google/protobuf/empty.proto";
+service CommandBus {
+  rpc SendCommand (ProcessCommandRequest) returns (CommandResult) {
+
+  }
+  rpc PublishNotification (CommandProcessedNotification) returns (google.protobuf.Empty);
+}
+
+message ProcessCommandRequest {
+  string command_text = 1;
+  string sender = 2;
+}
+
+message CommandResult {
+  bool success = 1;
+  string message = 2;
+  string data = 3;
+}
+
+message CommandProcessedNotification {
+  string command_text = 1;
+  string result_message = 2;
+  string processor_name = 3;
+}
+
+

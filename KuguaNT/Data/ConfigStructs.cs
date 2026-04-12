@@ -86,6 +86,8 @@
         public string HSModelImage {  get; set; }
 
         public string GeminiApiKey {  get; set; }
+
+        public string TiebaToken { get; set; }
     }
     #endregion
 

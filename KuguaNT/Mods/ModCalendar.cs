@@ -11,7 +11,10 @@ namespace Kugua.Mods
         public override bool Init(string[] args)
         {
             ModCommands.Add(new ModCommand(new Regex(@"^今夕是何年", RegexOptions.Singleline), handleShowCalendar));
-            ModCommands.Add(new ModCommand(new Regex(@"^(.*)公历(.*)", RegexOptions.Singleline), handleCheckGeroge));
+            ModCommands.Add(new ModCommand(new Regex(@"^(.*)公(历|元)(.*)$", RegexOptions.Singleline), handleCheckGeroge));
+
+            ModCommands.Add(new ModCommand(new Regex(@"^蒸汽(.*?)年?$", RegexOptions.Singleline), handleCheckYunhua1));
+            ModCommands.Add(new ModCommand(new Regex(@"^创世(.*?)年?$", RegexOptions.Singleline), handleCheckYunhua2));
 
             return true;
         }
@@ -25,11 +28,14 @@ namespace Kugua.Mods
             if (string.IsNullOrWhiteSpace(timezone)) timezone = "北京市";
             var area = LocationInfo.FindCoordinate(timezone.Trim());
 
-            
-            var p = param[2];
-            
+
+            var p = param[3];
+
             if (!string.IsNullOrWhiteSpace(p))
             {
+                if (p.StartsWith("后")) p = p.Substring(1);
+                else if (p.StartsWith("前")) p = "-" + p.Substring(1);
+
                 jdt = JDateTime.Parse(p);
             }
 
@@ -83,5 +89,107 @@ namespace Kugua.Mods
             res.AppendLine($"四柱（节气）：{r0.Year} {r0.Month} {r0.Day} {r0.Hour}");
             return res.ToString();
         }
+
+        private string handleCheckYunhua1(MessageContext context, string[] param)
+        {
+            string res = "";
+            string year = param[1];
+            if(year.StartsWith("前")) year = "-" + year.Substring(1);
+            if(year.StartsWith("后")) year = year.Substring(1);
+            if (int.TryParse(year, out int y))
+            {
+                res = $"蒸汽{y}年是{YunCalendar.SE2YN(y)}";
+            }
+            return res;
+        }
+        private string handleCheckYunhua2(MessageContext context, string[] param)
+        {
+            string res = "";
+            string year = param[1];
+            if (year.StartsWith("前")) year = "-" + year.Substring(1);
+            if (year.StartsWith("后")) year = year.Substring(1);
+            if (int.TryParse(year, out int y))
+            {
+                res = $"创世{y}年是{YunCalendar.YY2YN(y)}";
+            }
+            return res;
+        }
     }
+
+
+    public class YunCalendar
+    {
+        private const int YearsPerTianYuan = 1140; // 天元
+        private const int YearsPerDiYuan = 228; // 地元
+        private const int YearsPerShi = 19;    // 一世
+
+        // 基准点：S.E. 1 = 创世后 9267 年
+        private const int BaseSE = 1;
+        private const int BaseTotalYears = 9267;
+
+        public static string SE2YN(int seYear)
+        {
+            // 计算目标年份距离 S.E. 1 的年数（注意没有 0 年）
+            int diff = seYear - BaseSE;
+            int targetTotalYears = BaseTotalYears + diff;
+
+            // 计算天元
+            int yuan = (targetTotalYears - 1) / YearsPerTianYuan + 1;
+            int remainingYears = (targetTotalYears - 1) % YearsPerTianYuan;
+
+            // 计算地元
+            int diYuan = (remainingYears / YearsPerDiYuan) + 1;
+            
+
+            // 计算世
+            int shi = (remainingYears / YearsPerShi) + 1;
+            int yearInShi = (remainingYears % YearsPerShi) + 1;
+
+            // 获取干支
+            string ganzhi = Core.Util.GetGanZhi(shi);
+            string yuanstr = Core.Util.GetChineseDigital(yuan);
+            string diyuanstr = "初上中下末".Substring(diYuan-1,1);
+            string diyuanShiStr = Core.Util.GetChineseDigital(shi);
+            string shistr = Core.Util.GetChineseDigital(shi);
+            string yearInShistr = Core.Util.GetChineseDigital(yearInShi);
+
+
+            return $"芸历{yuanstr}天元，{diyuanstr}地元， {shistr}世，{yearInShistr}年 " +
+                $"（{yuanstr}元{diyuanstr}甲{diyuanShiStr}世）\r\n" +
+                $"{yuanstr}元{ganzhi}{yearInShistr}年\r\n" +
+                $"创后{targetTotalYears}年";
+        }
+        public static string YY2YN(int yyYear)
+        {
+            // 计算云历创世迄今年数（没有 0 年）
+            int targetTotalYears = yyYear;
+
+            // 计算天元
+            int yuan = (targetTotalYears - 1) / YearsPerTianYuan + 1;
+            int remainingYears = (targetTotalYears - 1) % YearsPerTianYuan;
+
+            // 计算地元
+            int diYuan = (remainingYears / YearsPerDiYuan) + 1;
+
+
+            // 计算世
+            int shi = (remainingYears / YearsPerShi) + 1;
+            int yearInShi = (remainingYears % YearsPerShi) + 1;
+
+            // 获取干支
+            string ganzhi = Core.Util.GetGanZhi(shi);
+            string yuanstr = Core.Util.GetChineseDigital(yuan);
+            string diyuanstr = "初上中下末".Substring(diYuan - 1, 1);
+            string diyuanShiStr = Core.Util.GetChineseDigital(shi);
+            string shistr = Core.Util.GetChineseDigital(shi);
+            string yearInShistr = Core.Util.GetChineseDigital(yearInShi);
+
+
+            return $"芸历{yuanstr}天元，{diyuanstr}地元， {shistr}世，{yearInShistr}年 " +
+                $"（{yuanstr}元{diyuanstr}甲{diyuanShiStr}世）\r\n" +
+                $"{yuanstr}元{ganzhi}{yearInShistr}年\r\n" +
+                $"蒸汽{targetTotalYears - BaseTotalYears + 1}年";
+        }
+    }
+
 }

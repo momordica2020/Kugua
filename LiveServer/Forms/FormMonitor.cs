@@ -8,11 +8,11 @@ using WebSocket4Net;
 using Kugua.Integrations.NTBot;
 using Message = Kugua.Integrations.NTBot.Message;
 using System.Text;
-using LiveServer.NTBot;
-using LiveServer.Blive;
+using KuguaServer.NTBot;
+using KuguaServer.Blive;
 
 
-namespace LiveServer
+namespace KuguaServer
 {
 
     partial class FormMonitor : Form

@@ -11,9 +11,9 @@ using OpenBLive.Runtime;
 using OpenBLive.Runtime.Data;
 using OpenBLive.Runtime.Utilities;
 using Kugua.Integrations.NTBot;
-using LiveServer.NTBot;
+using KuguaServer.NTBot;
 
-namespace LiveServer.Blive
+namespace KuguaServer.Blive
 {
     
     internal class BServer

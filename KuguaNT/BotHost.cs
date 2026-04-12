@@ -100,8 +100,9 @@ namespace Kugua
                     new ModNLP(),
                     new ModHongbao(),
                     new ModKuguaOL(),
+                    
                     ModTransShit.Instance,
-
+                    ModTiebaClaw.Instance,
                     // 这个模块会用闲聊收尾
                     new ModNormalChat(),
 
