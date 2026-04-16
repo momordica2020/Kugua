@@ -1,4 +1,4 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
 using Kugua.Integrations.Generators.Base;
 using Microsoft.AspNetCore.Identity.Data;
 using System.Text;

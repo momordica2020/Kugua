@@ -1,4 +1,4 @@
-using Kugua.Core;
+using Kugua.Core.Algorithms;
 using NvAPIWrapper.Native.Display;
 using System.Numerics;
 

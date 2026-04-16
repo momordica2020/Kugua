@@ -1,4 +1,37 @@
-﻿using System.Text;
+﻿using Kugua.Core;
+using Kugua.Core;
+using Kugua.Core;
+using Kugua.Core;
+using Kugua.Core.Algorithms;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Forms;
+using System.Diagnostics;
+using System.Diagnostics;
+using System.Diagnostics;
+using System.Diagnostics;
+using System.Numerics;
+using System.Numerics;
+using System.Numerics;
+using System.Numerics;
+using System.Reflection;
+using System.Reflection;
+using System.Reflection;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography;
+using System.Security.Cryptography;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua.Core
 {
@@ -32,6 +65,19 @@ namespace Kugua.Core
 
         private readonly TrieNode rootNormal;
         private readonly TrieNode rootStrict;
+
+
+        
+        /// <summary>
+        /// 标点符号
+        /// </summary>
+        private static readonly HashSet<char> symbols = new HashSet<char>
+        {
+            '，', '。', '、', '；', '：', '【', '】', '？', '“', '”', '‘', '’', '《', '》',
+            '！', '￥', '…', '—', '{', '}', '[', ']', '(', ')', '+', '=', '-', '*', '/',
+            '!', '@', '#', '$', '%', '^', '&', '_', '|', ',', '.', '?', ':', ';', '\\',
+            '\'', '\"', '\t', '\r', '\n'
+        };
 
         public static Filter Instance => instance.Value;
         private Filter()
@@ -271,6 +317,54 @@ namespace Kugua.Core
             //    Logger.Log($"以过滤！{input} => {res}", LogType.Debug);
             //}
             return res;
+        }
+
+        /// <summary>
+        /// 检查字符是否为符号
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        public static bool IsSymbol(char ch)
+        {
+            return symbols.Contains(ch);
+        }
+
+        /// <summary>
+        /// 去除字符串中的中英文标点和特殊字符
+        /// </summary>
+        /// <param name="ori">原始字符串</param>
+        /// <returns>去除符号后的字符串</returns>
+        public static string RemoveSymbol(string ori)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var c in ori)
+            {
+                // 仅当字符不是符号时才添加到结果中
+                if (!IsSymbol(c))
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 字符串是否包含符号
+        /// </summary>
+        /// <param name="ori"></param>
+        /// <returns></returns>
+        public static bool ContainsSymbol(string ori)
+        {
+            foreach (var c in ori)
+            {
+                if (IsSymbol(c))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }

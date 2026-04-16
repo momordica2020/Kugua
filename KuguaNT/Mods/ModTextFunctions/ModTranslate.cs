@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 using Kugua.Integrations.NTBot;
 using Microsoft.Extensions.FileSystemGlobbing;
 using System.Net;
-using Kugua.Core;
 using Kugua.Mods.Base;
+using Kugua.Core.Algorithms;
 
 
 
-namespace Kugua.Mods
+namespace Kugua.Mods.ModTextFunctions
 {
     class ModTranslate : Mod
     {

@@ -1,5 +1,6 @@
 ﻿
 using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Mods.Base;
 using System.Numerics;
 using System.Text;
@@ -91,7 +92,7 @@ namespace Kugua.Mods
         private string AddBet(MessageContext context, string[] param)
         {
             int roadnum = 0;
-            BigInteger money = Util.ConvertToBigInteger(param[2].Trim());
+            BigInteger money = BigUtil.ConvertFromString(param[2].Trim());
             if (int.TryParse(param[1], out roadnum)
              && money > 0)
             {

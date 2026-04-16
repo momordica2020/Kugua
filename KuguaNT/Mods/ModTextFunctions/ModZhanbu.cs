@@ -1,4 +1,4 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
 using Kugua.Mods.Base;
 using SuperSocket.ClientEngine;
 using System;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
-namespace Kugua.Mods
+namespace Kugua.Mods.ModTextFunctions
 {
     /// <summary>
     /// 占卜

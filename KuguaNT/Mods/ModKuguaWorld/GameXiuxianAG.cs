@@ -1,4 +1,5 @@
 using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Newtonsoft.Json;
 using System.Data;
@@ -51,7 +52,7 @@ namespace Kugua.Mods{
             else newdata = BigInteger.Min(newdata, oldval * newdata / 80);
             user.prop[propName] += newdata;
             
-            desc = AGdesc($"{user.race}{user.FullName}{action}了{itemsdesc}，获得了{newdata.ToSci()}{propName}。");
+            desc = AGdesc($"{user.race}{user.FullName}{action}了{itemsdesc}，获得了{newdata.ConvertToSci()}{propName}。");
 
 
 
@@ -80,7 +81,7 @@ namespace Kugua.Mods{
                 user.prop[prop] = oldval + newdata;
                 pval.Add((prop, newdata));
             }
-            desc = AGdesc($"{user.race}{user.FullName}{action}{itemsdesc}，影响：{string.Join(",", pval.Select(e => $"{e.Item1}{(e.Item2>0?"+":"")}{e.Item2.ToSci()}"))}。");
+            desc = AGdesc($"{user.race}{user.FullName}{action}{itemsdesc}，影响：{string.Join(",", pval.Select(e => $"{e.Item1}{(e.Item2>0?"+":"")}{e.Item2.ConvertToSci()}"))}。");
 
 
 

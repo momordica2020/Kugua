@@ -1,57 +1,28 @@
 ﻿using ImageMagick;
-using ImageMagick.Colors;
-using ImageMagick.Drawing;
-using Microsoft.AspNetCore.Components.Forms;
-using System;
-using System.Collections.Generic;
-using System.Data;
+using Kugua.Core.Algorithms;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Drawing.Printing;
 using System.Drawing.Text;
-using System.IO;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
-using ZhipuApi.Modules;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Kugua.Core
+namespace Kugua.Core.Images
 {
     /// <summary>
     /// 图像处理相关
     /// </summary>
-    public class ImageUtil
+    public partial class ImageHandler
     {
-        // Clamp values to be within 0-65535
-        private static int Clamp(int x)
-        {
-            return x < 0 ? 0 : x > 65535 ? 65535 : x;
-        }
-
-        // Convert RGB to YUV
-        private static int[] Rgb2Yuv(int r, int g, int b)
-        {
-            int y = (int)(r * 0.299 + g * 0.587 + b * 0.114);
-            int u = (int)(r * -0.168736 + g * -0.331264 + b * 0.500 + 32768);
-            int v = (int)(r * 0.500 + g * -0.418688 + b * -0.081312 + 32768);
-            return new int[] { Clamp(y), Clamp(u), Clamp(v) };
-        }
-
-        // Convert YUV back to RGB
-        private static int[] Yuv2Rgb(int y, int u, int v)
-        {
-            int r = (int)(y + 1.4075 * (v - 32768));
-            int g = (int)(y - 0.3455 * (u - 32768) - 0.7169 * (v - 32768));
-            int b = (int)(y + 1.7790 * (u - 32768));
-            return new int[] { Clamp(r), Clamp(g), Clamp(b) };
-        }
+        
 
 
 
+
+        /// <summary>
+        /// 将gif每一帧提取平铺道图上
+        /// </summary>
+        /// <param name="gif"></param>
+        /// <param name="totalCols"></param>
+        /// <returns></returns>
         public static MagickImage GetGifFrames(MagickImageCollection gif, int totalCols = 1)
         {
             if (totalCols <= 0) totalCols = 1;
@@ -93,32 +64,6 @@ namespace Kugua.Core
             result.Format = MagickFormat.Png;
             return result;
 
-        }
-
-
-        /// <summary>
-        /// 图片旋转
-        /// </summary>
-        /// <param name="images"></param>
-        /// <param name="rotate"></param>
-        /// <returns></returns>
-        public static MagickImageCollection ImgRotate(MagickImageCollection images, double rotate)
-        {
-            if (images == null) return null;
-
-            foreach (var image in images)
-            {
-                image.Rotate(rotate);
-            }
-            return images;
-
-            //using (MemoryStream ms = new MemoryStream())
-            //{
-            //    images.Write(ms);
-            //    byte[] imageBytes = ms.ToArray();
-            //    string base64String = Convert.ToBase64String(imageBytes);
-            //    return base64String;
-            //}
         }
 
 
@@ -202,7 +147,15 @@ namespace Kugua.Core
         }
 
 
-
+        /// <summary>
+        /// 静态或者gif的范围裁切，传入上下左右的裁切像素
+        /// </summary>
+        /// <param name="images"></param>
+        /// <param name="top"></param>
+        /// <param name="bottom"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static MagickImageCollection ImgCut(MagickImageCollection images, int top, int bottom, int left, int right)
         {
             if (images == null) return null;
@@ -352,62 +305,9 @@ namespace Kugua.Core
             //}
         }
 
-        ///// <summary>
-        ///// 颜色对象转成#FFFFFF这样的代码喵
-        ///// </summary>
-        ///// <param name="color"></param>
-        ///// <returns></returns>
-        //public static string GetColorHex(ColorRGB color)
-        //{
-        //    return $"#{color.R>> 8:X2}{color.G >> 8:X2}{color.B>> 8:X2}";
-        //}
-
-        ///// <summary>
-        ///// 颜色对象转成(255,252,255)这样的代码喵
-        ///// </summary>
-        ///// <param name="color"></param>
-        ///// <returns></returns>
-        //public static string GetColorNum(ColorRGB color)
-        //{
-        //    return $"({color.R >> 8},{color.G >> 8},{color.B >> 8})";
-        //}
 
 
-        /// <summary>
-        /// int -> #FFFFFF
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static string IntToHexColor(int color)
-        {
-            byte r = (byte)(color >> 16);
-            byte g = (byte)(color >> 8);
-            byte b = (byte)color;
-            return $"#{r:X2}{g:X2}{b:X2}";
-        }
-
-        /// <summary>
-        /// ushort->#ffffff 有损
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public static string UshortToHexColor(ushort color)
-        {
-            // 假设 color 是 RGB565 格式
-            byte r = (byte)(color >> 11 & 0x1F); // 提取红色分量（5 位）
-            byte g = (byte)(color >> 5 & 0x3F);  // 提取绿色分量（6 位）
-            byte b = (byte)(color & 0x1F);         // 提取蓝色分量（5 位）
-
-            // 将 5/6 位分量扩展到 8 位
-            r = (byte)(r << 3 | r >> 2); // 5 位 -> 8 位
-            g = (byte)(g << 2 | g >> 4); // 6 位 -> 8 位
-            b = (byte)(b << 3 | b >> 2); // 5 位 -> 8 位
-
-            // 将 R、G、B 转换为 2 位十六进制字符串并拼接
-            return $"#{r:X2}{g:X2}{b:X2}";
-        }
-
-
+       
         /// <summary>
         /// 图像逐帧拼合成一张大图
         /// </summary>
@@ -451,47 +351,12 @@ namespace Kugua.Core
             return result;
         }
 
-        /// <summary>
-        /// 获取每个颜色一个小方块的颜色版
-        /// </summary>
-        /// <param name="colorCodes"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public static MagickImage GetColorSamples(List<string> colorCodes, int size = 80)
-        {
-            MagickImageCollection images = new MagickImageCollection();
-
-            foreach (var colorCode in colorCodes)
-            {
-                images.Add(GetColorSample(colorCode, size));
-            }
-            return Combine(images, 1);
-            //var result = images.Montage(new MontageSettings
-            //{
-            //    Geometry = new MagickGeometry("+0+0"), // 图像之间的间距
-            //    BackgroundColor = MagickColors.Transparent, // 背景颜色
-            //    TileGeometry = new MagickGeometry($"{images.Count}x1") // 横向拼接
-            //});
-            //return (MagickImage)result;
-
-        }
+        
 
 
 
 
-        /// <summary>
-        /// 画一个纯色正方块
-        /// </summary>
-        /// <param name="colorCode"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public static MagickImage GetColorSample(string colorCode, int size = 80)
-        {
-            MagickColor color = new MagickColor(colorCode);
-            var image = new MagickImage(color, (uint)size, (uint)size);
-            image.Format = MagickFormat.Png;
-            return image;
-        }
+        
 
 
 
@@ -749,319 +614,6 @@ namespace Kugua.Core
 
 
 
-        public static MagickImage ImgRemoveBackground2(MagickImage image, double tolerance = 10)
-        {
-
-            try
-            {
-                if (image == null) return null;
-                // 确保图像支持Alpha通道
-                image.Alpha(AlphaOption.Set);
-
-                // 获取边缘像素的主要颜色
-                var backgroundColor = GetDominantEdgeColor(image);
-
-                // 设置容差（模糊匹配）
-                var fuzz = new Percentage(tolerance);
-                image.ColorFuzz = fuzz;
-
-                // 从图像四个角落开始，将接近背景色的区域设为透明
-                MakeEdgesTransparent(image, backgroundColor);
-
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return image;
-        }
-
-
-        /// <summary>
-        /// 获取图像边缘像素的主要颜色
-        /// </summary>
-        private static List<IMagickColor<ushort>> GetDominantEdgeColor(MagickImage image, int topN = 3, int line_num = 3)
-        {
-            using (var pixels = image.GetPixels())
-            {
-                var edgePixels = new List<IMagickColor<ushort>>();
-
-                // 收集顶部和底部边缘像素
-                for (int x = 0; x < image.Width; x++)
-                {
-                    for (int i = 0; i < line_num; i++)
-                    {
-                        edgePixels.Add(pixels.GetPixel(x, i).ToColor());
-                        edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1 - i).ToColor());
-                    }
-
-                    //edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1).ToColor());
-                }
-
-                // 收集左右边缘像素
-                for (int y = 0; y < image.Height; y++)
-                {
-                    for (int i = 0; i < line_num; i++)
-                    {
-                        edgePixels.Add(pixels.GetPixel(i, y).ToColor());
-                        edgePixels.Add(pixels.GetPixel((int)image.Height - 1 - i, y).ToColor());
-                    }
-                    //edgePixels.Add(pixels.GetPixel(i, y).ToColor());
-                    //edgePixels.Add(pixels.GetPixel((int)image.Width - 1, y).ToColor());
-                }
-
-                // 统计前 N 个出现次数最多的颜色
-                var dominantColors = edgePixels
-                    .GroupBy(c => $"{c.R},{c.G},{c.B}") // 使用 RGB 值比较
-                    .OrderByDescending(g => g.Count())
-                    .Take(topN)
-                    .Select(g => edgePixels.First(c => $"{c.R},{c.G},{c.B}" == g.Key))
-                    .ToList();
-
-                return dominantColors;
-
-            }
-        }
-
-        /// <summary>
-        /// 将接近背景色的边缘区域设为透明
-        /// </summary>
-        private static void MakeEdgesTransparent(MagickImage image, List<IMagickColor<ushort>> backgroundColors)
-        {
-            foreach (var backgroundColor in backgroundColors)
-            {
-                // 使用FloodFill从四个角落开始，基于容差将背景色区域设为透明
-                using (var clone = image.Clone())
-                {
-                    clone.FloodFill(MagickColors.Transparent, 0, 0, backgroundColor); // 左上角
-                    clone.FloodFill(MagickColors.Transparent, (int)image.Width - 1, 0, backgroundColor); // 右上角
-                    clone.FloodFill(MagickColors.Transparent, 0, (int)image.Height - 1, backgroundColor); // 左下角
-                    clone.FloodFill(MagickColors.Transparent, (int)image.Width - 1, (int)image.Height - 1, backgroundColor); // 右下角
-
-                    // 将处理结果合并回原图像
-                    image.Composite(clone, CompositeOperator.CopyAlpha);
-                }
-            }
-
-        }
-
-
-        public static byte[] ImgRemoveBackground(byte[] imageBytes)
-        {
-            using (HttpClient client = new HttpClient())
-            using (var content = new MultipartFormDataContent())
-            {
-                content.Add(new ByteArrayContent(imageBytes), "file", "f1");
-
-                HttpResponseMessage response = client.PostAsync("http://localhost:7799/api/remove", content).Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    byte[] resultImageBytes = response.Content.ReadAsByteArrayAsync().Result;
-                    return resultImageBytes;
-                    //var ms = new MemoryStream(resultImageBytes);
-                    //MagickImage magickImage = new MagickImage(ms);
-                    //return magickImage;
-
-                }
-                else
-                {
-                    Logger.Log("Error removing background: " + response.ReasonPhrase);
-                    return null;
-                }
-            }
-        }
-
-
-        public static MagickImage setPixelChange1_2(MagickImage image, double scale = 2)
-        {
-
-            try
-            {
-                if (image == null) return null;
-                // 确保图像支持Alpha通道
-                image.Alpha(AlphaOption.Set);
-
-                var newWidth = image.Width * scale;
-                var newHeight = image.Height * scale;
-                var newImage = new MagickImage(MagickColor.FromRgba(0, 0, 0, 0), (uint)newWidth, (uint)newHeight);
-                var p = image.GetPixels();
-                var np = newImage.GetPixels();
-                for (int x = 0; x < image.Width; x++)
-                {
-                    for (int y = 0; y < image.Height; y++)
-                    {
-                        np.SetPixel((int)(x * scale), (int)(y * scale), p[x, y].ToArray());
-                    }
-                }
-                return newImage;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return image;
-        }
-
-        public static MagickImageCollection setPixelChange1(MagickImageCollection images)
-        {
-            try
-            {
-                int num = images.Count;
-                images.Coalesce();
-
-
-                for (int i = 0; i < num; i++)
-                {
-
-                    images[i] = setPixelChange1_2((MagickImage)images[i]);
-                    images[i].GifDisposeMethod = GifDisposeMethod.Background;
-                    images[i].AnimationDelay = images[i].AnimationDelay;
-
-                    if (num == 1) images[i].Format = MagickFormat.Png;
-                    else images[i].Format = MagickFormat.Gif;
-
-                }
-
-                images.OptimizeTransparency();
-
-                var settings = new QuantizeSettings();
-                settings.Colors = 256;
-
-                images.Quantize(settings);
-                return images;
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return null;
-        }
-        public static MagickImage setPixelChange2_2(MagickImage image)
-        {
-
-            try
-            {
-                if (image == null) return null;
-                // 确保图像支持Alpha通道
-                image.Alpha(AlphaOption.Set);
-                var p = image.GetPixels();
-                for (int x = 0; x < image.Width; x++)
-                {
-                    for (int y = 0; y < image.Height; y++)
-                    {
-                        if (x % 2 + y % 2 == 1)
-                        {
-                            p.SetPixel(x, y, [0, 0, 0, 0]);
-                        }
-                    }
-                }
-                return image;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return image;
-        }
-        public static MagickImageCollection setPixelChange2(MagickImageCollection images)
-        {
-            try
-            {
-                int num = images.Count;
-                images.Coalesce();
-
-
-                for (int i = 0; i < num; i++)
-                {
-
-                    images[i] = setPixelChange2_2((MagickImage)images[i]);
-                    images[i].GifDisposeMethod = GifDisposeMethod.Background;
-                    images[i].AnimationDelay = images[i].AnimationDelay;
-
-                    if (num == 1) images[i].Format = MagickFormat.Png;
-                    else images[i].Format = MagickFormat.Gif;
-
-                }
-
-                images.OptimizeTransparency();
-
-                var settings = new QuantizeSettings();
-                settings.Colors = 256;
-
-                images.Quantize(settings);
-                return images;
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return null;
-        }
-
-
-        public static MagickImageCollection ImgRemoveBackgrounds(MagickImageCollection images)
-        {
-            try
-            {
-                //MagickImageCollection m2 = new MagickImageCollection();
-                //while (m2.Count > 0) m2.RemoveAt(0);
-                int num = images.Count;
-                images.Coalesce();
-
-
-                for (int i = 0; i < num; i++)
-                {
-                    // 2025.6.14 使用新写法
-                    //var resb = ImgRemoveBackground(images[i].ToByteArray());
-                    //var img = new MagickImage(resb);
-
-                    ImgRemoveBackground2((MagickImage)images[i]);
-                    images[i].GifDisposeMethod = GifDisposeMethod.Background;
-                    images[i].AnimationDelay = images[i].AnimationDelay;
-
-                    if (num == 1) images[i].Format = MagickFormat.Png;
-                    else images[i].Format = MagickFormat.Gif;
-                    // img.Transparent(new MagickColor(0, 0, 0,0));
-                    //if(i!=0) img.Alpha(AlphaOption.Copy);
-
-
-
-
-
-                    //images.Add(img);
-                }
-                //for (int i = 0; i < num; i++)
-                //{
-                //    images.RemoveAt(0);
-                //}
-                images.OptimizeTransparency();
-
-                var settings = new QuantizeSettings();
-                settings.Colors = 256;
-
-                images.Quantize(settings);
-                //images.OptimizeTransparency();
-                return images;
-
-                //using (MemoryStream ms = new MemoryStream())
-                //{
-
-                //    images.Write(ms,MagickFormat.Gif);
-                //    byte[] imageBytes = ms.ToArray();
-                //    string base64String = Convert.ToBase64String(imageBytes);
-                //    return base64String;
-                //}
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            return null;
-        }
 
         public static string[] Fonts = [
             "华文中宋"  ,
@@ -1092,31 +644,7 @@ namespace Kugua.Core
 
 
 
-        public static MagickImageCollection ImgGenerateRandomPixel(int size = 100)
-        {
-            var images = new MagickImageCollection();
-            var frame = new MagickImage(
-                    MagickColor.FromRgba(255, 255, 255, 255),
-                    (uint)size,
-                    (uint)size);
-            frame.Format = MagickFormat.Gif;
-            foreach (var pixel in frame.GetPixelsUnsafe())
-            {
-                // Generate random x, y components in range [-1, 1]
-                double x = (MyRandom.NextDouble * 2.0 - 1.0);
-                double y = (MyRandom.NextDouble * 2.0 - 1.0);
-                double z = (MyRandom.NextDouble * 2.0 - 1.0);
-
-                // Convert to 0-255 range for image storage
-                pixel.SetChannel(0, (ushort)(65535 * (x * 0.5 + 0.5)));
-                pixel.SetChannel(1, (ushort)(65535 * (y * 0.5 + 0.5)));
-                pixel.SetChannel(2, (ushort)(65535 * (z * 0.5 + 0.5)));
-            }
-            images.Add(frame);
-            return images;
-
-        }
-
+      
 
         public static void ShowFonts()
         {
@@ -1370,15 +898,6 @@ namespace Kugua.Core
 
         }
 
-        // 添加随机干扰线
-        private static void AddRandomLines(MagickImage image, int lineCount)
-        {
-            Random random = new Random();
-
-
-        }
-
-
 
         /// <summary>
         /// 从视频 URL 中截取第一帧的截图
@@ -1450,7 +969,7 @@ namespace Kugua.Core
                 if (img.Count == 1) frameCount = 10;
                 int dx = (int)(img.First().Width * Math.Cos(degree) / frameCount);
                 int dy = (int)(-img.First().Height * Math.Sin(degree) / frameCount);
-                if (dx != 0 && dy != 0) frameCount *= ((int)(Util.LCM((Util.LCM(int.Abs(dx), img.First().Width) / img.First().Width), (Util.LCM(int.Abs(dy), img.First().Height) / img.First().Height))));
+                if (dx != 0 && dy != 0) frameCount *= ((int)(MathUtil.LCM((MathUtil.LCM(int.Abs(dx), img.First().Width) / img.First().Width), (MathUtil.LCM(int.Abs(dy), img.First().Height) / img.First().Height))));
                 for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
                 {
                     var imgg = img[frameIndex % img.Count];
@@ -1572,7 +1091,7 @@ namespace Kugua.Core
 
 
         /// <summary>
-        /// 图片拼接，横向或者纵向
+        /// 静态和动态的图片拼接，横向或者纵向
         /// </summary>
         /// <param name="img1"></param>
         /// <param name="img2"></param>
@@ -1582,7 +1101,7 @@ namespace Kugua.Core
         {
             MagickImageCollection img = new MagickImageCollection();
 
-            var fullframes = Util.LCM(img1.Count, img2.Count);
+            var fullframes = MathUtil.LCM(img1.Count, img2.Count);
             uint i1w = 0, i1h = 0, i2w = 0, i2h = 0;
             foreach (var f in img1)
             {
@@ -1652,215 +1171,6 @@ namespace Kugua.Core
 
 
 
-        /// <summary>
-        /// 幻影坦克（黑白）
-        /// </summary>
-        /// <param name="front"></param>
-        /// <param name="back"></param>
-        /// <returns></returns>
-
-        public static MagickImageCollection ImageBlend(MagickImage front, MagickImage back)
-        {
-            // 确保两张图尺寸相同
-            if (front.Width != back.Width || front.Height != back.Height)
-            {
-                //Console.WriteLine("Warning: images have different sizes, resizing back to front size.");
-                back.Resize(front.Width, front.Height);
-                back.Extent(front.Width, front.Height, Gravity.Center, MagickColors.Black);
-            }
-
-            var res = new MagickImageCollection();
-
-            var frame = new MagickImage(MagickColor.FromRgba(0,0,0,0), front.Width, front.Height);
-            frame.Format = MagickFormat.Png;
-            res.Add(frame);
-            //Logger.Log($"{front.Width},{front.Height} ||  {back.Width},{back.Height}");
-            // 获取像素集合
-            var frontPixels = front.GetPixels();
-            var backPixels = back.GetPixels();
-            var resPixels = frame.GetPixels();
-
-            // 亮度系数（与 Shader 完全一致）
-            const double rWeight = 0.222;
-            const double gWeight = 0.707;
-            const double bWeight = 0.071;
-            ushort[] pixel = new ushort[4];
-            const double MAX_16 = 65535.0;
-            // 显式双循环
-            for (int y = 0; y < front.Height; y++)
-            {
-                for (int x = 0; x < front.Width; x++)
-                {
-                    // 读取前景像素 (R,G,B,A) → 仅用 RGB
-                    var fp = frontPixels.GetPixel(x, y);
-                    double fr = fp.GetChannel(0) / MAX_16;
-                    double fg = fp.GetChannel(1) / MAX_16;
-                    double fb = fp.GetChannel(2) / MAX_16;
-
-                    // 读取背景像素
-                    var bp = backPixels.GetPixel(x, y);
-                    double br = bp.GetChannel(0) / MAX_16;
-                    double bg = bp.GetChannel(1) / MAX_16;
-                    double bb = bp.GetChannel(2) / MAX_16;
-
-                    // ---- Shader: color1.rgb = dot(rgb, (.222,.707,.071)) ----
-                    double gray1 = fr * rWeight + fg * gWeight + fb * bWeight;
-
-                    // ---- Shader: color2.rgb = dot(...) * 0.3 ----
-                    double gray2 = (br * rWeight + bg * gWeight + bb * bWeight) * 0.3;
-
-                    // ---- Shader: a = 1 - color1.r + color2.r ----
-                    double a = 1.0 - gray1 + gray2;
-
-                    // 防止除以 0（理论上 a >= 0.0）
-                    double r = a > 1e-8 ? gray2 / a : 0.0;
-
-                    // 限制到 [0,1]
-                    r = Math.Clamp(r, 0.0, 1.0);
-                    a = Math.Clamp(a, 0.0, 1.0);
-
-                    // 转为 0~255 并写入结果
-                    ushort outR = (ushort)Math.Round(r * MAX_16);
-                    ushort outA = (ushort)Math.Round(a * MAX_16);
-
-                    // 写入单像素：R=G=B=r, A=a
-                    pixel[0] = (ushort)Math.Round(r * MAX_16);  // R
-                    pixel[1] = pixel[0];                     // G
-                    pixel[2] = pixel[0];                     // B
-                    pixel[3] = (ushort)Math.Round(a * MAX_16);  // A
-                    
-                    resPixels.SetArea(x, y, 1, 1, pixel);
-                }
-            }
-            return res;
-        }
-
-
-        /// <summary>
-        /// 幻影坦克（彩色）
-        /// </summary>
-        /// <param name="wimg"></param>
-        /// <param name="bimg"></param>
-        /// <param name="wlight"></param>
-        /// <param name="blight"></param>
-        /// <param name="wcolor"></param>
-        /// <param name="bcolor"></param>
-        /// <param name="chess"></param>
-        public static MagickImageCollection ImageBlendColorful(
-            MagickImage wimg, MagickImage bimg,
-            double wlight = 1.0, double blight = 0.35,
-            double wcolor = 0.5, double bcolor = 0.7,
-            bool chess = false)
-        {
-
-            // 1. 亮度增强
-            wimg.BrightnessContrast(new Percentage((wlight - 1) * 100), new Percentage(0));
-            bimg.BrightnessContrast(new Percentage((blight - 1) * 100), new Percentage(0));
-
-            // 2. 转为 RGB 并对齐尺寸
-            wimg.ColorType = ColorType.TrueColor;
-            bimg.ColorType = ColorType.TrueColor;
-
-            var width = wimg.Width;
-            var height = wimg.Height;
-            if (bimg.Width != width || bimg.Height != height)
-            {
-                bimg.Resize(width, height); 
-                bimg.Extent(wimg.Width, wimg.Height, Gravity.Center, MagickColors.Black);
-            }
-                
-
-            // 3. 创建 16-bit 工作图像（高精度计算）
-            wimg.Depth = 16;
-            bimg.Depth = 16;
-
-            var result = new MagickImageCollection();
-            var frame = new MagickImage(new MagickColor(0, 0, 0, 0), width, height);
-            frame.Format = MagickFormat.Png;
-            result.Add(frame);
-            var wPixels = wimg.GetPixels();
-            var bPixels = bimg.GetPixels();
-            var outPixels = frame.GetPixels();
-
-            const double MAX_16 = 65535.0;
-            ushort[] pixel = new ushort[4];
-
-            // 灰度权重（Python: 0.334, 0.333, 0.333 ≈ 1/3）
-            const double grayR = 0.334, grayG = 0.333, grayB = 0.333;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    // 读取像素 (RGBA16)
-                    ushort[] wp = wPixels.GetArea(x, y, 1, 1);
-                    ushort[] bp = bPixels.GetArea(x, y, 1, 1);
-
-                    double wr = wp[0] / MAX_16, wg = wp[1] / MAX_16, wb = wp[2] / MAX_16;
-                    double br = bp[0] / MAX_16, bg = bp[1] / MAX_16, bb = bp[2] / MAX_16;
-
-                    // --- 棋盘格模式 ---
-                    if (chess)
-                    {
-                        if ((x % 2 == 0) && (y % 2 == 0))
-                        {
-                            wr = wg = wb = 1.0;
-                        }
-                        if ((x % 2 == 1) && (y % 2 == 1))
-                        {
-                            br = bg = bb = 0.0;
-                        }
-                    }
-
-                    // --- 前景：颜色 + 灰度混合 ---
-                    double wgray = wr * grayR + wg * grayG + wb * grayB;
-                    double wcolorKeep = 1.0 - wcolor;
-                    wr = wr * wcolor + wgray * wcolorKeep;
-                    wg = wg * wcolor + wgray * wcolorKeep;
-                    wb = wb * wcolor + wgray * wcolorKeep;
-
-                    // --- 背景：颜色 + 灰度混合 ---
-                    double bgray = br * grayR + bg * grayG + bb * grayB;
-                    double bcolorKeep = 1.0 - bcolor;
-                    br = br * bcolor + bgray * bcolorKeep;
-                    bg = bg * bcolor + bgray * bcolorKeep;
-                    bb = bb * bcolor + bgray * bcolorKeep;
-
-                    // --- d = 1 - w + b ---
-                    double dr = 1.0 - wr + br;
-                    double dg = 1.0 - wg + bg;
-                    double db = 1.0 - wb + bb;
-
-                    // --- d 转灰度 (0.222, 0.707, 0.071) ---
-                    double dgray = dr * 0.222 + dg * 0.707 + db * 0.071;
-
-                    // --- p = b / d * 255 ---
-                    double pr = dgray > 1e-8 ? br / dgray * 255.0 : 255.0;
-                    double pg = dgray > 1e-8 ? bg / dgray * 255.0 : 255.0;
-                    double pb = dgray > 1e-8 ? bb / dgray * 255.0 : 255.0;
-
-                    // --- a = dgray * 255 ---
-                    double pa = dgray * 255.0;
-
-                    // --- 限制到 0~255 ---
-                    pr = Math.Clamp(pr, 0.0, 255.0);
-                    pg = Math.Clamp(pg, 0.0, 255.0);
-                    pb = Math.Clamp(pb, 0.0, 255.0);
-                    pa = Math.Clamp(pa, 0.0, 255.0);
-
-                    // --- 写入 RGBA8 结果 ---
-                    pixel[0] = (ushort)Math.Round(pr * 257.0); // 255 -> 65535
-                    pixel[1] = (ushort)Math.Round(pg * 257.0);
-                    pixel[2] = (ushort)Math.Round(pb * 257.0);
-                    pixel[3] = (ushort)Math.Round(pa * 257.0);
-
-                    outPixels.SetArea(x, y, 1, 1, pixel);
-                }
-            }
-            return result;
-            
-        }
-
 
 
 
@@ -1879,7 +1189,7 @@ namespace Kugua.Core
 
             var frames = new MagickImageCollection();
             var frameAnimNum = 10;
-            var frameNum = Util.LCM(source.Count, frameAnimNum);
+            var frameNum = MathUtil.LCM(source.Count, frameAnimNum);
             
             // 10 帧关键参数
             var scaleX = new[] { 1.00, 1.08, 1.18, 1.25, 1.20, 1.10, 0.95, 0.98, 1.00, 1.00 };

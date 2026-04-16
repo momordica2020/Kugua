@@ -2,6 +2,7 @@
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using Kugua.Mods.ModTransShits;
 using System;
 using System.Collections.Generic;
 using System.Data;

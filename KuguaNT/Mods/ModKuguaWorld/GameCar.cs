@@ -1,4 +1,4 @@
-using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Microsoft.AspNetCore.Mvc;
 using NvAPIWrapper.Native.Display.Structures;
 using System;

@@ -1,4 +1,4 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;

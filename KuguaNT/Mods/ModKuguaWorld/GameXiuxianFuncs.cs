@@ -1,4 +1,4 @@
-using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Newtonsoft.Json;
 using System.Data;
@@ -247,7 +247,7 @@ namespace Kugua.Mods{
             {
                 int[] indexs = new int[prep.Count];
                 for (int i = 0; i < prep.Count; i++) indexs[i] = i;
-                Util.FisherYates(indexs);
+                Shuffle.FisherYates(indexs);
                 string res = "";
                 for (int i = 0; i < limitnum; i++) res += $"{prep[indexs[i]].Key}={prep[indexs[i]].Value},";
                 return res;
@@ -263,7 +263,7 @@ namespace Kugua.Mods{
             {
                 int[] indexs = new int[prep.Count];
                 for (int i = 0; i < prep.Count; i++) indexs[i] = i;
-                Util.FisherYates(indexs);
+                Shuffle.FisherYates(indexs);
                 string res = "";
                 for (int i = 0; i < limitnum; i++) res += $"{prep[indexs[i]].Key},";
                 return res;

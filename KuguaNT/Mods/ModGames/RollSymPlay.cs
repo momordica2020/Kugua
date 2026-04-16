@@ -1,7 +1,6 @@
 ﻿using ImageMagick;
 using ImageMagick.Drawing;
-using Kugua.Core;
-
+using Kugua.Core.Algorithms;
 
 namespace Kugua.Mods
 {
@@ -47,7 +46,7 @@ namespace Kugua.Mods
                 readyStop = false;
                 syms.Clear();
                 var emojilist = ModSlotMachine.Instance.emojis.Keys.ToArray();
-                Util.FisherYates(emojilist);
+                Shuffle.FisherYates(emojilist);
                 for (int i = 0; i < emojilist.Length; i++)
                 {
                     syms.Add(emojilist[i]);

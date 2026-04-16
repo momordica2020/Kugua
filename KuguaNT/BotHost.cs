@@ -7,6 +7,9 @@ using Kugua.Integrations.AI;
 using Kugua.Core;
 using Kugua.Mods.Base;
 using Kugua.Mods.ModNormalChat;
+using Kugua.Mods.ModTransShits;
+using Kugua.Mods.ModTextFunctions;
+using Kugua.Mods.ModImages;
 
 
 
@@ -29,7 +32,7 @@ namespace Kugua
 
 
         #region 日志输出
-        public SendLogDelegate _sendLog;
+        public event Action<LogInfo> _sendLog;
         //public MMDKBot(MMDK.Util.SendLogDelegate sendLogEvent=null)
         //{
         //    _sendLog = sendLogEvent;

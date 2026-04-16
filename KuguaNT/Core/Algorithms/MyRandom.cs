@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kugua.Core
+namespace Kugua.Core.Algorithms
 {
     class MyRandom
     {
@@ -216,7 +216,7 @@ namespace Kugua.Core
             }
         }
 
-       
+
         //public static double NextDouble()
         //{
         //    var d = Math.Abs((double)getNextULong() / ulong.MaxValue);
@@ -226,19 +226,23 @@ namespace Kugua.Core
         //}
 
         /// <summary>
-        /// 生成指定长度的随机可打印字符串
+        /// 生成指定长度的随机可打印字符串，范围是a-zA-Z0-9，去掉了容易混淆的字符（如0、O、I、l等）
         /// </summary>
         /// <param name="length">随机字符串的长度</param>
         /// <returns></returns>
         public static string NextString(int length)
         {
             const string chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"; // 可打印字符集
-            char[] stringChars = new char[length];
-            for (int i = 0; i < length; i++)
+            return string.Create(length, chars, (span, alphabet) =>
             {
-                stringChars[i] = chars[Next(chars.Length)];
-            }
-            return new string(stringChars);
+                RandomNumberGenerator.GetItems(alphabet, span);
+            });
+            //char[] stringChars = new char[length];
+            //for (int i = 0; i < length; i++)
+            //{
+            //    stringChars[i] = chars[Next(chars.Length)];
+            //}
+            //return new string(stringChars);
         }
 
 

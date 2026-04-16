@@ -1,4 +1,5 @@
 ﻿using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Integrations.NTBot;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
@@ -20,7 +21,7 @@ namespace Kugua.Integrations.AI
         /// <returns></returns>
         public string[] TalkPre(string input)
         {
-            string filterdInput = Util.RemoveEmojis(input);
+            string filterdInput = EmojiUtil.RemoveEmojis(input);
             if (string.IsNullOrWhiteSpace(filterdInput)) return null;
             var sentences = filterdInput.Split(['\r', '\n', '！', '!', '?', '？', '。', '…'], StringSplitOptions.RemoveEmptyEntries);
             List<string> resList = new List<string>();

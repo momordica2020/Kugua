@@ -1,4 +1,5 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
+using Kugua.Core.Chinese;
 using Microsoft.AspNetCore.Identity.Data;
 using System;
 using System.Text;
@@ -48,7 +49,7 @@ namespace Kugua.Integrations.Generators
         public static string GetSim(int textSize)
         {
             StringBuilder characters = new StringBuilder();
-            characters.Append(Util.jt[MyRandom.Next(Util.jt.Length)]);
+            characters.Append(Huoxingwen.jt[MyRandom.Next(Huoxingwen.jt.Length)]);
 
             for (int i = 1; i < textSize; i++)
             {
@@ -60,7 +61,7 @@ namespace Kugua.Integrations.Generators
                         continue;
                     }
                 }
-                characters.Append(Util.jt[MyRandom.Next(Util.jt.Length)]);
+                characters.Append(Huoxingwen.jt[MyRandom.Next(Huoxingwen.jt.Length)]);
             }
 
             // 添加末尾标点

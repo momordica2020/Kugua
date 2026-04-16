@@ -5,7 +5,7 @@ using System.Drawing.Imaging;
 using System.Text;
 using Image = System.Drawing.Image;
 
-namespace Kugua.Core
+namespace Kugua.Core.Images
 {
     /// <summary>
     /// 计算图片相似度。基于区域哈希算法

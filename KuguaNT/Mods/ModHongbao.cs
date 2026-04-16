@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Timers;
 using Kugua.Core;
 using Kugua.Mods.Base;
+using Kugua.Core.Images;
+using Kugua.Core.Algorithms;
 
 namespace Kugua.Mods
 {
@@ -132,7 +134,7 @@ namespace Kugua.Mods
                 Logger.Log($"{string.Join(",", param)}");
                 int.TryParse(param[1].TrimEnd('个'), out num);
                 if (num <= 0 || num > 1000) num = 3;
-                money = Core.Util.ConvertToBigInteger(param[2]);
+                money = BigUtil.ConvertFromString(param[2]);
                 text = param[3];
 
                 if (string.IsNullOrWhiteSpace(text))text= "恭喜发财";
@@ -145,7 +147,7 @@ namespace Kugua.Mods
                         // good
                         hongbaos.Add(($"{context.groupId}_{context.userId}_{MyRandom.Next(1000, 2000)}", new Hongbao(num, money)));
 
-                        context.SendBackImage(ImageUtil.GetHongbao(text));
+                        context.SendBackImage(ImageHandler.GetHongbao(text));
                     }
                 }
                 else

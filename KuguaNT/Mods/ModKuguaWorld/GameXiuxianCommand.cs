@@ -1,4 +1,5 @@
 using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Newtonsoft.Json;
 using System.Data;
@@ -53,8 +54,8 @@ namespace Kugua.Mods
                 foreach (var prop in user.prop)
                 {
                     if (prop.Value == 0) continue;
-                    else if (prop.Key == "灵力") res += $"{prop.Key}：{(prop.Value>= GetLevelPower(user.level)?"【可突破】":"")}{prop.Value.ToSci()} / {GetLevelPower(user.level).ToSci()}\r\n";
-                    else res += $"{prop.Key}：{prop.Value.ToSci()}\r\n";
+                    else if (prop.Key == "灵力") res += $"{prop.Key}：{(prop.Value>= GetLevelPower(user.level)?"【可突破】":"")}{prop.Value.ConvertToSci()} / {GetLevelPower(user.level).ConvertToSci()}\r\n";
+                    else res += $"{prop.Key}：{prop.Value.ConvertToSci()}\r\n";
                 }
 
                 if (user.items.Count > 0)
@@ -95,7 +96,7 @@ namespace Kugua.Mods
             {
                 var user = users[id];
                 var power = user.prop["灵力"];
-                if (power < GetLevelPower(user.level)) return $"突破失败，灵力不足（{power.ToSci()}/{GetLevelPower(user.level).ToSci()}）";
+                if (power < GetLevelPower(user.level)) return $"突破失败，灵力不足（{power.ConvertToSci()}/{GetLevelPower(user.level).ConvertToSci()}）";
 
                 if (user.CheckCooldown is string cooldownDesc)
                 {
@@ -257,7 +258,7 @@ namespace Kugua.Mods
                         BigInteger addBase = MyRandom.Next(addMin, addMax);
                         BigInteger add = addBase;
                         user.prop["灵力"] += add;
-                        powerDesc = $"{(add > 0 ? $"获取{add.ToSci()}" : $"失去{(-add).ToSci()}")}点灵力";
+                        powerDesc = $"{(add > 0 ? $"获取{add.ConvertToSci()}" : $"失去{(-add).ConvertToSci()}")}点灵力";
 
                         if (MyRandom.NextDouble < 0.5)
                         {
@@ -402,11 +403,11 @@ namespace Kugua.Mods
                 var props1 = GetUserPropDescRandomNumber(user1, 5);
                 var props2 = GetUserPropDescRandomNumber(user2, 5);
                 var i1list = user1.items.Select(item => item.name).ToList();
-                Util.FisherYates(i1list);
+                Shuffle.FisherYates(i1list);
                 var items1 = string.Join("、", i1list.Take(5));
 
                 var i2list = user2.items.Select(item => item.name).ToList();
-                Util.FisherYates(i2list);
+                Shuffle.FisherYates(i2list);
                 var items2 = string.Join("、", i2list.Take(5));
 
                 action = MyRandom.NextString(["在修炼中相爱相杀","偶遇并厮杀","作为宿敌互相搏斗", "产生爱欲"]);
@@ -423,7 +424,7 @@ namespace Kugua.Mods
                     {
                         user1.prop["灵力"] += dpower;
                         user2.prop["灵力"] -= dpower;
-                        end += $",从{user2.FullName}那里夺取了{dpower.ToSci()}灵力";
+                        end += $",从{user2.FullName}那里夺取了{dpower.ConvertToSci()}灵力";
                     }
                     if(user2.items.Count>0 && MyRandom.NextDouble < 0.3)
                     {
@@ -442,7 +443,7 @@ namespace Kugua.Mods
                     {
                         user1.prop["灵力"] -= dpower;
                         user2.prop["灵力"] += dpower;
-                        end += $",被{user2.FullName}夺走了{dpower.ToSci()}灵力";
+                        end += $",被{user2.FullName}夺走了{dpower.ConvertToSci()}灵力";
                     }
                     if (user1.items.Count > 0 && MyRandom.NextDouble < 0.3)
                     {
@@ -465,7 +466,7 @@ namespace Kugua.Mods
                 }
                 user1.prop["灵力"] += dpower;
                 user2.prop["灵力"] += dpower;
-                res = AGdesc($"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}在{area}{action},双双获得{dpower.ToSci()}点灵力",200);
+                res = AGdesc($"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}在{area}{action},双双获得{dpower.ConvertToSci()}点灵力",200);
 
             }
             Save(user1);
@@ -563,20 +564,20 @@ namespace Kugua.Mods
                             var addval = BigInteger.Max(10, helptarget.prop[pname] *(MyRandom.Next(15)) / 100 * (MyRandom.NextDouble>0.8?1:-1));
                             
                             helptarget.prop[pname] += addval;
-                            end = $"{helptarget.FullName}的{pname}{(addval>0?"增加":"减少")}了{addval.ToSci()}";
+                            end = $"{helptarget.FullName}的{pname}{(addval>0?"增加":"减少")}了{addval.ConvertToSci()}";
                         }
                         else
                         {
                             end = MyRandom.NextString(["善哉", "得到夸赞", "被说破坏环境", "得到膜拜", "心里高兴"]);
                         }
 
-                        string res = AGdesc($"{user.race}{user.FullName}为了{action},把{paid.ToSci()}灵力洒向{helptarget.race}{area},{end}", 100);
+                        string res = AGdesc($"{user.race}{user.FullName}为了{action},把{paid.ConvertToSci()}灵力洒向{helptarget.race}{area},{end}", 100);
                         Save(user);
                         return res;
                     }
                     else
                     {
-                        return $"{user.FullName}的灵力不够,只有{user.prop["灵力"].ToSci()}，勤奋修炼吧你";
+                        return $"{user.FullName}的灵力不够,只有{user.prop["灵力"].ConvertToSci()}，勤奋修炼吧你";
                     }
                 }
 

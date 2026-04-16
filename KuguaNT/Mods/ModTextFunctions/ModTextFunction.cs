@@ -1,4 +1,6 @@
 ﻿using Kugua.Core;
+using Kugua.Core.Algorithms;
+using Kugua.Core.Chinese;
 using Kugua.Integrations.Generators;
 using Kugua.Mods.Base;
 using Microsoft.JSInterop;
@@ -221,7 +223,7 @@ namespace Kugua.Mods
         {
             try
             {
-                return Util.HanToHx(param[1]);
+                return Huoxingwen.ToHx(param[1]);
             }
             catch (Exception e)
             {
@@ -373,7 +375,7 @@ namespace Kugua.Mods
             runTime = Math.Min(runTime, 5);
             for (int i = 0; i < runTime; i++)
             {
-                target = Util.ShuffleString(target, cutNum) + "\r\n";
+                target = Shuffle.ShuffleString(target, cutNum) + "\r\n";
             }
             return target;
         }
@@ -442,7 +444,7 @@ namespace Kugua.Mods
         /// <returns></returns>
         private string handleShuffle(MessageContext context, string[] param)
         {
-            return Util.ShuffleString(param[1]);
+            return Shuffle.ShuffleString(param[1]);
         }
 
 
@@ -797,7 +799,7 @@ namespace Kugua.Mods
         {
             string keyword = param[1];
             string verb = param[2];
-            if (keyword.Length >= 20 || Util.ContainsSymbol(keyword)) return "";
+            if (keyword.Length >= 20 || Filter.ContainsSymbol(keyword)) return "";
             var res = EatText.Get(keyword, verb);
 
             return res;

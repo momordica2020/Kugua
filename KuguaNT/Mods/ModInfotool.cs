@@ -1,4 +1,6 @@
 ﻿using Kugua.Core;
+using Kugua.Core.Algorithms;
+using Kugua.Core.Images;
 using Kugua.Integrations;
 using Kugua.Integrations.Generators;
 using Kugua.Integrations.NTBot;
@@ -93,8 +95,8 @@ namespace Kugua.Mods
                 if (data <1024* 1024) res += $"= {(double)data / 1024:0.00}K{unit}";
                 if (data >= 1024 * 1024) res += $"= {(double)data / (1024 * 1024):0.00}M{unit}";
                 if (data >= 1024 * 1024 * 1024) res += $"= {(double)data / (1024 * 1024 * 1024):0.00}G{unit}";
-                if (data >= BigInteger.Parse("1099511627776")) res += $"= {Util.BigDivToString(data, BigInteger.Parse("1099511627776"),2)}T{unit}";
-                if (data >= BigInteger.Parse("1125899906842624")) res += $"= {Util.BigDivToString(data, BigInteger.Parse("1125899906842624"), 2)}P{unit}";
+                if (data >= BigInteger.Parse("1099511627776")) res += $"= {BigUtil.DivToString(data, BigInteger.Parse("1099511627776"),2)}T{unit}";
+                if (data >= BigInteger.Parse("1125899906842624")) res += $"= {BigUtil.DivToString(data, BigInteger.Parse("1125899906842624"), 2)}P{unit}";
                 return res;
             }
             catch(Exception ex)
@@ -200,7 +202,7 @@ namespace Kugua.Mods
         {
             if (!context.IsAdminGroup && context.IsGroup) return "";
             var userName = param[1].Trim();
-            if (string.IsNullOrWhiteSpace(userName) || Util.ContainsSymbol(userName)) return "";
+            if (string.IsNullOrWhiteSpace(userName) || Filter.ContainsSymbol(userName)) return "";
             try
             {
                 return IDGenerator.Get(userName);

@@ -1,4 +1,4 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
 using Kugua.Mods.Base;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 
 
-namespace Kugua.Mods
+namespace Kugua.Mods.ModTextFunctions
 {
 
     /// <summary>

@@ -1,10 +1,11 @@
-﻿using Kugua.Mods.Base;
+﻿using Kugua.Core.Chinese;
+using Kugua.Mods.Base;
 using Prophecy;
 using Prophecy.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Kugua.Mods
+namespace Kugua.Mods.ModTextFunctions
 {
     public class ModCalendar : Mod
     {
@@ -146,12 +147,12 @@ namespace Kugua.Mods
             int yearInShi = (remainingYears % YearsPerShi) + 1;
 
             // 获取干支
-            string ganzhi = Core.Util.GetGanZhi(shi);
-            string yuanstr = Core.Util.GetChineseDigital(yuan);
+            string ganzhi = ChineseCulture.GetGanZhi(shi);
+            string yuanstr = ChineseNumber.GetChineseDigital(yuan);
             string diyuanstr = "初上中下末".Substring(diYuan-1,1);
-            string diyuanShiStr = Core.Util.GetChineseDigital(shi);
-            string shistr = Core.Util.GetChineseDigital(shi);
-            string yearInShistr = Core.Util.GetChineseDigital(yearInShi);
+            string diyuanShiStr = ChineseNumber.GetChineseDigital(shi);
+            string shistr = ChineseNumber.GetChineseDigital(shi);
+            string yearInShistr = ChineseNumber.GetChineseDigital(yearInShi);
 
 
             return $"芸历{yuanstr}天元，{diyuanstr}地元， {shistr}世，{yearInShistr}年 " +
@@ -177,12 +178,12 @@ namespace Kugua.Mods
             int yearInShi = (remainingYears % YearsPerShi) + 1;
 
             // 获取干支
-            string ganzhi = Core.Util.GetGanZhi(shi);
-            string yuanstr = Core.Util.GetChineseDigital(yuan);
+            string ganzhi = ChineseCulture.GetGanZhi(shi);
+            string yuanstr = ChineseNumber.GetChineseDigital(yuan);
             string diyuanstr = "初上中下末".Substring(diYuan - 1, 1);
-            string diyuanShiStr = Core.Util.GetChineseDigital(shi);
-            string shistr = Core.Util.GetChineseDigital(shi);
-            string yearInShistr = Core.Util.GetChineseDigital(yearInShi);
+            string diyuanShiStr = ChineseNumber.GetChineseDigital(shi);
+            string shistr = ChineseNumber.GetChineseDigital(shi);
+            string yearInShistr = ChineseNumber.GetChineseDigital(yearInShi);
 
 
             return $"芸历{yuanstr}天元，{diyuanstr}地元， {shistr}世，{yearInShistr}年 " +

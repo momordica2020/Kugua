@@ -1,4 +1,4 @@
-﻿using Kugua.Core;
+﻿using Kugua.Core.Algorithms;
 using System.Text;
 
 namespace Kugua.Integrations.Generators

@@ -1,5 +1,6 @@
 ﻿
 using Kugua.Core;
+using Kugua.Core.Algorithms;
 using System.Numerics;
 using System.Text;
 using System.Timers;

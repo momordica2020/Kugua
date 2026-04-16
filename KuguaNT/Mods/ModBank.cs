@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Kugua.Mods.Base;
 
 
@@ -61,7 +62,7 @@ namespace Kugua.Mods
                 if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
-                money = Util.Floor(money, 2);
+                money = BigUtil.Floor(money, 2);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
@@ -85,7 +86,7 @@ namespace Kugua.Mods
             try
             {
                 
-                BigInteger money = Util.ConvertToBigInteger(param[1]);
+                BigInteger money = BigUtil.ConvertFromString(param[1]);
 
                 if (money > 0)
                 {
@@ -143,7 +144,7 @@ namespace Kugua.Mods
             
             long targetqq = -1;
             if (!long.TryParse(param[1], out targetqq)) return $"{param[1]}?不认识";
-            var money = Util.ConvertToBigInteger(param[2]);
+            var money = BigUtil.ConvertFromString(param[2]);
             if(money > 0)
             {
                 string res = "";
@@ -223,7 +224,7 @@ namespace Kugua.Mods
                 string res = "";
                 if(fromqq>0 &&  targetqq>0) 
                 {
-                    BigInteger money = Util.ConvertToBigInteger(param[3]);
+                    BigInteger money = BigUtil.ConvertFromString(param[3]);
                     BigInteger succeedMoney = TransMoney(fromqq.ToString(), targetqq.ToString(), money, out res);
                 }
 
@@ -241,7 +242,7 @@ namespace Kugua.Mods
         {
             if (context.IsAdminUser)
             {
-                BigInteger money = Util.ConvertToBigInteger(param[1]);
+                BigInteger money = BigUtil.ConvertFromString(param[1]);
                 if (money > 0)
                 {
                     var message = AddMoney(context.groupId, Config.Instance.BotQQ, money);
@@ -287,7 +288,7 @@ namespace Kugua.Mods
             {
                 if (context.IsAdminUser)
                 {
-                    BigInteger money = Util.ConvertToBigInteger(param[1]);
+                    BigInteger money = BigUtil.ConvertFromString(param[1]);
 
                     if (money > 0)
                     {
@@ -326,7 +327,7 @@ namespace Kugua.Mods
                 if (maxmoney < 1) maxmoney = 1;
                 // success
                 BigInteger money = MyRandom.Next(minmoney, maxmoney);
-                money = Util.Floor(money, 2);
+                money = BigUtil.Floor(money, 2);
                 u.Money += money;
                 u.LastSignTime = DateTime.Now;
                 u.SignTimes += 1;
@@ -588,7 +589,7 @@ namespace Kugua.Mods
                     src = items[0];
                     tar = items[1];
                     time = DateTime.ParseExact(items[2], "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
-                    money = Util.ConvertToBigInteger(items[3]);
+                    money = BigUtil.ConvertFromString(items[3]);
                     reason = items[4];
                     result = items[5];
                 }

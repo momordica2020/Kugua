@@ -1,5 +1,5 @@
 ﻿using ImageMagick;
-using Kugua.Core;
+using Kugua.Core.Algorithms;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;

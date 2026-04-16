@@ -2,7 +2,7 @@
 using System.Drawing.Imaging;
 using ZXing;
 
-namespace Kugua.Core
+namespace Kugua.Core.Images
 {
     public class QRCodeHelper
     {

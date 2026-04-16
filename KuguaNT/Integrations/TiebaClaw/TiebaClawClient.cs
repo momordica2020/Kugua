@@ -1,4 +1,4 @@
-﻿using Kugua.Mods;
+﻿using Kugua.Mods.ModTextFunctions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NvAPIWrapper.Native.GPU;

@@ -7,6 +7,7 @@ using Kugua.Integrations.NTBot;
 using System.Numerics;
 using Kugua.Core;
 using Kugua.Mods.Base;
+using Kugua.Core.Algorithms;
 
 
 namespace Kugua.Mods
@@ -98,7 +99,7 @@ namespace Kugua.Mods
         {
             BigInteger money = 1;
             if (param.Length < 2) money = 1;
-            money = Util.ConvertToBigInteger(param[1]);
+            money = BigUtil.ConvertFromString(param[1]);
 
             var tuser = Config.Instance.UserInfo(context.userId);
             if (tuser.Money < money)

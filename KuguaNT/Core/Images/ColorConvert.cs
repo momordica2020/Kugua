@@ -1,9 +1,9 @@
-﻿namespace Kugua.Core
+﻿namespace Kugua.Core.Images
 {
     /// <summary>
     /// 颜色参数值CIE转换类
     /// </summary>
-    public class ColorConvertUtil
+    public class ColorConvert
     {
         /// <summary>
         /// sRGB转换矩阵（D65白点）

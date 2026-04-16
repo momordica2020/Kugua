@@ -1,5 +1,4 @@
-
-namespace Kugua.Core{
+namespace Kugua.Core.Algorithms{
 
 
     public class Calculator
