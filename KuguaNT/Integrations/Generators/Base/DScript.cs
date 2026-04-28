@@ -287,13 +287,15 @@ namespace Kugua.Integrations.Generators.Base
             if (ExtraParams != null) Params.AddRange(ExtraParams);
             if (NamedTemplates.Count > 0) Params.AddRange(NamedTemplates.Values);
 
-            if (entryKey == null) entryKey = SimStart;
-
-            if (NamedTemplates.ContainsKey(entryKey))
+            if(entryKey != null)
             {
                 return NamedTemplates[entryKey].Result(Params);
             }
-            else if(entryKey == null && AnonymousTemplates.Count > 0) 
+            if (entryKey == null && NamedTemplates.ContainsKey(SimStart))
+            {
+                return NamedTemplates[SimStart].Result(Params);
+            }
+            if(entryKey == null && AnonymousTemplates.Count > 0) 
             {
                 return RandomAnonymousTemplate.Result(Params);
             }

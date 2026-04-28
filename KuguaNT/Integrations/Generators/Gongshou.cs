@@ -37,7 +37,6 @@ namespace Kugua.Integrations.Generators
                 ];
                 // 从攻受模板列表中随机选择一个
                 res = GongshouTemplate.GetResult(null, param);
-
                 //var template = GongshouTemplate.AnonymousTemplates[MyRandom.Next(GongshouTemplate.AnonymousTemplates.Count)];
                 //res = template.Result(param);
             }

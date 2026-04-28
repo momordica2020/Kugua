@@ -3,19 +3,8 @@ using Kugua.Core.Algorithms;
 using Kugua.Core.Chinese;
 using Kugua.Integrations.Generators;
 using Kugua.Mods.Base;
-using Microsoft.JSInterop;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.PortableExecutable;
-using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace Kugua.Mods
@@ -65,7 +54,7 @@ namespace Kugua.Mods
             
 
 
-            string PluginPath = Config.Instance.FullPath("ModePath");
+            string PluginPath = Config.Instance.FullPath("Mode");
             randomChar = LocalStorage.Read($"{PluginPath}/{randomch}").Trim();
 
 
