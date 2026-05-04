@@ -41,7 +41,7 @@ namespace Kugua.Integrations.AI.Base
             {
                 if(ChatNodeList==null) ChatNodeList = new List<dynamic>();
                 ChatNodeList.Clear();
-                ChatNodeList.Add(new { role = SystemRole, content = value });
+                ChatNodeList.Add(new { role = SystemRole, content = $"{LLM.DefaultPromptBegore}{value}" });
             }
         }
 

@@ -457,7 +457,7 @@ namespace Kugua.Mods.ModNormalChat
                         //string uName = Config.Instance.UserInfo(context.userId).Name;
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         //GPT.Instance.OllamaReply(context);
-                        if (!context.IsAdminUser) break;
+                        if (!context.IsAdminUser && !context.Is("AI回答")) break;
                         var res = LLM.Instance.Chat(context, context.Texts);
                         if (!string.IsNullOrWhiteSpace(res))
                         {
