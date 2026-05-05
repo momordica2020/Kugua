@@ -619,10 +619,20 @@ namespace Kugua
             return await Send(_sendMessages, IsGroup ? groupId : userId, IsGroup, isFilter);
         }
 
+        /// <summary>
+        /// 向bot发送信息出口。
+        /// </summary>
+        /// <param name="_sendMessages"></param>
+        /// <param name="targetId"></param>
+        /// <param name="isGroup"></param>
+        /// <param name="isFilter"></param>
+        /// <param name="isDealy"></param>
+        /// <returns></returns>
         public async Task<string> Send(Message[] _sendMessages, string targetId, bool isGroup, bool isFilter = false, bool isDealy = true)
         {
             if (client == null) return string.Empty;
             if (_sendMessages == null && _sendMessages.Length <= 0) return string.Empty;
+            if (Is("禁言")) return string.Empty;
             if (string.IsNullOrWhiteSpace(targetId)) targetId = (isGroup ? groupId : userId);
                 
 

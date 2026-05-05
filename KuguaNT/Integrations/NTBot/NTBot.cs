@@ -843,6 +843,11 @@ namespace Kugua.Integrations.NTBot
                     {
                         var eo = JsonConvert.DeserializeObject<group_decrease_event>(json);
                         Logger.Log($"[群加人][{eo.group_id}]{eo.user_id}{(eo.sub_type == "approve" ? "被邀入群" : "主动加群")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
+                        if(eo.user_id == Config.Instance.BotQQ)
+                        {
+                            Logger.Log($"BOT 被拉入 [{eo.group_id}]!!!!!!!!!!!!先禁言");
+                            Config.Instance.GroupInfo(eo.group_id).Tags.Add("禁言");
+                        }
                         break;
                     }
                 case "group_ban":
