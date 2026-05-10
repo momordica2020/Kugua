@@ -688,7 +688,7 @@ namespace Kugua.Integrations.NTBot
                             case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
                             case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
                             case "video":
-                                Logger.Log($"{data}");
+                                Logger.Log($"{data}", LogType.Debug);
                                 msgs.Add(JsonConvert.DeserializeObject<Video>(data)); 
                                 break;
 
@@ -704,7 +704,7 @@ namespace Kugua.Integrations.NTBot
                             case "reply": msgs.Add(JsonConvert.DeserializeObject<Reply>(data)); break;
                             case "record": msgs.Add(JsonConvert.DeserializeObject<Record>(data));
 
-                                Logger.Log(data);
+                                Logger.Log(data, LogType.Debug);
                                 
                                 
                                 break;
@@ -714,14 +714,11 @@ namespace Kugua.Integrations.NTBot
                                 
                                 var d = JsonConvert.DeserializeObject<ForwardNodeExist>(data);
                                 d.content = new List<forward_message_node>();
-                                Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}");
+                                Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}",LogType.Debug);
                                 if (sender.user_id == Config.Instance.BotQQ)
                                 {
                                     //Logger.Log($"是我自己喵。");
                                 }
-
-
-                                if(sender.user_id == "287859992")  Logger.Log($"\r\n{mj["data"]}");
                                 JObject jjo = JObject.Parse(data);
                                 foreach (var nodej in mj["data"]["content"].ToArray())
                                 {
@@ -811,7 +808,7 @@ namespace Kugua.Integrations.NTBot
             {
                 var eo = JsonConvert.DeserializeObject<heartbeat_event>(json);
                 //var status = (string) eo.status;
-                Logger.Log($"[心跳](online:{eo.status.online},good:{eo.status.good})间隔={eo.interval}ms");
+                Logger.Log($"[心跳](online:{eo.status.online},good:{eo.status.good})间隔={eo.interval}ms",LogType.Debug);
             }
         }
 
@@ -819,6 +816,7 @@ namespace Kugua.Integrations.NTBot
         {
             JObject jo = JObject.Parse(json);
             string notice_type = jo["notice_type"]?.ToString();
+            Logger.Log($"[ProcessNotice]{json}");
             switch (notice_type)
             {
                 case "group_upload":
@@ -935,7 +933,7 @@ namespace Kugua.Integrations.NTBot
                         break;
                     }
                 case "group_msg_emoji_like":
-                    //Logger.Log(json);
+                    Logger.Log(json);
                     var data = JsonConvert.DeserializeObject<notify_group_msg_emoji_like>(json);
                     var likes = jo["likes"].ToArray();
                     if (likes.Length > 1)

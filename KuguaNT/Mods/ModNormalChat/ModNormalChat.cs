@@ -1,6 +1,4 @@
-﻿
-using System.Drawing;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,8 +7,6 @@ using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
-using Microsoft.VisualBasic;
-using SuperSocket.ClientEngine;
 
 
 namespace Kugua.Mods.ModNormalChat
@@ -458,15 +454,24 @@ namespace Kugua.Mods.ModNormalChat
                         //if (string.IsNullOrWhiteSpace(uName)) uName = "提问者";
                         //GPT.Instance.OllamaReply(context);
                         if (!context.IsAdminUser && !context.Is("AI回答")) break;
-                        var res = LLM.Instance.Chat(context, context.Texts);
+                        var res = string.Empty;
+                        if (context.IsImage)
+                        {
+                            res =  LLM.Instance.ChatSingleWithImage($"{LLM.Instance.GetPrompt(context)}\r\n{context.Texts}", context.PNG1Base64, "png");
+                        }
+                        else
+                        {
+                            res = LLM.Instance.Chat(context, context.Texts);
+                        }
+                        
                         if (!string.IsNullOrWhiteSpace(res))
                         {
-                            context.SendBackText(res, true, true);
+                            answer.Add(res);
                         }
                         else
                         {
                             // next wait for image input
-                            WaitNext(context, new ModCommand(null, descImage, _needAsk: false, _useImage: true));
+                            WaitNext(context, new ModCommand(null, chatWithImage, _needAsk: false, _useImage: true));
                         }
                         break;
 
@@ -522,13 +527,13 @@ namespace Kugua.Mods.ModNormalChat
             return results.Count() > 0;
         }
 
-        private string descImage(MessageContext context, string[] param)
+        private string chatWithImage(MessageContext context, string[] param)
         {
             string res = "";
 
             if (context.IsImage)
             {
-                res = LLM.Instance.ChatSingleWithImage( "详细描述此图，并解释其深层含义和意图", context.PNG1Base64, "png");
+                res = LLM.Instance.ChatSingleWithImage($"{LLM.Instance.GetPrompt(context)}\r\n{context.Texts}", context.PNG1Base64, "png");
             }
             if (!string.IsNullOrWhiteSpace(res))
             {

@@ -57,9 +57,44 @@ namespace Kugua.Integrations.AI
             return answer;
         }
 
-        public Task<string> RecognizeImageAsync(string desc, string inputImageBase64, string imgformat)
+        public async Task<string> RecognizeImageAsync(string desc, string inputImageBase64, string imgformat)
         {
-            throw new NotImplementedException();
+            if (chatClient == null) Init();
+
+            try
+            {
+                // 1. 准备图片数据
+                // OpenAI SDK 要求传入 BinaryData。如果你的 base64 已经带了 Data URI 前缀（data:image/jpeg;base64,...），
+                // 需要先处理或直接使用 BinaryData.FromBytes
+                byte[] imageBytes = Convert.FromBase64String(inputImageBase64);
+                BinaryData imageBinary = BinaryData.FromBytes(imageBytes, $"image/{imgformat.ToLower()}");
+
+                // 2. 构建多模态消息内容
+                var messages = new List<ChatMessage>
+                {
+                    new UserChatMessage(
+                        ChatMessageContentPart.CreateTextPart(string.IsNullOrWhiteSpace(desc) ? $"尽量简单回答，这是个聊天群，不要使用md格式，分析图片内容并解答可能的问题" : desc),
+                        ChatMessageContentPart.CreateImagePart(imageBinary, $"image/{imgformat.ToLower()}")
+                    )
+                };
+
+                // 3. 调用 API
+                Logger.Log($"正在识别图片内容... 模型: {ModelName}");
+                var completion = await chatClient.CompleteChatAsync(messages);
+
+                // 4. 解析并返回结果
+                if (completion != null && completion.Value.Content.Count > 0)
+                {
+                    string answer = completion.Value.Content.First().Text;
+                    return answer;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"图片识别发生错误: {ex.Message}");
+            }
+
+            return null;
         }
 
         public async Task<List<string>> GenerateImage(string prompt, List<string> inputImagesBase64, string type)

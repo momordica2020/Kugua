@@ -460,7 +460,7 @@ namespace Kugua.Mods.ModTransShits
                 if (target.groupinfo.tags.Contains("slow"))
                 {
                     if (config.open == false) continue;
-                    Logger.Log($"slow {target.groupinfo.targetId}库存{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
+                    Logger.Log($"slow {target.groupinfo.targetId}库存{target.shits.Count}条,距离上次发送{target.spanM:f2}min", LogType.Debug);
 
                     if (target.spanM < 10)
                     {
@@ -472,7 +472,7 @@ namespace Kugua.Mods.ModTransShits
                 else if (config.open == false) continue;
                 else { }
                 var goodshits = target.getBestAIShits();
-                Logger.Log($"{target.groupinfo.targetId}库存{goodshits.Count}/{target.shits.Count}条,距离上次发送{target.spanM:f2}min");
+                Logger.Log($"{target.groupinfo.targetId}库存{goodshits.Count}/{target.shits.Count}条,距离上次发送{target.spanM:f2}min", LogType.Debug);
                 if (goodshits==null || goodshits.Count<1) continue;
 
                 
@@ -543,7 +543,7 @@ namespace Kugua.Mods.ModTransShits
                 LocalStorage.WriteResource(configfile, JsonConvert.SerializeObject(config));
 
                 var allHash = oldHash.ToList();
-                var skeys = shithash.Keys;
+                var skeys = shithash.Keys.ToArray();
                 foreach (var hs in skeys)if(!allHash.Contains(hs)) allHash.Add(hs);
                 LocalStorage.WriteResource(hashfile, string.Join("\r\n", allHash));
             }

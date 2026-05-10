@@ -252,7 +252,7 @@ namespace Kugua.Mods
                     if (g.Value.Is("自言自语") && !g.Value.Is("少话") && MyRandom.NextDouble > (1 - 1.0 / 360))
                     {
                         
-                        Logger.Log($"自言自语 ===> {g.Value.Name}({g.Key})");
+                        Logger.Log($"自言自语 ===> {g.Value.Name}({g.Key})", LogType.Debug);
                         var context = new MessageContext
                         {
                             groupId = g.Key,

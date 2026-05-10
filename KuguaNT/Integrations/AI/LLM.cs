@@ -41,8 +41,8 @@ namespace Kugua.Integrations.AI
         /// <summary>
         /// 识别图片内容的llm
         /// </summary>
-        ILLMImageRecognize imageRecognizeModel;
-
+        ILLMImageRecognize imageRecognizeModelLight;
+        ILLMImageRecognize imageRecognitionModel;
 
         /// <summary>
         /// 图片生成器
@@ -71,7 +71,8 @@ namespace Kugua.Integrations.AI
             chatSmallModel = huoshan;
             imageModel = grsai;
             imageModel2 = huoshan;
-            imageRecognizeModel = huoshan;
+            imageRecognitionModel = grsai;
+            imageRecognizeModelLight = huoshan;
             speechModel = new LLMSpeech();
 
             LoadMemory();
@@ -260,14 +261,14 @@ namespace Kugua.Integrations.AI
         public static string FixLineBreaks(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
-            return Regex.Replace(text, @"\\r\\n|\\n|\\r", "\r\n");
+            return Regex.Replace(text, @"\\r\\n|\\n|\\r|\r\n|\n|\r", "\r\n");
         }
 
 
 
         #region 应答模块入口
 
-        public string Chat(MessageContext context, string input)
+        public string Chat(MessageContext context, string input,string pngBass64="")
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
             var chatContext = GetChatContext(context);
@@ -276,11 +277,7 @@ namespace Kugua.Integrations.AI
             if (chatModel != null)
             {
                 string rawOutput = chatModel.ChatAsync(chatContext).Result;
-                string finalOutput = rawOutput.Contains("对话区:")
-                ? rawOutput.Substring(rawOutput.IndexOf("对话区:") + 4)
-                : rawOutput;
-
-                finalOutput = FixLineBreaks(finalOutput);
+                string finalOutput = FixLineBreaks(rawOutput);
                 Logger.Log(finalOutput);
                 return finalOutput;
             }
@@ -315,15 +312,15 @@ namespace Kugua.Integrations.AI
 
         public string ChatSingleWithImage(string prompt, string imgbase64, string imgformat)
         {
-            if (imageRecognizeModel != null)
+            if (imageRecognizeModelLight != null)
             {
 
-                var restext = imageRecognizeModel.RecognizeImageAsync(prompt, imgbase64, imgformat).Result;
+                var restext = imageRecognitionModel.RecognizeImageAsync(prompt, imgbase64, imgformat).Result;
                 return restext;
             }
             else
             {
-                Logger.Log("图片评分引擎为空");
+                Logger.Log("图片回复引擎为空");
             }
             return string.Empty;
         }
@@ -393,11 +390,11 @@ namespace Kugua.Integrations.AI
         public int GetImgScore(string imgbase64, string imgformat)
         {
             int score = 0;
-            if (imageRecognizeModel != null)
+            if (imageRecognizeModelLight != null)
             {
                 string prompt = "这是一个网络上的段子内容分享图片，请帮我判断该内容是否具备一定的戏剧性或讽刺性、猎奇性或者是娱乐性？只用1~5之间的1个数字来回答，1表示完全没有，5表示很强。不需要输出任何其他额外解释。";
 
-                var restext = imageRecognizeModel.RecognizeImageAsync(prompt, imgbase64, imgformat).Result;
+                var restext = imageRecognizeModelLight.RecognizeImageAsync(prompt, imgbase64, imgformat).Result;
                 int.TryParse(restext, out score);
             }
             else

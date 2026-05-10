@@ -18,7 +18,7 @@ namespace Kugua.Mods
         XiuxianBotself botxiuxian = new XiuxianBotself();
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
+            //ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
 
             ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), handleXiulian, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^突破$"), handleTupo, _needAsk: false));

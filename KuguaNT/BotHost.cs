@@ -43,7 +43,6 @@ namespace Kugua
         void sendLog(LogInfo logInfo)
         {
             if (_sendLog != null) { _sendLog(logInfo); }
-
             // print log?
             Console.WriteLine(logInfo.ToDescription());
         }
@@ -73,7 +72,7 @@ namespace Kugua
                     Logger.Log("配置文件读取失败，中止运行");
                     return;
                 }
-                Logger.logLevel = (LogLevel)Config.Instance.App.Avatar.logState;
+                Logger.LogPrintType = (LogType)Config.Instance.App.Avatar.logState;
 
 
                 Logger.Log($"启用过滤器...");

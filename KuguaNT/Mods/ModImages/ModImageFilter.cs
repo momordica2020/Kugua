@@ -98,7 +98,7 @@ namespace Kugua.Mods.ModImages
             }
             if (imgs.Count > 0) context.SendBackImages(imgs);
 
-            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"^遗像$", RegexOptions.Singleline), getYixiang));
+            if (!context.IsImage) WaitNext(context, new ModCommand(new Regex(@"^(遗像|遗照)$", RegexOptions.Singleline), getYixiang));
             return null;
 
 

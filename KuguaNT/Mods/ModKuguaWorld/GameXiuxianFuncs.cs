@@ -166,7 +166,8 @@ namespace Kugua.Mods{
         {
             foreach(var user in users)
             {
-                if (user.Value.FullName == name) return user.Value;
+                if (user.Value.FullName.ToLower() == name.ToLower()) return user.Value;
+                if (user.Value.nick.ToLower() == name.ToLower()) return user.Value;
             }
             return null;
         }

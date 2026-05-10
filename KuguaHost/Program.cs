@@ -1,26 +1,39 @@
-var builder = WebApplication.CreateBuilder(args);
+using KuguaSdk;
+using MediatR;
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+public class Entry : IPluginEntry
 {
-    app.MapOpenApi();
+    public Task StartAsync(IMediator mediator, CancellationToken cancellationToken)
+    {
+
+        var builder = WebApplication.CreateBuilder();
+
+        // Add services to the container.
+
+        builder.Services.AddControllers();
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddOpenApi();
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+        }
+        //app.UseHttpsRedirection();
+
+        //app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+
+        return Task.CompletedTask;
+    }
 }
 
-app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
 
 //using KuguaHost;
 

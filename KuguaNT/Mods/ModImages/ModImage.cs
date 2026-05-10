@@ -45,7 +45,7 @@ namespace Kugua.Mods.ModImages
             //ModCommands.Add(new ModCommand(new Regex(@"^(\S+)语生图(.*)", RegexOptions.Singleline), genImg2));
             ModCommands.Add(new ModCommand(new Regex(@"^扭曲(.+)", RegexOptions.Singleline), genCaptcha));
             ModCommands.Add(new ModCommand(new Regex(@"^噪声([0-9]*)", RegexOptions.Singleline), genRandomPixel));
-            ModCommands.Add(new ModCommand(new Regex(@"^取色(.*)", RegexOptions.Singleline), getColorCode));
+            ModCommands.Add(new ModCommand(new Regex(@"^取色", RegexOptions.Singleline), getColorCode));
             ModCommands.Add(new ModCommand(new Regex(@"^CIS\s*(\S+)\s(\S+)\s(\S+)", RegexOptions.Singleline), convertCIS));
             ModCommands.Add(new ModCommand(new Regex(@"^#[0-9A-Fa-f]{6}$", RegexOptions.Singleline), showColor,_needAsk: false));
             
