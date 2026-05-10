@@ -39,47 +39,62 @@ namespace Kugua.Core.Images
         /// <summary>
         /// 获取图像边缘像素的主要颜色
         /// </summary>
-        private static List<IMagickColor<ushort>> GetDominantEdgeColor(MagickImage image, int topN = 3, int line_num = 3)
+        private static List<IMagickColor<ushort>> GetDominantEdgeColor(MagickImage image, int topN = 3, int lineNum = 3, int colorStep = 16)
         {
-            using (var pixels = image.GetPixels())
+            var colorCount = new Dictionary<int, (int Count, MagickColor Color)>();
+
+            using var pixels = image.GetPixels();
+
+            int width = (int)image.Width;
+            int height = (int)image.Height;
+
+            void AddColor(int x, int y)
             {
-                var edgePixels = new List<IMagickColor<ushort>>();
+                var color = pixels.GetPixel(x, y).ToColor();
 
-                // 收集顶部和底部边缘像素
-                for (int x = 0; x < image.Width; x++)
+                // 量化颜色（减少噪点影响）
+                int r = (color.R / colorStep) * colorStep;
+                int g = (color.G / colorStep) * colorStep;
+                int b = (color.B / colorStep) * colorStep;
+
+                // 用 int 作为 key
+                int key = (r << 20) | (g << 10) | b;
+
+                if (colorCount.TryGetValue(key, out var value))
                 {
-                    for (int i = 0; i < line_num; i++)
-                    {
-                        edgePixels.Add(pixels.GetPixel(x, i).ToColor());
-                        edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1 - i).ToColor());
-                    }
-
-                    //edgePixels.Add(pixels.GetPixel(x, (int)image.Height - 1).ToColor());
+                    colorCount[key] = (value.Count + 1, value.Color);
                 }
-
-                // 收集左右边缘像素
-                for (int y = 0; y < image.Height; y++)
+                else
                 {
-                    for (int i = 0; i < line_num; i++)
-                    {
-                        edgePixels.Add(pixels.GetPixel(i, y).ToColor());
-                        edgePixels.Add(pixels.GetPixel((int)image.Height - 1 - i, y).ToColor());
-                    }
-                    //edgePixels.Add(pixels.GetPixel(i, y).ToColor());
-                    //edgePixels.Add(pixels.GetPixel((int)image.Width - 1, y).ToColor());
+                    colorCount[key] = (1, new MagickColor((ushort)r, (ushort)g, (ushort)b));
                 }
-
-                // 统计前 N 个出现次数最多的颜色
-                var dominantColors = edgePixels
-                    .GroupBy(c => $"{c.R},{c.G},{c.B}") // 使用 RGB 值比较
-                    .OrderByDescending(g => g.Count())
-                    .Take(topN)
-                    .Select(g => edgePixels.First(c => $"{c.R},{c.G},{c.B}" == g.Key))
-                    .ToList();
-
-                return dominantColors;
-
             }
+
+            // 上下边
+            for (int x = 0; x < width; x++)
+            {
+                for (int i = 0; i < lineNum; i++)
+                {
+                    AddColor(x, i);
+                    AddColor(x, height - 1 - i);
+                }
+            }
+
+            // 左右边（避免重复四角）
+            for (int y = lineNum; y < height - lineNum; y++)
+            {
+                for (int i = 0; i < lineNum; i++)
+                {
+                    AddColor(i, y);
+                    AddColor(width - 1 - i, y);
+                }
+            }
+
+            return colorCount
+                .OrderByDescending(x => x.Value.Count)
+                .Take(topN)
+                .Select(x => (IMagickColor<ushort>)x.Value.Color)
+                .ToList();
         }
 
         /// <summary>
