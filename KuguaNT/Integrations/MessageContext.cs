@@ -12,6 +12,8 @@ namespace Kugua
         public string userId { get; set; }
         public string groupId { get; set; }
         public string messageId;
+
+        public readonly DateTime createTime = DateTime.UtcNow;
         public bool IsGroup
         {
             get

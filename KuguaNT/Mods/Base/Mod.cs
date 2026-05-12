@@ -108,6 +108,12 @@ namespace Kugua.Mods.Base
                     lock (WaitingCmdsLock) { WaitingCmds.Remove(uid); }
                     return false;
                 }
+                else if(DateTime.UtcNow - context.createTime > TimeSpan.FromMinutes(5))
+                {
+                    // 超时，移除等待的指令
+                    lock (WaitingCmdsLock) { WaitingCmds.Remove(uid); }
+                    return false;
+                }
                 else
                 {
                     //context.recvMessages.AddRange(val.ctx.recvMessages);
@@ -115,7 +121,7 @@ namespace Kugua.Mods.Base
                     if (last.cmd.Handle(last.ctx))
                     {
                         // 只删自己，意思是如果handle内部重新设置了下一条要等待的指令，这里就不必remove了
-                        lock (WaitingCmdsLock) { if (WaitingCmds[uid] == last) WaitingCmds.Remove(uid); }
+                        lock (WaitingCmdsLock) { if (WaitingCmds.ContainsKey(uid) && WaitingCmds[uid] == last) WaitingCmds.Remove(uid); }
                         return true;
                     }
                 }

@@ -297,7 +297,7 @@ namespace Kugua
                     return new { Content = line, MatchCount = matchCount };
                 });
                 return matchres
-                    .Where(m => m.MatchCount > 0 && m.Content.UserId!=Config.Instance.BotQQ && !m.Content.Content.Contains("群内搜索"))
+                    .Where(m => m.MatchCount > 0 && !m.Content.Content.Contains("群内搜索"))
                     .OrderByDescending(r => r.MatchCount)
                     .ThenByDescending(r => r.Content.RecvDate)
                     .Select(r => r.Content)

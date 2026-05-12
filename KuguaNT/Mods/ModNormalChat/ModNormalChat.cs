@@ -458,20 +458,20 @@ namespace Kugua.Mods.ModNormalChat
                         if (context.IsImage)
                         {
                             res =  LLM.Instance.ChatSingleWithImage($"{LLM.Instance.GetPrompt(context)}\r\n{context.Texts}", context.PNG1Base64, "png");
+                            break;
                         }
                         else
                         {
                             res = LLM.Instance.Chat(context, context.Texts);
-                        }
-                        
-                        if (!string.IsNullOrWhiteSpace(res))
-                        {
-                            answer.Add(res);
-                        }
-                        else
-                        {
-                            // next wait for image input
-                            WaitNext(context, new ModCommand(null, chatWithImage, _needAsk: false, _useImage: true));
+                            if (!string.IsNullOrWhiteSpace(res))
+                            {
+                                answer.Add(res);
+                            }
+                            else
+                            {
+                                // next wait for image input
+                                WaitNext(context, new ModCommand(null, chatWithImage, _needAsk: false, _useImage: true));
+                            }
                         }
                         break;
 
@@ -539,11 +539,9 @@ namespace Kugua.Mods.ModNormalChat
             {
                 return res;
             }
-            else
-            {
-                return null;
-            }
 
+
+            return null;
         }
 
         private ChatMode getUserMode(Player player)

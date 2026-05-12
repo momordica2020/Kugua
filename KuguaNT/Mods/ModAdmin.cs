@@ -516,20 +516,30 @@ namespace Kugua.Mods
         {
             if (!context.IsGroup) return "";
             string keyword = param[1].Trim();
-            int showMax = 10;
+            int showMax = 200;
             var historys = HistoryManager.Instance.Search(context.groupId, keyword);
+            List<Message> list = new List<Message>();
             StringBuilder sb = new StringBuilder();
             if (historys.Length <= 0)
             {
                 return "没搜到。";
             }
-            sb.AppendLine($"本群搜到{historys.Length}条结果：");
-            for (int i = 0; i < Math.Min(historys.Length, showMax); i++)
+            showMax = Math.Min(historys.Length, showMax);
+            sb.AppendLine($"本群搜到{historys.Length}条结果(显示{showMax}条)：");
+            for (int i = 0; i < showMax; i++)
             {
                 sb.AppendLine($"{historys[i].Content}——{Config.Instance.UserInfo(historys[i].UserId).Name},{historys[i].RecvDate.ToString("yyyy.MM.dd HH:mm")}");
-                if (sb.Length > 900) break;
+                if (sb.Length > 900) { 
+                    list.Add(new Text(sb.ToString()));
+                    sb.Clear();
+                }
             }
-            return sb.ToString();
+            if (sb.Length > 0)
+            {
+                list.Add(new Text(sb.ToString()));
+            }
+            context.SendForward(list.ToArray());
+            return null;
         }
 
         ///// <summary>
