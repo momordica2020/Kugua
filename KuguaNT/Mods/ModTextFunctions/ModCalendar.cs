@@ -1,4 +1,4 @@
-﻿using Kugua.Core.Chinese;
+﻿using Kugua.Algorithms.Chinese;
 using Kugua.Mods.Base;
 using Prophecy;
 using Prophecy.Data;

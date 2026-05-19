@@ -1,16 +1,16 @@
-﻿using System.Net.WebSockets;
-using System.Text;
-using System;
+﻿using Kugua.Core;
+using Kugua.Data.RunningData;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods;
-using Kugua.Integrations.AI;
-using Kugua.Core;
 using Kugua.Mods.Base;
-using Kugua.Mods.ModNormalChat;
-using Kugua.Mods.ModTransShits;
-using Kugua.Mods.ModTextFunctions;
 using Kugua.Mods.ModImages;
-
+using Kugua.Mods.ModNormalChat;
+using Kugua.Mods.ModTextFunctions;
+using Kugua.Mods.ModTransShits;
+using KuguaSdk.MessageStructs;
+using KuguaSdk.Onebot11;
+using System.Text;
 
 
 namespace Kugua
@@ -52,7 +52,7 @@ namespace Kugua
 
 
         public static NTBot ClientX;
-        public static LocalClient ClientLocal = new LocalClient("local");
+        //public static LocalClient ClientLocal = new LocalClient("local");
 
         public List<Mod> Mods = new List<Mod>();
 
@@ -170,7 +170,7 @@ namespace Kugua
                     try
                     {
                         mod.clientQQ = ClientX;
-                        mod.clientLocal = ClientLocal;
+                        //mod.clientLocal = ClientLocal;
                         if (mod.Init(null))
                         {
                             Logger.Log($"模块{mod.GetType().Name}已初始化");
@@ -204,11 +204,6 @@ namespace Kugua
                 }
 
 
-                LinkLocal();
-
-
-
-
                 Logger.Log($"======= bot启动完成 =======");
             }
             catch (Exception ex)
@@ -217,19 +212,7 @@ namespace Kugua
             }
         }
 
-        public void LinkLocal()
-        {
-            if (string.IsNullOrWhiteSpace(Config.Instance.App.Net.LocalWS))
-            {
-                Logger.Log($"本地WS未启动");
-            }
-            else
-            {
-                Logger.Log($"本地WS连接至：{Config.Instance.App.Net.LocalWS}");
-                ClientLocal.Link(Config.Instance.App.Net.LocalWS);
-            }
-            
-        }
+ 
 
         /// <summary>
         /// 模块介绍信息
@@ -346,6 +329,7 @@ namespace Kugua
                 }
                 else
                 {
+                    
                     Config.Instance.App.Avatar.myQQ = qqinfo.user_id.ToString();
                     Config.Instance.App.Avatar.myName = qqinfo.nickname;
                 }

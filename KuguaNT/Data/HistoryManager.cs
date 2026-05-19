@@ -1,4 +1,6 @@
 ﻿
+using Kugua.Core;
+using Kugua.Data.RunningData;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -241,7 +243,7 @@ namespace Kugua
             {
                 try
                 {
-                    foreach (var line in LocalStorage.ReadLines(file))
+                    foreach (var line in FileSystem.ReadLines(file))
                     {
                         var items = line.Split('\t', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                         if (items.Length >= 3 && Regex.IsMatch(items[0], @"^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}$"))

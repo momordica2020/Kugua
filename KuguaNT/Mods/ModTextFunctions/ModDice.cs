@@ -1,4 +1,4 @@
-﻿using Kugua.Core.Algorithms;
+﻿using Kugua.Algorithms;
 using Kugua.Mods.Base;
 using System;
 using System.Collections.Generic;

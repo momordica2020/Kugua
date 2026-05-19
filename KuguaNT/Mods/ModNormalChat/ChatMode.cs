@@ -1,6 +1,5 @@
 ﻿using System.Text;
-using Kugua.Core.Algorithms;
-
+using Kugua.Algorithms;
 
 namespace Kugua.Mods.ModNormalChat
 {

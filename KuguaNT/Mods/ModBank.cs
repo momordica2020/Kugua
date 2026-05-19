@@ -2,8 +2,9 @@
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
+using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
+using Kugua.Data.RunningData;
 using Kugua.Mods.Base;
 
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Numerics;
 using Kugua.Core;
 using Kugua.Mods.Base;
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
 
 
 namespace Kugua.Mods
@@ -43,7 +43,7 @@ namespace Kugua.Mods
 
 
 
-                var lines = LocalStorage.ReadResourceLines("game/roulette_user.txt");
+                var lines = FileSystem.ReadResourceLines("game/roulette_user.txt");
                 foreach (var line in lines)
                 {
                     GamePlayerHistory user = new GamePlayerHistory();
@@ -68,7 +68,7 @@ namespace Kugua.Mods
                 {
                     sb.Append($"{user.ToString()}\r\n");
                 }
-                LocalStorage.writeText(Config.Instance.FullPath("game/roulette_user.txt"), sb.ToString());
+                FileSystem.writeText(Config.Instance.FullPath("game/roulette_user.txt"), sb.ToString());
             }
             catch (Exception ex)
             {

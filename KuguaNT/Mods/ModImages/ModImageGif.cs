@@ -1,8 +1,10 @@
 ﻿using ImageMagick;
-using Kugua.Core.Algorithms;
-using Kugua.Core.Images;
+using Kugua.Algorithms;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Integrations;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods.ModImages
@@ -350,7 +352,7 @@ namespace Kugua.Mods.ModImages
                 foreach (var img in imgs)
                 {
                     img.Format = MagickFormat.Png;
-                    msgs.Add(new ImageSend((MagickImage)img));
+                    msgs.Add(new Image((MagickImage)img));
                 }
 
                 context.SendForward(msgs.ToArray());
@@ -401,7 +403,7 @@ namespace Kugua.Mods.ModImages
                             MagickImage subImage = (MagickImage)img.Clone();
                             subImage.Crop(cropGeometry);
                             subImage.Format = MagickFormat.Png;
-                            msgs.Add(new ImageSend((MagickImage)subImage));
+                            msgs.Add(new Image((MagickImage)subImage));
 
                             //subImages.Add(subImage);
                         }
@@ -442,7 +444,7 @@ namespace Kugua.Mods.ModImages
                 foreach (var item in context.recvMessages)
                 {
                     //Logger.Log(item.type);
-                    if (item is ImageBasic itemImg)
+                    if (item is Image itemImg)
                     {
                         var oriImg = Network.DownloadImage(itemImg.url);
                         context.SendBackImage(ImageHandler.ImgSetGifSpeed(oriImg, speed));

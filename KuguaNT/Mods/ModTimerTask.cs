@@ -1,8 +1,10 @@
-﻿using Kugua.Core.Algorithms;
+﻿using Kugua.Algorithms;
+using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
 using Kugua.Mods.ModNormalChat;
+using KuguaSdk.MessageStructs;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -37,9 +39,6 @@ namespace Kugua.Mods
 
         public override bool Init(string[] args)
         {
-            ModCommands.Add(new ModCommand(new Regex(@"^你什么情况？"), checkState));
-
-
             // clocks
             ModCommands.Add(new ModCommand(new Regex(@"^(\d{1,2})[:：点]((\d{1,2})分?)?[叫喊]我(.*)$"), setClock));
             ModCommands.Add(new ModCommand(new Regex(@"^闹钟(列表|信息|状态)\b+$"), checkClock));
@@ -166,66 +165,7 @@ namespace Kugua.Mods
         }
 
 
-        private string checkState(MessageContext context, string[] param)
-        {
-            if (context.client is LocalClient) return "";
-
-
-
-            //var r = LLM.Instance.GetImg("");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //var res = new BotProfile().Send(context.client);
-            string data = "";
-            //data += $"我是{res.nickname}，{(res.sex == "FEMALE" ? "女" : "男")}，QQ等级{res.level}，年龄{res.age}，邮箱是{res.email}，个性签名是\"{res.sign}\"。你们别骂我了！\n";
-
-            //GPT.Instance.AITalk(context, $"你是谁啊？");
-
-
-            //foreach (var msg in e)
-            //{
-            //    data += $"{msg.type}/";
-
-            //}
-
-
-
-            //new GroupMessage(context.groupId, [
-            //        //new At(userId, ""),
-            //        //new Plain($"{data}"),
-            //        //new Image(null, "https://s3.bmp.ovh/imgs/2024/10/31/ce9c165d2d4c274a.gif"),
-            //        new Voice(null,null,"D:\\Projects\\momordica2020\\Kugua\\output\\Debug\\net8.0\\RunningData\\music\\殇_徐嘉良.mp3")
-            //        ]).Send(context.client);
-
-
-            //var ress = new Anno_publish(context.groupId, "Bot 公告推送").Send(context.client);
-            //var res2 = new Anno_list(context.groupId).Send(context.client);
-            //foreach (var ano in res2)
-            //{
-            //    data += $"{ano.content}\n望周知！\n";
-            //}
-
-            //new GroupMessage(groupId, [
-            //    //new At(userId, ""),
-            //    new Plain($"{data}")
-            //    ]).Send(client);
-            return null;
-        }
-
-
+      
 
      
 
@@ -341,14 +281,14 @@ namespace Kugua.Mods
                 foreach(var msg in context.recvMessages)
                 {
                     Logger.Log(msg.ToString());
-                    if(msg is ForwardNodeExist f)
+                    if(msg is Forward f)
                     {
                         foreach(var fn in f.content)
                         {
                             foreach(var msg2 in fn.message)
                             {
                                 Logger.Log(msg2.ToString());
-                                if (msg2 is ForwardNodeExist f2)
+                                if (msg2 is Forward f2)
                                 {
                                     foreach (var fn2 in f2.content)
                                     {

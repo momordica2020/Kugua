@@ -11,8 +11,9 @@ using Kugua.Integrations.NTBot;
 using Microsoft.Extensions.FileSystemGlobbing;
 using System.Net;
 using Kugua.Mods.Base;
-using Kugua.Core.Algorithms;
-
+using Kugua.Core;
+using Kugua.Algorithms;
+using KuguaSdk.MessageStructs;
 
 
 namespace Kugua.Mods.ModTextFunctions

@@ -1,4 +1,4 @@
-﻿using Kugua.Core.Algorithms;
+﻿using Kugua.Algorithms;
 using Kugua.Mods.Base;
 using SuperSocket.ClientEngine;
 using System;
@@ -26,7 +26,7 @@ namespace Kugua.Mods.ModTextFunctions
                 ModCommands.Add(new ModCommand(new Regex("^占卜(.*)", RegexOptions.Singleline), 解读卦象));
 
 
-                var lines = LocalStorage.ReadResourceLines("Zhouyi");
+                var lines = FileSystem.ReadResourceLines("Zhouyi");
                 string nowGuaNum = "";
                 int nowline = 0;
                 string[] items;

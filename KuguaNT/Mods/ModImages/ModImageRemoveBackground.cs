@@ -1,6 +1,8 @@
-﻿using Kugua.Core.Images;
+﻿using Kugua.Algorithms.ImageFunc;
+using Kugua.Integrations;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods.ModImages
@@ -24,7 +26,7 @@ namespace Kugua.Mods.ModImages
             foreach (var item in context.recvMessages)
             {
                 //Logger.Log(item.type);
-                if (item is ImageBasic itemImg)
+                if (item is Image itemImg)
                 {
                     var oriImg = Network.DownloadImage(itemImg.url);
                     context.SendBackImage(ImageHandler.ImgRemoveBackgrounds(oriImg));

@@ -28,7 +28,6 @@ namespace Kugua.Integrations.NTBot
         public string user_id { get; set; }
 
         public group_message_anonymous anonymous { get; set; }
-        [JsonIgnore]
         public List<Message> message { get; set; }
 
         public string raw_message { get; set; }
@@ -56,7 +55,6 @@ namespace Kugua.Integrations.NTBot
         public string message_id { get; set; }
 
         public string user_id { get; set; }
-        [JsonIgnore]
         public List<Message> message { get; set; }
 
         public string raw_message { get; set; }

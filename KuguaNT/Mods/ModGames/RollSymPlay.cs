@@ -1,6 +1,6 @@
 ﻿using ImageMagick;
 using ImageMagick.Drawing;
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
 
 namespace Kugua.Mods
 {

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Kugua.Core;
+using System.Numerics;
 
 namespace Kugua
 {

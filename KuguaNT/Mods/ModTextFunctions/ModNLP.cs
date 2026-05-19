@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.Generators;
+﻿using Kugua.Algorithms.Generators;
+using Kugua.Core;
 using Kugua.Mods.Base;
 using System;
 using System.Collections.Generic;

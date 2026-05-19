@@ -1,6 +1,8 @@
-﻿using Kugua.Core;
-using Kugua.Core.Images;
+﻿using Kugua.Algorithms.ImageFunc;
+using Kugua.Core;
+using Kugua.Integrations;
 using Kugua.Integrations.NTBot;
+using KuguaSdk.MessageStructs;
 
 namespace Kugua.Mods.ModTransShits
 {
@@ -48,7 +50,7 @@ namespace Kugua.Mods.ModTransShits
         {
             try
             {
-                if (item is ImageBasic img && !string.IsNullOrWhiteSpace(img.url))
+                if (item is Image img && !string.IsNullOrWhiteSpace(img.url))
                 {
                     //Logger.Log($"<hashimg>{img.file}");
                     
@@ -100,7 +102,7 @@ namespace Kugua.Mods.ModTransShits
                     //_hash = Util.ComputeHash(_hash + video.file);
 
                 }
-                else if (item is ForwardNodeExist forward)
+                else if (item is Forward forward)
                 {
                     isForward = true;
                     foreach (var c in forward.content)

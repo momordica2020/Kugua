@@ -1,4 +1,5 @@
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
+using Kugua.Core;
 using Kugua.Integrations.AI;
 using Newtonsoft.Json;
 using System.Data;
@@ -58,7 +59,7 @@ namespace Kugua.Mods{
                 users[userid] = new XiuxianUser(userid);
                 try
                 {
-                    var u = JsonConvert.DeserializeObject<XiuxianUser>(LocalStorage.Read(userfile));
+                    var u = JsonConvert.DeserializeObject<XiuxianUser>(FileSystem.Read(userfile));
                     users[userid] = u;
 
 
@@ -93,7 +94,7 @@ namespace Kugua.Mods{
             foreach (var namefile in Directory.GetFiles(npath))
             {
                 string name = Path.GetFileNameWithoutExtension(namefile);
-                names[name] = LocalStorage.ReadLines(namefile).ToList();
+                names[name] = FileSystem.ReadLines(namefile).ToList();
             }
 
             if (!names.ContainsKey("地区")) names["地区"] = new List<string>();
@@ -164,12 +165,10 @@ namespace Kugua.Mods{
 
         public static XiuxianUser getUserByName(string name)
         {
-            foreach(var user in users)
-            {
-                if (user.Value.FullName.ToLower() == name.ToLower()) return user.Value;
-                if (user.Value.nick.ToLower() == name.ToLower()) return user.Value;
-            }
-            return null;
+            return users.Values.FirstOrDefault(u =>
+            string.Equals(u.FullName, name, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(u.nick, name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public static string getLostItem(XiuxianUser user)

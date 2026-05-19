@@ -1,7 +1,12 @@
 ﻿
 using ImageMagick;
 using Kugua.Core;
+using Kugua.Data.RunningData;
+using Kugua.Integrations;
 using Kugua.Integrations.NTBot;
+using KuguaSdk.MessageStructs;
+using KuguaSdk.Onebot11;
+using OpenAI.Graders;
 using System.Text;
 
 
@@ -48,6 +53,14 @@ namespace Kugua
             }
         }
 
+        public bool IsSelf
+        {
+            get
+            {
+                return Config.Instance.BotQQ==userId;
+            }
+        }
+
 
         public bool IsImage
         {
@@ -73,7 +86,7 @@ namespace Kugua
                 {
                     foreach (var msg in recvMessages)
                     {
-                        if (msg is ImageBasic)
+                        if (msg is Image)
                         {
                             hasImage = true;
                         }
@@ -196,10 +209,9 @@ namespace Kugua
             {
                 if(IsImage)
                 {
-                    foreach (var it in Images)
+                    foreach (var img in Images)
                     {
-                        if (it is ImageBasic img)
-                        {
+
                             var currentFrame = Network.DownloadImage(img.url).First();
                             using (MemoryStream ms = new MemoryStream())
                             {
@@ -212,7 +224,7 @@ namespace Kugua
                             }
 
 
-                        }
+                        
                     }
                 }
                
@@ -229,7 +241,7 @@ namespace Kugua
                     var res = new List<string>();
                     foreach(var it in Images)
                     {
-                        if (it is ImageBasic img)
+                        if (it is Image img)
                         {
                             var currentFrame = Network.DownloadImage(img.url).First();
                             using (MemoryStream ms = new MemoryStream())
@@ -254,17 +266,17 @@ namespace Kugua
                 return null;
             }
         }
-        public List<ImageBasic> Images
+        public List<Image> Images
         {
             get
             {
-                List<ImageBasic> images = new List<ImageBasic>();
+                List<Image> images = new List<Image>();
                 if (recvMessages != null)
                 {
                     foreach (var it in recvMessages)
                     {
-                        if (it is ImageBasic img) images.Add(img);
-                        else if(it is ForwardNodeExist forward)
+                        if (it is Image img) images.Add(img);
+                        else if(it is Forward forward)
                         {
                             images.AddRange(getImageFromForward(forward));
                         }
@@ -292,20 +304,20 @@ namespace Kugua
             }
         }
 
-        List<ImageBasic> getImageFromForward(ForwardNodeExist node)
+        List<Image> getImageFromForward(Forward node)
         {
-            List<ImageBasic> res = new List<ImageBasic>();
+            List<Image> res = new List<Image>();
 
             if (node == null) return res;
             foreach(var n in node.content)
             {
                 foreach(var msg in n.message)
                 {
-                    if(msg is ImageBasic img)
+                    if(msg is Image img)
                     {
                         res.Add(img);
                     }
-                    else if(msg is ForwardNodeExist forward)
+                    else if(msg is Forward forward)
                     {
                         res.AddRange(getImageFromForward(forward));
                     }
@@ -348,7 +360,7 @@ namespace Kugua
                 {
                     foreach (var it in recvMessages)
                     {
-                        if (it is ImageRecvMarketFace img)
+                        if (it is Image img && img.IsMarketFace)
                         {
                             return new MFace
                             {
@@ -390,7 +402,7 @@ namespace Kugua
                 {
                     foreach (var it in recvMessages)
                     {
-                        if (it is ForwardNodeExist f) return true;
+                        if (it is Forward f) return true;
                     }
                 }
                 return false;
@@ -411,13 +423,13 @@ namespace Kugua
                     {
                         foreach (var it in recvMessages)
                         {
-                            if (it is ForwardNodeExist f)
+                            if (it is Forward f)
                             {
                                 foreach (var fnode in f.content)
                                 {
                                     foreach (var fnodenode in fnode.message)
                                     {
-                                        if (fnodenode is ForwardNodeExist) return true;
+                                        if (fnodenode is Forward) return true;
                                     }
                                 }
                             }
@@ -500,7 +512,7 @@ namespace Kugua
             try
             {
                 if (string.IsNullOrWhiteSpace(msgId)) msgId = this.messageId;
-                var emoji = EmojiReact.Instance.Get(name);
+                var emoji = EmojiReact.Get(name);
 
                 if (emoji != null) client?.SendEmojiLike(msgId, int.Parse(emoji.id));
             }
@@ -529,7 +541,7 @@ namespace Kugua
 
         public async Task<int> SendBackDice()
         {
-            if(client!=null && client is not LocalClient)
+            if(client!=null)
             {
                 var msgid = SendBack([new Dice()]).Result;
                 if (!string.IsNullOrWhiteSpace(msgid))
@@ -588,7 +600,7 @@ namespace Kugua
         {
             
             List<Message> msgs = new List<Message>();
-            if (image!=null) msgs.Add(new ImageSend(image));
+            if (image!=null) msgs.Add(new Image(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
             if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";
@@ -599,7 +611,7 @@ namespace Kugua
 
             List<Message> msgs = new List<Message>();
             
-            if (images != null)foreach(var image in images) msgs.Add(new ImageSend(image));
+            if (images != null)foreach(var image in images) msgs.Add(new Image(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
             if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";
@@ -609,7 +621,7 @@ namespace Kugua
         public async Task<string> SendImage(MagickImage image, string targetId, bool isGroup,  string desc = "")
         {
             List<Message> msgs = new List<Message>();
-            if (image != null) msgs.Add(new ImageSend(image));
+            if (image != null) msgs.Add(new Image(image));
             if (!string.IsNullOrWhiteSpace(desc)) msgs.Add(new Text(desc));
             if (msgs.Count > 0) return await Send(msgs.ToArray(), targetId, isGroup);
             else return "";
@@ -639,9 +651,9 @@ namespace Kugua
                 
 
                 
-            List<string> msgStrings = new List<string>();
+            List<string> msgs_text = new List<string>();
 
-            List<Message> msgWithoutText = new List<Message>();
+            List<Message> msgs_other = new List<Message>();
 
             foreach (var item in _sendMessages)
             {
@@ -660,38 +672,36 @@ namespace Kugua
 
                     while(index < itemPlain.text.Length)
                     {
-                        msgStrings.Add(itemPlain.text.Substring(index, Math.Min(maxlen, itemPlain.text.Length - index)));
+                        msgs_text.Add(itemPlain.text.Substring(index, Math.Min(maxlen, itemPlain.text.Length - index)));
                         index += maxlen;
                     }
                 }
                 else
                 {
-                    msgWithoutText.Add(item);
+                    msgs_other.Add(item);
                 }
             }
             bool firstFrame = true;
-            if (msgStrings.Count <= 0) msgStrings.Add("");
+            if (msgs_text.Count <= 0) msgs_text.Add("");
 
             List<string> msgIds = new List<string>();
-            foreach(var s in msgStrings)
+            foreach(var s in msgs_text)
             {
-                var pmsg = new List<MessageInfo>();
+                var pmsg = new List<Message>();
                 if (firstFrame)
                 {
-                    foreach (var item in msgWithoutText)
-                    {
-                        pmsg.Add(new MessageInfo( item));
-                    }
+                    pmsg = msgs_other.ToList();
+
                     //pmsg.AddRange(sendMessagesOthers);
                     firstFrame = false;
                 }
-                if(!string.IsNullOrWhiteSpace(s)) pmsg.Add(new MessageInfo(new Text(s)));
+                if(!string.IsNullOrWhiteSpace(s)) pmsg.Add(new Text(s));
                     
-                if (client is LocalClient lc)
-                {
-                    lc.HandleMessage(userId, Config.Instance.UserInfo(userId).Name, pmsg);
-                }
-                else
+                //if (client is LocalClient lc)
+                //{
+                //    lc.HandleMessage(userId, Config.Instance.UserInfo(userId).Name, pmsg);
+                //}
+                //else
                 {
                     //if (isTemp)
                     //{
@@ -712,7 +722,9 @@ namespace Kugua
                             user.UseTimes += 1;
                         }
                         //Logger.Log($"delay={delay}ms");
+                        
                         if(isDealy)   await Task.Delay(delay);
+                        //Logger.Log($"{pmsg.Count}");
                         var messageId = client.Send(new send_group_msg(targetId, pmsg)).Result;
                         if (!string.IsNullOrWhiteSpace(messageId)) HistoryManager.Instance.Add(messageId, targetId, Config.Instance.BotQQ, pmsg.ToTextString());
                         msgIds.Add( messageId);
@@ -757,7 +769,7 @@ namespace Kugua
                 {
                     res += Encoding.UTF8.GetByteCount(text.text);
                 }
-                else if (msg is ImageSend img)
+                else if (msg is Image img)
                 {
                     res += Encoding.UTF8.GetByteCount(img.file);
                 }
@@ -803,13 +815,11 @@ namespace Kugua
                     currentMessageCount = 0;
                     continue;
                 }
-                var contentList = batch.Select(msg => new MessageInfo(msg)).ToList();
-
                 nodes.Add(new ForwardNodeNew
                 {
                     user_id = Config.Instance.BotQQ,
                     nickname = Config.Instance.BotName,
-                    content = contentList
+                    content = batch.ToList()
                 });
             }
 

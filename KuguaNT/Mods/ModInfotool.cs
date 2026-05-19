@@ -1,10 +1,11 @@
-﻿using Kugua.Core;
-using Kugua.Core.Algorithms;
-using Kugua.Core.Images;
+﻿using Kugua.Algorithms;
+using Kugua.Algorithms.Generators;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Core;
 using Kugua.Integrations;
-using Kugua.Integrations.Generators;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
@@ -341,7 +342,7 @@ namespace Kugua.Mods
                 {
                     string url = GenerateQQUniversalShareLink(groupid);
                     string imgbase64 = QRCodeHelper.GenerateQRCodeBase64(url);
-                    _=context.SendBack([new ImageSend( $"base64://{imgbase64}")]);
+                    _=context.SendBack([new Image( $"base64://{imgbase64}")]);
                     return url;
                 }
             }

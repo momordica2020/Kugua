@@ -1,6 +1,8 @@
-﻿using Kugua.Integrations.AI;
+﻿using Kugua.Core;
+using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Newtonsoft.Json;
@@ -74,7 +76,7 @@ namespace Kugua.Mods.ModTransShits
 
                 // ModCommands.Add(new ModCommand(new Regex(@"^转发每次(\d)条$", RegexOptions.Singleline), showList));
 
-                config = JsonConvert.DeserializeObject<ShitConfig>(LocalStorage.ReadResource(configfile));
+                config = JsonConvert.DeserializeObject<ShitConfig>(FileSystem.ReadResource(configfile));
                 if (config == null || config.once_maxnum <= 0)
                 {
                     // need init default
@@ -91,7 +93,7 @@ namespace Kugua.Mods.ModTransShits
                     };
                 }
 
-                var transInfo = JsonConvert.DeserializeObject<List<ShitTransGroupInfo>>(LocalStorage.ReadResource(sfile));
+                var transInfo = JsonConvert.DeserializeObject<List<ShitTransGroupInfo>>(FileSystem.ReadResource(sfile));
                 if (transInfo == null)
                 {
                     //need init
@@ -109,7 +111,7 @@ namespace Kugua.Mods.ModTransShits
                     }
                 }
 
-                var hashes = LocalStorage.ReadResourceLines(hashfile);
+                var hashes = FileSystem.ReadResourceLines(hashfile);
                 foreach (var hline in hashes) if (!string.IsNullOrWhiteSpace(hline)) oldHash.Add(hline.Trim());
 
 
@@ -160,43 +162,43 @@ namespace Kugua.Mods.ModTransShits
             foreach (var s in ShitTargets) targetList = targetList + $"\r\n{Config.Instance.GroupInfo(s.groupinfo.targetId)?.Name} {s.groupinfo.targetId} {s.groupinfo.tags}";
             string storage = $"搬过{config.historyPublished}条，哈希量{shithash.Count}+{oldHash.Count}";
             //string history = $"历史最高分{config.historyMaxScore}，出现于{config.historyMaxScoreDate}";
-            var res = new List<Message>
-            {
-                new ForwardNodeNew
-                {
-                    user_id = Config.Instance.BotQQ,
-                    nickname = Config.Instance.BotName,
-                    content=new List<MessageInfo>()
-                    {
-                        new MessageInfo(new Text(sourceList))
-                    }},
-                new ForwardNodeNew
-                {
-                    user_id = Config.Instance.BotQQ,
-                    nickname = Config.Instance.BotName,
-                    content=new List<MessageInfo>()
-                    {
-                        new MessageInfo(new Text(targetList))
-                    } },
-                new ForwardNodeNew
-                {  user_id = Config.Instance.BotQQ,
-                    nickname = Config.Instance.BotName,
-                    content=new List<MessageInfo>()
-                    {
-                        new MessageInfo(new Text(storage))
-                    }  },
-                //new ForwardNodeNew
-                //{
-                //    user_id = Config.Instance.BotQQ,
-                //    nickname = Config.Instance.BotName,
-                //    content=new List<MessageInfo>()
-                //    {
-                //        new MessageInfo(new Text(history))
-                //    } },
-            };
+            //var res = new List<Message>
+            //{
+            //    new ForwardNodeNew
+            //    {
+            //        user_id = Config.Instance.BotQQ,
+            //        nickname = Config.Instance.BotName,
+            //        content=new List<Message>()
+            //        {
+            //            new Text(sourceList)
+            //        }},
+            //    new ForwardNodeNew
+            //    {
+            //        user_id = Config.Instance.BotQQ,
+            //        nickname = Config.Instance.BotName,
+            //        content=new List<Message>()
+            //        {
+            //            new Text(targetList)
+            //        }},
+            //    new ForwardNodeNew
+            //    {  user_id = Config.Instance.BotQQ,
+            //        nickname = Config.Instance.BotName,
+            //        content=new List<Message>()
+            //        {
+            //            new Text(storage)
+            //        }},
+            //    //new ForwardNodeNew
+            //    //{
+            //    //    user_id = Config.Instance.BotQQ,
+            //    //    nickname = Config.Instance.BotName,
+            //    //    content=new List<MessageInfo>()
+            //    //    {
+            //    //        new MessageInfo(new Text(history))
+            //    //    } },
+            //};
 
             //context.SendBack([res]);
-            context.SendForward(res.ToArray());
+            context.SendForward([new Text(sourceList), new Text(targetList), new Text(storage)]);
             //context.client.SendForwardMessageToGroup(context.groupId, res);
             return null;
         }
@@ -412,7 +414,8 @@ namespace Kugua.Mods.ModTransShits
                     !string.IsNullOrWhiteSpace(shit.imgBase64)
                     && shit.score == 0)
                 {
-                    shit.score = LLM.Instance.GetImgScore(shit.imgBase64, shit.imgType);
+                    shit.score = 5;//默认5分了先
+                    //shit.score = LLM.Instance.GetImgScore(shit.imgBase64, shit.imgType);
                     
 
                     if (shit.score <= 0) shit.score = 1;
@@ -538,14 +541,14 @@ namespace Kugua.Mods.ModTransShits
             {
                 var transInfo = ShitTargets.Select(t => t.groupinfo).ToList();
                 transInfo.AddRange(ShitSource.Values);
-                LocalStorage.WriteResource(sfile, JsonConvert.SerializeObject(transInfo));
+                FileSystem.WriteResource(sfile, JsonConvert.SerializeObject(transInfo));
 
-                LocalStorage.WriteResource(configfile, JsonConvert.SerializeObject(config));
+                FileSystem.WriteResource(configfile, JsonConvert.SerializeObject(config));
 
                 var allHash = oldHash.ToList();
                 var skeys = shithash.Keys.ToArray();
                 foreach (var hs in skeys)if(!allHash.Contains(hs)) allHash.Add(hs);
-                LocalStorage.WriteResource(hashfile, string.Join("\r\n", allHash));
+                FileSystem.WriteResource(hashfile, string.Join("\r\n", allHash));
             }
             catch (Exception ex)
             {

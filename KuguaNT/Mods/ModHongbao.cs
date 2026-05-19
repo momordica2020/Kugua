@@ -1,21 +1,10 @@
-﻿using Kugua.Integrations.NTBot;
-using System.Numerics;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
+﻿using System.Numerics;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Prophecy;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Timers;
 using Kugua.Core;
 using Kugua.Mods.Base;
-using Kugua.Core.Images;
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
+using Kugua.Algorithms.ImageFunc;
 
 namespace Kugua.Mods
 {

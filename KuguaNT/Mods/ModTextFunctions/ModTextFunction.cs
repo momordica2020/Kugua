@@ -1,7 +1,7 @@
-﻿using Kugua.Core;
-using Kugua.Core.Algorithms;
-using Kugua.Core.Chinese;
-using Kugua.Integrations.Generators;
+﻿using Kugua.Algorithms;
+using Kugua.Algorithms.Chinese;
+using Kugua.Algorithms.Generators;
+using Kugua.Core;
 using Kugua.Mods.Base;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -55,7 +55,7 @@ namespace Kugua.Mods
 
 
             string PluginPath = Config.Instance.FullPath("Mode");
-            randomChar = LocalStorage.Read($"{PluginPath}/{randomch}").Trim();
+            randomChar = FileSystem.Read($"{PluginPath}/{randomch}").Trim();
 
 
             //// qianze
@@ -82,28 +82,28 @@ namespace Kugua.Mods
 
 
             // gongshou
-            Gongshou.Init(LocalStorage.Read($"{PluginPath}/gongshou.txt"));
+            Gongshou.Init(FileSystem.Read($"{PluginPath}/gongshou.txt"));
 
             // joke
-            Joke.Init(LocalStorage.ReadLines($"{PluginPath}/jokes.txt"));
+            Joke.Init(FileSystem.ReadLines($"{PluginPath}/jokes.txt"));
 
             // spam
-            SpamText.Init(LocalStorage.Read($"{PluginPath}/spam.txt"));
+            SpamText.Init(FileSystem.Read($"{PluginPath}/spam.txt"));
 
             // eat
-            EatText.Init(LocalStorage.Read($"{PluginPath}/data_eat.txt"));
+            EatText.Init(FileSystem.Read($"{PluginPath}/data_eat.txt"));
 
             // dream
-            DreamText.Init(LocalStorage.Read($"{PluginPath}/data_dream.txt"));
+            DreamText.Init(FileSystem.Read($"{PluginPath}/data_dream.txt"));
 
             // text module
-            TextModules.Init(LocalStorage.Read($"{PluginPath}/data_hyly.txt"));
+            TextModules.Init(FileSystem.Read($"{PluginPath}/data_hyly.txt"));
 
             // id module
-            IDGenerator.Init(LocalStorage.Read($"{PluginPath}/data_id.txt"));
+            IDGenerator.Init(FileSystem.Read($"{PluginPath}/data_id.txt"));
 
-            SpamText2.Init(LocalStorage.Read($"{PluginPath}/data_hyly2.txt"));
-            SpamText3.Init(LocalStorage.Read($"{PluginPath}/data_hyly3.txt"));
+            SpamText2.Init(FileSystem.Read($"{PluginPath}/data_hyly2.txt"));
+            SpamText3.Init(FileSystem.Read($"{PluginPath}/data_hyly3.txt"));
             string[] lines;
             //// duilian
             //var lines = FileManager.readLines($"{PluginPath}/{duiP1f}");

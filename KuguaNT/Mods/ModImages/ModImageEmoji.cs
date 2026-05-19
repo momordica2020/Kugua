@@ -1,10 +1,11 @@
 ﻿using ImageMagick;
+using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
-using Kugua.Core.Images;
+using Kugua.Algorithms.ImageFunc;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
 using System.Text.RegularExpressions;
+using KuguaSdk.MessageStructs;
 
 namespace Kugua.Mods.ModImages
 {
@@ -31,7 +32,7 @@ namespace Kugua.Mods.ModImages
                     var fff = Directory.GetFiles(Config.Instance.FullPath($"emojitg/"), $"*{emoji.Replace("u", "")}*.gif");
                     if (fff.Length > 0)
                     {
-                        msgs.Add(new ImageSend($"file://{fff[MyRandom.Next(fff.Length)]}"));
+                        msgs.Add(new Image($"file://{fff[MyRandom.Next(fff.Length)]}"));
                     }
 
                 }
@@ -60,7 +61,7 @@ namespace Kugua.Mods.ModImages
                     if (fres.Count > 1) Logger.Log($"{fres.Count} => {emojiA}*{emojiB}*.png");
                     _ = context.SendBack([
                         new Text($"{EmojiUtil.UnicodePointsToEmoji(emojiA)}+{EmojiUtil.UnicodePointsToEmoji(emojiB)}="),
-                        new ImageSend($"file://{fres.First()}"),
+                        new Image($"file://{fres.First()}"),
                     ]);
                     return true;
                 }
@@ -78,7 +79,7 @@ namespace Kugua.Mods.ModImages
                         var emojiB = Path.GetFileNameWithoutExtension(getf).Replace(emojiA, "").Replace("_", "").Replace("-ufe0f", "").Replace("-u200d", "");
                         _ = context.SendBack([
                             new Text($"{EmojiUtil.UnicodePointsToEmoji(emojiA)}+{EmojiUtil.UnicodePointsToEmoji(emojiB)}="),
-                            new ImageSend($"file://{getf}"),
+                            new Image($"file://{getf}"),
                         ]);
                         return true;
                     }

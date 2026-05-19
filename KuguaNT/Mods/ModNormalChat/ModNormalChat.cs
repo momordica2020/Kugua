@@ -2,11 +2,13 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
+using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
+using Kugua.Data.RunningData;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 
 
 namespace Kugua.Mods.ModNormalChat
@@ -59,10 +61,10 @@ namespace Kugua.Mods.ModNormalChat
                 string PluginPath = Config.Instance.FullPath("ModePath");
 
                 // pen
-                penlist = LocalStorage.ReadLines($"{PluginPath}/pen.txt").ToList();
+                penlist = FileSystem.ReadLines($"{PluginPath}/pen.txt").ToList();
 
 
-                defaultAnswers = LocalStorage.ReadLines($"{PluginPath}/_defaultanswer.txt").ToList();
+                defaultAnswers = FileSystem.ReadLines($"{PluginPath}/_defaultanswer.txt").ToList();
 
 
                 //// cangtou
@@ -175,7 +177,7 @@ namespace Kugua.Mods.ModNormalChat
                 // load modes
 
                 modedict = new Dictionary<string, ChatMode>();
-                List<string> modelines = LocalStorage.ReadLines($"{PluginPath}/{modeIndexName}").ToList();
+                List<string> modelines = FileSystem.ReadLines($"{PluginPath}/{modeIndexName}").ToList();
                 foreach (var line in modelines)
                 {
                     var items = line.Split('\t');
@@ -192,7 +194,7 @@ namespace Kugua.Mods.ModNormalChat
                         {
                             modeConfigs = new string[1] { "默认" };
                         }
-                        modedict[modeName] = new ChatMode(modeName, modeConfigs, LocalStorage.ReadLines($"{PluginPath}/{modeName}.txt").ToList());
+                        modedict[modeName] = new ChatMode(modeName, modeConfigs, FileSystem.ReadLines($"{PluginPath}/{modeName}.txt").ToList());
                     }
                     catch (Exception ex)
                     {
@@ -231,24 +233,24 @@ namespace Kugua.Mods.ModNormalChat
                 //}
 
                 // motions
-                chaosMotion = LocalStorage.ReadLines($"{PluginPath}/混沌-情绪词.txt").ToList();
+                chaosMotion = FileSystem.ReadLines($"{PluginPath}/混沌-情绪词.txt").ToList();
                 // verb
-                var wordlines = LocalStorage.ReadLines($"{PluginPath}/混沌-名词.txt").ToList();
+                var wordlines = FileSystem.ReadLines($"{PluginPath}/混沌-名词.txt").ToList();
                 foreach (var line in wordlines)
                 {
                     chaosWord.Add(line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
                 }
                 // xwb
-                chaosXwb = LocalStorage.ReadLines($"{PluginPath}/混沌-小万邦部分.txt").ToList();
+                chaosXwb = FileSystem.ReadLines($"{PluginPath}/混沌-小万邦部分.txt").ToList();
 
 
                 // bencao
-                bencao = LocalStorage.ReadLines($"{PluginPath}/本草.csv").ToList();
+                bencao = FileSystem.ReadLines($"{PluginPath}/本草.csv").ToList();
 
                 // 西医
-                xy_disease = LocalStorage.ReadLines($"{PluginPath}/西医病名.txt").ToList();
-                xy_drugs = LocalStorage.ReadLines($"{PluginPath}/西医西药.txt").ToList();
-                xy_treatment = LocalStorage.ReadLines($"{PluginPath}/西医检查.txt").ToList();
+                xy_disease = FileSystem.ReadLines($"{PluginPath}/西医病名.txt").ToList();
+                xy_drugs = FileSystem.ReadLines($"{PluginPath}/西医西药.txt").ToList();
+                xy_treatment = FileSystem.ReadLines($"{PluginPath}/西医检查.txt").ToList();
 
 
             }
@@ -804,7 +806,7 @@ namespace Kugua.Mods.ModNormalChat
                 while (maxtime-- > 0)
                 {
                     int findex = MyRandom.Next(files.Length);
-                    string[] lines = LocalStorage.ReadLines(files[findex]).ToArray();
+                    string[] lines = FileSystem.ReadLines(files[findex]).ToArray();
                     if (lines.Length < 100) continue;
                     int begin = MyRandom.Next(lines.Length - 5);
                     int maxnum = MyRandom.Next(1, 5);

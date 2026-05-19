@@ -3,6 +3,8 @@ using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
 using Kugua.Mods.ModTransShits;
+using KuguaSdk.MessageStructs;
+using KuguaSdk.Onebot11;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -51,7 +53,6 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^吃点好的$"), sendMarketImage));
             //ModCommands.Add(new ModCommand(new Regex(@"^刷新列表"), refreshList));
 
-            ModCommands.Add(new ModCommand(new Regex(@"^连接本地$"), handleLinkLocal));
 
             return true;
         }
@@ -92,12 +93,6 @@ namespace Kugua.Mods
         //    return base.HandleMessagesDIY(context);
         //}
 
-
-        private string handleLinkLocal(MessageContext context, string[] param)
-        {
-            BotHost.Instance.LinkLocal();
-            return null;
-        }
 
 
 

@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Core;
+using Kugua.Integrations.NTBot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace Kugua.Mods.Base
 
         protected List<ModCommand> ModCommands = new List<ModCommand> ();
         public NTBot clientQQ;
-        public LocalClient clientLocal;
+        //public LocalClient clientLocal;
 
         /// <summary>
         /// Mod初始化，只调用一次

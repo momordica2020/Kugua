@@ -1,8 +1,9 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Core;
+using Kugua.Integrations.NTBot;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-
+using KuguaSdk.MessageStructs;
 
 
 namespace Kugua.Mods.Base

@@ -8,7 +8,7 @@ using Kugua.Integrations.NTBot;
 using System.Numerics;
 using Kugua.Core;
 using Kugua.Mods.Base;
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
 
 
 namespace Kugua.Mods
@@ -36,7 +36,7 @@ namespace Kugua.Mods
         {
             try
             {
-                var lines = LocalStorage.ReadResourceLines(DataFile);
+                var lines = FileSystem.ReadResourceLines(DataFile);
                 foreach (var line in lines)
                 {
                     GamePlayerHistory user = new GamePlayerHistory();
@@ -66,7 +66,7 @@ namespace Kugua.Mods
                 {
                     sb.Append($"{user.ToString()}\r\n");
                 }
-                LocalStorage.writeText(Config.Instance.FullPath(DataFile), sb.ToString());
+                FileSystem.writeText(Config.Instance.FullPath(DataFile), sb.ToString());
             }
             catch (Exception ex)
             {

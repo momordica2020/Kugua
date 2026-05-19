@@ -1,7 +1,9 @@
-﻿using Kugua.Core.Algorithms;
+﻿using Kugua.Algorithms;
+using Kugua.Core;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using Prophecy;
 using System.Text.RegularExpressions;
 using System.Timers;
 
@@ -18,7 +20,7 @@ namespace Kugua.Mods
         XiuxianBotself botxiuxian = new XiuxianBotself();
         public override bool Init(string[] args)
         {
-            //ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
+            ModCommands.Add(new ModCommand(new Regex(@"^2048$"), parseNew));
 
             ModCommands.Add(new ModCommand(new Regex(@"^修炼$"), handleXiulian, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^突破$"), handleTupo, _needAsk: false));
@@ -65,9 +67,8 @@ namespace Kugua.Mods
         {
             if (context.Group != null && context.Group.Is("游戏"))
             {
-                if (context.IsReact)
+                if (context.IsReact && !context.IsSelf)
                 {
-                    
                     lock (CommandMutex)
                     {
                         for (int i = Commands.Count - 1; i >= 0; i--)
@@ -141,7 +142,8 @@ namespace Kugua.Mods
         {
             var react = context2.React;
             if (react == null) return null;
-            //Logger.Log("react.emoji.id = " + react.emoji.id);
+            if (context.userId == Config.Instance.BotQQ) return null;
+            
 
             if (context.Texts.StartsWith("2048"))
             {

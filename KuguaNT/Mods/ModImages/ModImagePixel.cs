@@ -1,5 +1,6 @@
 ﻿using ImageMagick;
-using Kugua.Core.Images;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Integrations;
 using Kugua.Mods.Base;
 using System.Text.RegularExpressions;
 

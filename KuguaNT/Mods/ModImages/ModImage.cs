@@ -1,28 +1,15 @@
-﻿using ImageMagick;
+﻿using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
-using Kugua.Core.Images;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Integrations;
 using Kugua.Integrations.AI;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
 using Kugua.Mods.ModTextFunctions;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json.Serialization;
-using NvAPIWrapper.Native.Display;
-using NvAPIWrapper.Native.GPU;
-using OpenAI;
-using OpenAI.Responses;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.Numerics;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using ZhipuApi.Modules;
-using static System.Net.Mime.MediaTypeNames;
-using Text = Kugua.Integrations.NTBot.Text;
+using KuguaSdk.MessageStructs;
 
 namespace Kugua.Mods.ModImages
 {
@@ -196,6 +183,11 @@ namespace Kugua.Mods.ModImages
                 var members = context.client.GetGroupMemberList(context.groupId);
                 try
                 {
+                    foreach(var member in members)
+                    {
+                        var user = Config.Instance.UserInfo(member.user_id);
+                        user.Name = member.nickname;
+                    }
                     var q = members.Where(m=>m.nickname==text || m.card==text).FirstOrDefault().user_id;
                     return q;
                 }
@@ -218,7 +210,7 @@ namespace Kugua.Mods.ModImages
             if (string.IsNullOrWhiteSpace(qq)) return "";
             _ = context.SendBack([
                 new Text($"qq={qq}"),
-                new ImageSend($"https://q1.qlogo.cn/g?b=qq&nk={qq}&s=0")]);
+                new Image($"https://q1.qlogo.cn/g?b=qq&nk={qq}&s=0")]);
             return null;
         }
 
@@ -253,7 +245,7 @@ namespace Kugua.Mods.ModImages
                 }
                 else
                 {
-                    msgs.Add(new ImageSend(uri));
+                    msgs.Add(new Image(uri));
                 }
             }
             msgs.Insert(1, new Text($"共找到{msgs.Count-1}个历史头像"));
@@ -350,7 +342,7 @@ namespace Kugua.Mods.ModImages
                 }
                 else
                 {
-                    context.SendBack(imgBase64.Select(img=> new ImageSend($"base64://{img}")).ToArray());
+                    context.SendBack(imgBase64.Select(img=> new Image($"base64://{img}")).ToArray());
                     return null;
 
                 }
@@ -466,7 +458,7 @@ namespace Kugua.Mods.ModImages
                     {
                         context.SendBack([
                         new Text($"{EmojiUtil.UnicodePointsToEmoji(f[0])} + {EmojiUtil.UnicodePointsToEmoji(f[1])} = "),
-                        new ImageSend($"file://{fname}"),
+                        new Image($"file://{fname}"),
                         ]);
                     }
                     return null;
@@ -541,7 +533,7 @@ namespace Kugua.Mods.ModImages
                 if (files != null)
                 {
                     string fname = files[MyRandom.Next(files.Length)];
-                    context.SendBack([new ImageSend($"file://{fname}")]);
+                    context.SendBack([new Image($"file://{fname}")]);
                     return null;
                 }
             }

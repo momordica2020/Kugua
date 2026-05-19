@@ -1,6 +1,7 @@
-﻿using Kugua.Core;
-using Kugua.Core.Algorithms;
+﻿using Kugua.Algorithms;
+using Kugua.Core;
 using Kugua.Integrations.NTBot;
+using KuguaSdk.MessageStructs;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 

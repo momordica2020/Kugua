@@ -1,18 +1,13 @@
-﻿using ImageMagick;
-using Kugua.Core.Algorithms;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR.Protocol;
+﻿using Kugua.Algorithms;
+using Kugua.Core;
+using KuguaSdk.MessageStructs;
+using KuguaSdk.Onebot11;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
-using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using WebSocket4Net;
-using ZhipuApi;
-using static System.Net.WebRequestMethods;
 
 namespace Kugua.Integrations.NTBot
 {
@@ -39,7 +34,7 @@ namespace Kugua.Integrations.NTBot
         public Action<private_message_event> OnPrivateMessageReceive { get; internal set; }
         public Action<group_message_event> OnGroupMessageReceive { get; internal set; }
 
-        public Action<ForwardContent> OnGroupForwardMessageReceive { get; internal set; }
+        public Action<Forward> OnGroupForwardMessageReceive { get; internal set; }
 
         public object SessionLock = new object();
         public Queue<JObject> SSMRequestList { get; set; }
@@ -223,8 +218,14 @@ namespace Kugua.Integrations.NTBot
             try
             {
                 info = JsonConvert.DeserializeObject<login_info_response>(jo["data"].ToString());
-                Logger.Log($"Napcat Login:{info.nickname}({info.user_id})");
-            }catch(Exception ex)
+                Logger.Log($"~Napcat Login:{info.nickname}({info.user_id})");
+                new ToastContentBuilder()
+                        .AddText("我苦")
+                        .AddText($"[{DateTime.Now}]Napcat QQ账号已登录：{info.nickname}({info.user_id.ToString()})。")
+                        //.AddText("点击此通知可以触发后续的操作。")
+                        .Show();
+            }
+            catch(Exception ex)
             {
                 Logger.Log(ex);
             }
@@ -236,7 +237,7 @@ namespace Kugua.Integrations.NTBot
         /// <summary>
         /// 获取转发内容详情
         /// </summary>
-        public void GetForwardMessage(ForwardNodeExist forward)
+        public void GetForwardMessage(Forward forward)
         {
             
             try
@@ -262,8 +263,8 @@ namespace Kugua.Integrations.NTBot
                 foreach (var msgnode in jo["data"]["messages"].ToArray())
                 {
                     var node = JsonConvert.DeserializeObject<forward_message_node>(msgnode.ToString());
-                    node.message = new List<Message>();
-                    parseMessages(node.sender, node.message, msgnode["message"].ToArray());
+                    //node.message = new List<Message>();
+                   // parseMessages(node.sender, node.message, msgnode["message"].ToArray());
                     forward.content.Add(node);
                     //OnPrivateMessageReceive?.Invoke(eo);
                 }
@@ -313,18 +314,13 @@ namespace Kugua.Integrations.NTBot
         /// <param name="group"></param>
         /// <param name="nodes"></param>
         /// <param name="prompt"></param>
-        public async void SendForwardMessageToGroup(string group,  List<Message> nodes, string prompt="")
+        public async void SendForwardMessageToGroup(string group,  List<Message> senderMessages, string prompt="")
         {
             try
             {
                 string uri = Config.Instance.App.Net.QQHTTP + "/send_group_forward_msg";
 
-                var senderMessages = new List<MessageInfo>();
-                foreach(var node in nodes)
-                {
-                    var n = new MessageInfo(node);
-                    senderMessages.Add(n);
-                }
+
                 if (senderMessages.Count <= 0)
                 {
                     // pass
@@ -342,7 +338,7 @@ namespace Kugua.Integrations.NTBot
 
                 string json = await Network.PostJsonAsync(uri, JsonConvert.SerializeObject(sender),false);
                 //Logger.Log(json);
-                var reply = JsonConvert.DeserializeObject<ForwardContent>(json);
+                var reply = JsonConvert.DeserializeObject<Forward>(json);
             }
             catch(Exception ex)
             {
@@ -541,6 +537,7 @@ namespace Kugua.Integrations.NTBot
 
         public async Task<string> Send(SenderData sender)
         {
+
             string messageId = "";
             SenderAPI api = new SenderAPI
             {
@@ -551,7 +548,7 @@ namespace Kugua.Integrations.NTBot
             sessions[api.echo] = api;
 
             string jsonStr = JsonConvert.SerializeObject(api);
-            //Logger.Log(jsonStr,LogType.Mirai);
+            Logger.Log(jsonStr,LogType.Mirai);
             var timeout = TimeSpan.FromMilliseconds(5000);
             using var cts = new CancellationTokenSource(timeout);
             var v = Task.Run(async delegate
@@ -651,103 +648,103 @@ namespace Kugua.Integrations.NTBot
 
         //private void SaveMarketImage
 
-        private void parseMessages(message_sender sender, List<Message> msgs, JToken[] jo)
-        {
-            try
-            {
-                if (msgs == null) return;
-                foreach (var mj in jo)
-                {
-                    if (mj["type"] != null)
-                    {
-                        string typename = mj["type"].ToString();
-                        string data = mj["data"].ToString();
-                        //Logger.Log($"-{typename}!");
-                        //
-                        switch (typename)
-                        {
-                            case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(data)); break;
-                            case "image":
-                                //var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
-                                if (mj["data"]["emoji_id"]!=null)// .summary== "marketface")
-                                {
-                                    // 市场表情，打印出来以便使用喵
-                                    var mi = JsonConvert.DeserializeObject<ImageRecvMarketFace>(data);
-                                    Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
-                                    msgs.Add(mi);
-                                }
-                                else
-                                {
-                                    // 普通发图，也可能是[动画表情]
-                                    var ni = JsonConvert.DeserializeObject<ImageRecvNormal>(data);
-                                    msgs.Add(ni);
-                                }
+        //private void parseMessages(message_sender sender, List<Message> msgs, JToken[] jo)
+        //{
+        //    try
+        //    {
+        //        if (msgs == null) return;
+        //        foreach (var mj in jo)
+        //        {
+        //            if (mj["type"] != null)
+        //            {
+        //                string typename = mj["type"].ToString();
+        //                string data = mj["data"].ToString();
+        //                //Logger.Log($"-{typename}!");
+        //                //
+        //                switch (typename)
+        //                {
+        //                    case "text": msgs.Add(JsonConvert.DeserializeObject<Text>(data)); break;
+        //                    case "image":
+        //                        //var imageBasic = JsonConvert.DeserializeObject<ImageRecvBasic>(data);
+        //                        if (mj["data"]["emoji_id"]!=null)// .summary== "marketface")
+        //                        {
+        //                            // 市场表情，打印出来以便使用喵
+        //                            var mi = JsonConvert.DeserializeObject<Image>(data);
+        //                            Logger.Log($"[市场表情]{mi.summary},{mi.emoji_package_id},{mi.emoji_id},{mi.key}");
+        //                            msgs.Add(mi);
+        //                        }
+        //                        else
+        //                        {
+        //                            // 普通发图，也可能是[动画表情]
+        //                            var ni = JsonConvert.DeserializeObject<Image>(data);
+        //                            msgs.Add(ni);
+        //                        }
                                 
-                                //Logger.Log(data); 
-                                break;
-                            case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
-                            case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
-                            case "video":
-                                Logger.Log($"{data}", LogType.Debug);
-                                msgs.Add(JsonConvert.DeserializeObject<Video>(data)); 
-                                break;
+        //                        //Logger.Log(data); 
+        //                        break;
+        //                    case "face": msgs.Add(JsonConvert.DeserializeObject<Face>(data)); break;
+        //                    case "at": msgs.Add(JsonConvert.DeserializeObject<At>(data)); break;
+        //                    case "video":
+        //                        Logger.Log($"{data}", LogType.Debug);
+        //                        msgs.Add(JsonConvert.DeserializeObject<Video>(data)); 
+        //                        break;
 
-                            case "rps": msgs.Add(JsonConvert.DeserializeObject<Rps>(data)); break;
-                            case "dice": msgs.Add(JsonConvert.DeserializeObject<Dice>(data)); break;
-                            //case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(data)); break;
-                            case "poke": msgs.Add(JsonConvert.DeserializeObject<Poke>(data)); break;
-                            case "anonymous": msgs.Add(JsonConvert.DeserializeObject<AnonymousMesssage>(data)); break;
-                            case "share": msgs.Add(JsonConvert.DeserializeObject<Share>(data)); break;
-                            case "contact": msgs.Add(JsonConvert.DeserializeObject<Contact>(data)); break;
-                            case "location": msgs.Add(JsonConvert.DeserializeObject<Location>(data)); break;
-                            case "music": msgs.Add(JsonConvert.DeserializeObject<Music>(data)); break;
-                            case "reply": msgs.Add(JsonConvert.DeserializeObject<Reply>(data)); break;
-                            case "record": msgs.Add(JsonConvert.DeserializeObject<Record>(data));
+        //                    case "rps": msgs.Add(JsonConvert.DeserializeObject<Rps>(data)); break;
+        //                    case "dice": msgs.Add(JsonConvert.DeserializeObject<Dice>(data)); break;
+        //                    //case "shake": msgs.Add(JsonConvert.DeserializeObject<Shake>(data)); break;
+        //                    case "poke": msgs.Add(JsonConvert.DeserializeObject<Poke>(data)); break;
+        //                    case "anonymous": msgs.Add(JsonConvert.DeserializeObject<AnonymousMesssage>(data)); break;
+        //                    case "share": msgs.Add(JsonConvert.DeserializeObject<Share>(data)); break;
+        //                    case "contact": msgs.Add(JsonConvert.DeserializeObject<Contact>(data)); break;
+        //                    case "location": msgs.Add(JsonConvert.DeserializeObject<Location>(data)); break;
+        //                    case "music": msgs.Add(JsonConvert.DeserializeObject<Music>(data)); break;
+        //                    case "reply": msgs.Add(JsonConvert.DeserializeObject<Reply>(data)); break;
+        //                    case "record": msgs.Add(JsonConvert.DeserializeObject<Record>(data));
 
-                                Logger.Log(data, LogType.Debug);
+        //                        Logger.Log(data, LogType.Debug);
                                 
                                 
-                                break;
-                            case "xml": msgs.Add(JsonConvert.DeserializeObject<XmlData>(data)); break;
-                            case "json": msgs.Add(JsonConvert.DeserializeObject<JsonData>(data)); break;
-                            case "forward":
+        //                        break;
+        //                    case "xml": msgs.Add(JsonConvert.DeserializeObject<XmlData>(data)); break;
+        //                    case "json": msgs.Add(JsonConvert.DeserializeObject<JsonData>(data)); break;
+        //                    case "forward":
                                 
-                                var d = JsonConvert.DeserializeObject<ForwardNodeExist>(data);
-                                d.content = new List<forward_message_node>();
-                                Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}",LogType.Debug);
-                                if (sender.user_id == Config.Instance.BotQQ)
-                                {
-                                    //Logger.Log($"是我自己喵。");
-                                }
-                                JObject jjo = JObject.Parse(data);
-                                foreach (var nodej in mj["data"]["content"].ToArray())
-                                {
-                                    var node = JsonConvert.DeserializeObject<forward_message_node>(nodej.ToString());
-                                    node.message = new List<Message>();
-                                    parseMessages(node.sender, node.message, nodej["message"].ToArray());
-                                    d.content.Add(node);
-                                }
+        //                        var d = JsonConvert.DeserializeObject<ForwardNodeExist>(data);
+        //                        d.content = new List<forward_message_node>();
+        //                        Logger.Log($"看到了{sender.user_id}的转发喵。id={d.id}",LogType.Debug);
+        //                        if (sender.user_id == Config.Instance.BotQQ)
+        //                        {
+        //                            //Logger.Log($"是我自己喵。");
+        //                        }
+        //                        JObject jjo = JObject.Parse(data);
+        //                        foreach (var nodej in mj["data"]["content"].ToArray())
+        //                        {
+        //                            var node = JsonConvert.DeserializeObject<forward_message_node>(nodej.ToString());
+        //                            node.message = new List<Message>();
+        //                            parseMessages(node.sender, node.message, nodej["message"].ToArray());
+        //                            d.content.Add(node);
+        //                        }
 
-                                msgs.Add(d);
-                                //var res = GetForwardMessage(d.id);
-                                //if (res != null)
-                                //{
-                                //    OnGroupForwardMessageReceive?.Invoke(eo);
-                                //}
+        //                        msgs.Add(d);
+        //                        //var res = GetForwardMessage(d.id);
+        //                        //if (res != null)
+        //                        //{
+        //                        //    OnGroupForwardMessageReceive?.Invoke(eo);
+        //                        //}
                                 
                                 
-                                break;
-                            default: break;
-                        }
+        //                        break;
+        //                    default: break;
+        //                }
 
-                    }
-                }
-            }catch(Exception ex)
-            {
-                Logger.Log(ex);
-            }
+        //            }
+        //        }
+        //    }catch(Exception ex)
+        //    {
+        //        Logger.Log(ex);
+        //    }
             
-        }
+        //}
 
         private void ProcessEchoMessage(string json)
         {
@@ -775,11 +772,7 @@ namespace Kugua.Integrations.NTBot
                     case "get_msg":
                         {
                             var oo = JsonConvert.DeserializeObject<get_msg_reply>(jo["data"].ToString());
-                            oo.message = new List<Message>();
-                            if (jo?["data"]?["message"] != null)
-                            {
-                                parseMessages(oo.sender, oo.message, jo["data"]["message"].ToArray());
-                            }
+
                             lock (SessionLock)
                             {
                                 session_messageid[echo] = oo.message.ToTextString();
@@ -816,9 +809,18 @@ namespace Kugua.Integrations.NTBot
         {
             JObject jo = JObject.Parse(json);
             string notice_type = jo["notice_type"]?.ToString();
-            Logger.Log($"[ProcessNotice]{json}");
+            //Logger.Log($"[ProcessNotice]{json}");
             switch (notice_type)
             {
+                case "bot_offline":
+                    {
+                        new ToastContentBuilder()
+                        .AddText("我苦")
+                        .AddText($"[{DateTime.Now}]账号{Config.Instance.BotQQ}又被马化腾橄榄了。")
+                        //.AddText("点击此通知可以触发后续的操作。")
+                        .Show();
+                        break;
+                    }
                 case "group_upload":
                     {
                         var eo = JsonConvert.DeserializeObject<group_upload_event>(json);
@@ -843,8 +845,9 @@ namespace Kugua.Integrations.NTBot
                         Logger.Log($"[群加人][{eo.group_id}]{eo.user_id}{(eo.sub_type == "approve" ? "被邀入群" : "主动加群")}{(!string.IsNullOrWhiteSpace(eo.operator_id) ? $"  操作者{eo.operator_id}" : "")}");
                         if(eo.user_id == Config.Instance.BotQQ)
                         {
-                            Logger.Log($"BOT 被拉入 [{eo.group_id}]!!!!!!!!!!!!先禁言");
-                            Config.Instance.GroupInfo(eo.group_id).Tags.Add("禁言");
+                            Logger.Log($"BOT 被拉入 [{eo.group_id}]!!!!!!!!!!!!新群的话先禁言");
+                            var group = Config.Instance.GroupInfo(eo.group_id);
+                            if(group.UseTimes <= 1) group.Tags.Add("禁言");
                         }
                         break;
                     }
@@ -933,20 +936,20 @@ namespace Kugua.Integrations.NTBot
                         break;
                     }
                 case "group_msg_emoji_like":
-                    Logger.Log(json);
+                    //Logger.Log(json);
                     var data = JsonConvert.DeserializeObject<notify_group_msg_emoji_like>(json);
                     var likes = jo["likes"].ToArray();
                     if (likes.Length > 1)
                     {
-                        Logger.Log("?响应数量超过1，是不是bug");
-                        Logger.Log(json);
+                        Logger.Log("?响应数量超过1，是不是bug",LogType.Debug);
+                        Logger.Log(json, LogType.Debug);
                     }
                     else
                     {
                         // [{"emoji_id":"10068","count":1}]
                         var emoji_id = likes.First()["emoji_id"].ToString();
                         //Logger.Log(emoji_id);
-                        var emoji = EmojiReact.Instance.GetById(emoji_id);//  EmojiReact.Instance.emojiTypeInfos.TryGetValue(emoji_id, out var emoji);
+                        var emoji = EmojiReact.GetById(emoji_id);//  EmojiReact.Instance.emojiTypeInfos.TryGetValue(emoji_id, out var emoji);
                         if (emoji != null)
                         {
                             Logger.Log($"[消息响应][群{data.group_id}]{data.user_id}给{data.message_id}点了个{emoji.name}");
@@ -1012,22 +1015,23 @@ namespace Kugua.Integrations.NTBot
             // 根据 message_type 判断是私聊消息还是群消息
             if (jo["message_type"]?.ToString() == "private")
             {
+                
                 var eo = JsonConvert.DeserializeObject<private_message_event>(json);
-                eo.message = new List<Message>();
-                if (jo?["message"] != null)
-                {
-                    parseMessages(eo.sender, eo.message, jo["message"].ToArray());
-                }
+                //eo.message = new List<Message>();
+                //if (jo?["message"] != null)
+                //{
+                //    parseMessages(eo.sender, eo.message, jo["message"].ToArray());
+                //}
                 OnPrivateMessageReceive?.Invoke(eo);
             }
             else if (jo["message_type"].ToString() == "group")
             {
                 var eo = JsonConvert.DeserializeObject<group_message_event>(json);
-                eo.message = new List<Message>();
-                if (jo?["message"] != null)
-                {
-                    parseMessages(eo.sender, eo.message, jo["message"].ToArray());
-                }
+                //eo.message = new List<Message>();
+                //if (jo?["message"] != null)
+                //{
+                //    parseMessages(eo.sender, eo.message, jo["message"].ToArray());
+                //}
                 OnGroupMessageReceive?.Invoke(eo);
             }
         }

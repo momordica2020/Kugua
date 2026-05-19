@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.NTBot;
+﻿using Kugua.Core;
+using Kugua.Integrations.NTBot;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;

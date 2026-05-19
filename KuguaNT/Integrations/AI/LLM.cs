@@ -1,4 +1,5 @@
-﻿using Kugua.Integrations.AI.Base;
+﻿using Kugua.Core;
+using Kugua.Integrations.AI.Base;
 using Kugua.Integrations.NTBot;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
@@ -216,7 +217,7 @@ namespace Kugua.Integrations.AI
                     try
                     {
                         string fullPath = $"{AIResourceRootPath}{context.Key}.json";
-                        LocalStorage.writeText(fullPath, JsonConvert.SerializeObject(context.Value.ChatNodeList, Formatting.Indented));
+                        FileSystem.writeText(fullPath, JsonConvert.SerializeObject(context.Value.ChatNodeList, Formatting.Indented));
                     }
                     catch (Exception ex)
                     {
@@ -235,7 +236,7 @@ namespace Kugua.Integrations.AI
                     try
                     {
                         string chatId = Path.GetFileNameWithoutExtension(f);
-                        var jsonString = LocalStorage.Read(f);
+                        var jsonString = FileSystem.Read(f);
                         //var userinfo = JsonConvert.DeserializeObject<List<dynamic>>(jsonString);
                         Contexts[chatId] = new ChatContext();
                         Contexts[chatId].InitWithJson(jsonString);

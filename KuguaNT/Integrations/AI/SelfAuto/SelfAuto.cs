@@ -1,4 +1,6 @@
-﻿namespace Kugua
+﻿using Kugua.Core;
+
+namespace Kugua
 {
     /// <summary>
     ///  全局自动运动模块

@@ -1,4 +1,6 @@
-﻿namespace Kugua.Mods
+﻿using Kugua.Core;
+
+namespace Kugua.Mods
 {
     public class KuguaOlCommand
     {

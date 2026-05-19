@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using Kugua.Core;
+using System.Text.Json.Nodes;
 using ZhipuApi.Modules;
 
 namespace Kugua.Integrations.AI

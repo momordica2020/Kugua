@@ -1,4 +1,5 @@
-using Kugua.Core.Algorithms;
+using Kugua.Algorithms;
+using Kugua.Core;
 using Newtonsoft.Json;
 using System.Data;
 using System.Numerics;

@@ -1,37 +1,5 @@
-﻿using Kugua.Core;
-using Kugua.Core;
-using Kugua.Core;
-using Kugua.Core;
-using Kugua.Core.Algorithms;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Forms;
-using System.Diagnostics;
-using System.Diagnostics;
-using System.Diagnostics;
-using System.Diagnostics;
-using System.Numerics;
-using System.Numerics;
-using System.Numerics;
-using System.Numerics;
-using System.Reflection;
-using System.Reflection;
-using System.Reflection;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Security.Cryptography;
-using System.Security.Cryptography;
-using System.Security.Cryptography;
+﻿using Kugua.Algorithms;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Text.RegularExpressions;
-using System.Text.RegularExpressions;
-using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Kugua.Core
 {
@@ -94,7 +62,7 @@ namespace Kugua.Core
             {
                 //string filterFile1 = Config.Instance.ResourceFullPath("FilterNormal");
                 //string filterFile2 = Config.Instance.ResourceFullPath("FilterStrict");
-                var fileLines = LocalStorage.ReadResourceLines("FilterNormal", true);
+                var fileLines = FileSystem.ReadResourceLines("FilterNormal", true);
                 foreach (var line in fileLines)
                 {
                     string[] parts = line.Split("=>", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -105,7 +73,7 @@ namespace Kugua.Core
 
 
 
-                fileLines = LocalStorage.ReadResourceLines("FilterStrict", true);
+                fileLines = FileSystem.ReadResourceLines("FilterStrict", true);
                 foreach (var line in fileLines)
                 {
                     string[] parts = line.Split("=>", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

@@ -1,7 +1,10 @@
 ﻿using ImageMagick;
-using Kugua.Core.Images;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Algorithms.ImageFunc;
+using Kugua.Integrations;
 using Kugua.Integrations.NTBot;
 using Kugua.Mods.Base;
+using KuguaSdk.MessageStructs;
 using System.Text.RegularExpressions;
 
 namespace Kugua.Mods.ModImages
@@ -15,7 +18,7 @@ namespace Kugua.Mods.ModImages
         private string showColor(MessageContext context, string[] param)
         {
             string colorCode = param[0];
-            context.SendBack([new ImageSend(ImageHandler.GetColorSample(colorCode))]);
+            context.SendBack([new Image(ImageHandler.GetColorSample(colorCode))]);
             return null;
         }
 
@@ -40,7 +43,7 @@ namespace Kugua.Mods.ModImages
                     colorCodes.Add(color.ToHexString());
                 }
                 context.SendBack([
-                    new ImageSend(ImageHandler.GetColorSamples(colorCodes)),
+                    new Image(ImageHandler.GetColorSamples(colorCodes)),
                     new Text(string.Join("   ", colorCodes)),
                 ]);
             }

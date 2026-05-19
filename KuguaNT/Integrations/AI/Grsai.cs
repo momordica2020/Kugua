@@ -1,5 +1,6 @@
 ﻿
 using ImageMagick;
+using Kugua.Core;
 using Kugua.Integrations.AI.Base;
 using OpenAI;
 using OpenAI.Chat;

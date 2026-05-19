@@ -23,8 +23,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramManager", "Telegram
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuguaSdk", "KuguaSdk\KuguaSdk.csproj", "{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuguaHost", "KuguaHost\KuguaHost.csproj", "{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,14 +63,6 @@ Global
 		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|x64.ActiveCfg = Release|Any CPU
 		{B9B8E84F-18E0-4CC4-A4A8-207E7EA9A97E}.Release|x64.Build.0 = Release|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Debug|x64.Build.0 = Debug|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|x64.ActiveCfg = Release|Any CPU
-		{7FBF1A1E-29B0-4BC0-8C35-A6C4BE381C58}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

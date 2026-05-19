@@ -1,5 +1,5 @@
+using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
 using Kugua.Integrations.AI;
 using Newtonsoft.Json;
 using System.Data;
@@ -351,129 +351,137 @@ namespace Kugua.Mods
         /// <returns></returns>
         public static string Cshuangxiu(string id1,string id2, string action)
         {
-            if (string.IsNullOrWhiteSpace(id1)) return "";
-            if (string.IsNullOrWhiteSpace(id2)) return "";
-            if (string.IsNullOrWhiteSpace(action)) return "";
-            string res = "";
-            if (!users.ContainsKey(id1)) res = CreateUser(id1, "初入修仙界");
-            var user1 = users[id1];
-           
-            XiuxianUser user2 = null;
-            if (!Regex.IsMatch(id2, @"^\d+$"))
+            try
             {
-                // name
-                user2 = getUserByName(id2);
-            }
-            else
-            {
-                // id
-                if (!users.ContainsKey(id2)) res = CreateUser(id2, "初入修仙界");
-                user2 = users[id2];
-            }
+                if (string.IsNullOrWhiteSpace(id1)) return "";
+                if (string.IsNullOrWhiteSpace(id2)) return "";
+                if (string.IsNullOrWhiteSpace(action)) return "";
+                string res = "";
+                if (!users.ContainsKey(id1)) res = CreateUser(id1, "初入修仙界");
+                var user1 = users[id1];
 
-            var area = "";
-            if (user2 == null)
-            {
-                area = AGarea(user1, "与亲密之人见面");
-                return AGdesc($"{user1.race}{user1.FullName}没在{area}找到{id2}，很{MyRandom.NextString(["悲伤", "尴尬", "释然", "愤怒"])}");
-            }
-
-            if (user2.id == user1.id)
-            {
-                // 不合理的输入，自己打自己
-                return $" 不是，哥们?";
-            }
-
-            if (user1.CheckCooldown is string desc1) return desc1;
-            else if (user1.CheckShuangxiuCooldown is string desc2) return desc2;
-            else if (user2.CheckShuangxiuCooldown is string desc3) return desc3;
-            user1.lastPlayDate = DateTime.Now;
-            user1.lastShuangxiuDate = DateTime.Now;
-            user2.lastShuangxiuDate = DateTime.Now;
-
-            string desc = $"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}{action}";
-            string end = "";
-            //MyRandom.NextString(["共同修炼", "在修炼的同时搞暧昧", "在修炼中相爱相杀", "不打不相识", "激情互动夺宝"])
-            if (action == "对战")
-            {
-                var level1 = user1.level;
-                var level2 = user2.level;
-                var power1 = user1.prop["灵力"];
-                var power2 = user2.prop["灵力"];
-                var props1 = GetUserPropDescRandomNumber(user1, 5);
-                var props2 = GetUserPropDescRandomNumber(user2, 5);
-                var i1list = user1.items.Select(item => item.name).ToList();
-                Shuffle.FisherYates(i1list);
-                var items1 = string.Join("、", i1list.Take(5));
-
-                var i2list = user2.items.Select(item => item.name).ToList();
-                Shuffle.FisherYates(i2list);
-                var items2 = string.Join("、", i2list.Take(5));
-
-                action = MyRandom.NextString(["在修炼中相爱相杀","偶遇并厮杀","作为宿敌互相搏斗", "产生爱欲"]);
-                // 计算胜率
-                double success = MyRandom.NextDouble;
-                if (level2 < level1) success = success * ((double)(level1 - level2 + 1) * 0.7);
-                if (level2 > level1) success = success / ((double)(level2 - level1 + 1));
-                if(success > 0.5)
+                XiuxianUser user2 = null;
+                if (!Regex.IsMatch(id2, @"^\d+$"))
                 {
-                    // fight success
-                    end = "赢了";
-                    var dpower = power2 / MyRandom.Next(2, 10);
-                    if (dpower > 0)
-                    {
-                        user1.prop["灵力"] += dpower;
-                        user2.prop["灵力"] -= dpower;
-                        end += $",从{user2.FullName}那里夺取了{dpower.ConvertToSci()}灵力";
-                    }
-                    if(user2.items.Count>0 && MyRandom.NextDouble < 0.3)
-                    {
-                        var item = user2.items[MyRandom.Next(user2.items)];
-                        user1.items.Add(item);
-                        user2.items.Remove(item);
-                        end += $",从{user2.FullName}那里夺取了{item.name}";
-                    }
+                    // name
+                    user2 = getUserByName(id2);
                 }
                 else
                 {
-                    // fail
-                    end = "输了";
-                    var dpower = power1 / MyRandom.Next(2, 10);
-                    if (dpower > 0)
-                    {
-                        user1.prop["灵力"] -= dpower;
-                        user2.prop["灵力"] += dpower;
-                        end += $",被{user2.FullName}夺走了{dpower.ConvertToSci()}灵力";
-                    }
-                    if (user1.items.Count > 0 && MyRandom.NextDouble < 0.3)
-                    {
-                        var item = user1.items[MyRandom.Next(user1.items)];
-                        user1.items.Remove(item);
-                        user2.items.Add(item);                        
-                        end += $",被{user2.FullName}夺走了{item.name}";
-                    }
+                    // id
+                    if (!users.ContainsKey(id2)) res = CreateUser(id2, "初入修仙界");
+                    user2 = users[id2];
                 }
-                
-                res = AGdesc($"{user1.race}{user1.FullName}({props1},{items1})与{user2.race}{user2.FullName}({props2},{items2}){action},{user1.FullName}{end}（不需要列出双方属性值，要描述双方使用法宝对打细节，要写战利品）",300);
-            }
-            else if (action == "双修")
-            {
-                action = MyRandom.NextString(["在修炼的同时搞暧昧", "彼此信赖歃血为盟", "交流修炼法门"]);
-                var dpower = (user1.prop["灵力"] + user2.prop["灵力"]) / MyRandom.Next(4, 10);
-                if (dpower<=0)
+
+                var area = "";
+                if (user2 == null)
                 {
-                    dpower = MyRandom.Next(5, 100);
+                    area = AGarea(user1, "与亲密之人见面");
+                    return AGdesc($"{user1.race}{user1.FullName}没在{area}找到{id2}，很{MyRandom.NextString(["悲伤", "尴尬", "释然", "愤怒"])}");
                 }
-                user1.prop["灵力"] += dpower;
-                user2.prop["灵力"] += dpower;
-                res = AGdesc($"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}在{area}{action},双双获得{dpower.ConvertToSci()}点灵力",200);
 
+                if (user2.id == user1.id)
+                {
+                    // 不合理的输入，自己打自己
+                    return $" 不是，哥们?";
+                }
+
+                if (user1.CheckCooldown is string desc1) return desc1;
+                else if (user1.CheckShuangxiuCooldown is string desc2) return desc2;
+                else if (user2.CheckShuangxiuCooldown is string desc3) return desc3;
+                user1.lastPlayDate = DateTime.Now;
+                user1.lastShuangxiuDate = DateTime.Now;
+                user2.lastShuangxiuDate = DateTime.Now;
+
+                string desc = $"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}{action}";
+                string end = "";
+                //MyRandom.NextString(["共同修炼", "在修炼的同时搞暧昧", "在修炼中相爱相杀", "不打不相识", "激情互动夺宝"])
+                if (action == "对战")
+                {
+                    var level1 = user1.level;
+                    var level2 = user2.level;
+                    var power1 = user1.prop["灵力"];
+                    var power2 = user2.prop["灵力"];
+                    var props1 = GetUserPropDescRandomNumber(user1, 5);
+                    var props2 = GetUserPropDescRandomNumber(user2, 5);
+                    var i1list = user1.items.Select(item => item.name).ToList();
+                    Shuffle.FisherYates(i1list);
+                    var items1 = string.Join("、", i1list.Take(5));
+
+                    var i2list = user2.items.Select(item => item.name).ToList();
+                    Shuffle.FisherYates(i2list);
+                    var items2 = string.Join("、", i2list.Take(5));
+
+                    action = MyRandom.NextString(["在修炼中相爱相杀", "偶遇并厮杀", "作为宿敌互相搏斗", "产生爱欲"]);
+                    // 计算胜率
+                    double success = MyRandom.NextDouble;
+                    if (level2 < level1) success = success * ((double)(level1 - level2 + 1) * 0.7);
+                    if (level2 > level1) success = success / ((double)(level2 - level1 + 1));
+                    if (success > 0.5)
+                    {
+                        // fight success
+                        end = "赢了";
+                        var dpower = power2 / MyRandom.Next(2, 10);
+                        if (dpower > 0)
+                        {
+                            user1.prop["灵力"] += dpower;
+                            user2.prop["灵力"] -= dpower;
+                            end += $",从{user2.FullName}那里夺取了{dpower.ConvertToSci()}灵力";
+                        }
+                        if (user2.items.Count > 0 && MyRandom.NextDouble < 0.3)
+                        {
+                            var item = user2.items[MyRandom.Next(user2.items)];
+                            user1.items.Add(item);
+                            user2.items.Remove(item);
+                            end += $",从{user2.FullName}那里夺取了{item.name}";
+                        }
+                    }
+                    else
+                    {
+                        // fail
+                        end = "输了";
+                        var dpower = power1 / MyRandom.Next(2, 10);
+                        if (dpower > 0)
+                        {
+                            user1.prop["灵力"] -= dpower;
+                            user2.prop["灵力"] += dpower;
+                            end += $",被{user2.FullName}夺走了{dpower.ConvertToSci()}灵力";
+                        }
+                        if (user1.items.Count > 0 && MyRandom.NextDouble < 0.3)
+                        {
+                            var item = user1.items[MyRandom.Next(user1.items)];
+                            user1.items.Remove(item);
+                            user2.items.Add(item);
+                            end += $",被{user2.FullName}夺走了{item.name}";
+                        }
+                    }
+
+                    res = AGdesc($"{user1.race}{user1.FullName}({props1},{items1})与{user2.race}{user2.FullName}({props2},{items2}){action},{user1.FullName}{end}（不需要列出双方属性值，要描述双方使用法宝对打细节，要写战利品）", 300);
+                }
+                else if (action == "双修")
+                {
+                    action = MyRandom.NextString(["在修炼的同时搞暧昧", "彼此信赖歃血为盟", "交流修炼法门"]);
+                    var dpower = (user1.prop["灵力"] + user2.prop["灵力"]) / MyRandom.Next(4, 10);
+                    if (dpower <= 0)
+                    {
+                        dpower = MyRandom.Next(5, 100);
+                    }
+                    user1.prop["灵力"] += dpower;
+                    user2.prop["灵力"] += dpower;
+                    res = AGdesc($"{user1.race}{user1.FullName}与{user2.race}{user2.FullName}在{area}{action},双双获得{dpower.ConvertToSci()}点灵力", 200);
+
+                }
+                Save(user1);
+                Save(user2);
+                return res;
+            }catch(Exception ex)
+            {
+                Logger.Log(ex);
             }
-            Save(user1);
-            Save(user2);
+            return "";
 
 
-            return res;
+            
 
         }
 

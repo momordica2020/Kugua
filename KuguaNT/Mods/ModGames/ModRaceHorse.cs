@@ -1,6 +1,5 @@
-﻿
+﻿using Kugua.Algorithms;
 using Kugua.Core;
-using Kugua.Core.Algorithms;
 using Kugua.Mods.Base;
 using System.Numerics;
 using System.Text;
@@ -48,7 +47,7 @@ namespace Kugua.Mods
             {
                 try
                 {
-                    var lines = LocalStorage.ReadResourceLines("RaceUser");
+                    var lines = FileSystem.ReadResourceLines("RaceUser");
                     foreach (var line in lines)
                     {
                         RHUser user = new RHUser();
@@ -57,7 +56,7 @@ namespace Kugua.Mods
                     }
 
 
-                    lines = LocalStorage.ReadResourceLines("RaceHorse");
+                    lines = FileSystem.ReadResourceLines("RaceHorse");
                     foreach (var line in lines)
                     {
                         RHHorse horse = new RHHorse(line);
@@ -157,7 +156,7 @@ namespace Kugua.Mods
                     {
                         sb.Append($"{user.ToString()}\r\n");
                     }
-                    LocalStorage.writeText(Config.Instance.FullPath("RaceUser"), sb.ToString());
+                    FileSystem.writeText(Config.Instance.FullPath("RaceUser"), sb.ToString());
                 }
                 catch (Exception ex)
                 {
