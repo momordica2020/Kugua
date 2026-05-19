@@ -10,10 +10,13 @@ namespace Kugua.Core
     /// </summary>
     public class CommunicationHub : Hub
     {
-        // 当有插件连接成功时触发
+        /// <summary>
+        /// 当有插件连接成功时触发
+        /// </summary>
+        /// <returns></returns>
         public override async Task OnConnectedAsync()
         {
-            // 插件连接时，通常会在 URL 参数里带上自己的名字，比如 ?pluginName=MusicPlugin
+            // 插件连接时，会在 URL 参数里带上自己的名字，比如 ?pluginName=MusicPlugin
             var httpContext = Context.GetHttpContext();
             string pluginName = httpContext?.Request.Query["pluginName"] ?? "未知插件";
 
@@ -26,7 +29,11 @@ namespace Kugua.Core
             await base.OnConnectedAsync();
         }
 
-        // 当有插件断开连接（或崩溃重启）时触发
+        /// <summary>
+        /// 当有插件断开连接（或崩溃重启）时触发
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <returns></returns>
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             Console.WriteLine($"[感知] 有插件断开连接。连接ID: {Context.ConnectionId}");
@@ -35,7 +42,12 @@ namespace Kugua.Core
             await base.OnDisconnectedAsync(exception);
         }
 
-        // 通用方法：插件向主程序发送数据，主程序处理
+        /// <summary>
+        /// 通用方法：插件向主程序发送数据，主程序处理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="dataType"></param>
+        /// <param name="jsonData"></param>
         public void SendDataToHost(string sender, string dataType, string jsonData)
         {
             Console.WriteLine($"[收到数据] 来自【{sender}】的【{dataType}】: {jsonData}");
@@ -44,7 +56,12 @@ namespace Kugua.Core
             // if(dataType == "QQMessage") { BotHost.Instance.SendGroupMessage(...) }
         }
 
-        // 通用方法：插件 A 想调戏 插件 B，或者主程序群发给所有插件
+        /// <summary>
+        /// 通用方法：插件 A 想调戏 插件 B，或者主程序群发给所有插件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
         public async Task BroadcastToAllPlugins(string sender, string msg)
         {
             await Clients.All.SendAsync("ReceiveBroadcast", sender, msg);
