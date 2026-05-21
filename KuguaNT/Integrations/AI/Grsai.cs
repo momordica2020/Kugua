@@ -15,7 +15,7 @@ namespace Kugua.Integrations.AI
     public class Grsai : LLMBase, ILLMImageGenerate, ILLMImageRecognize
     {
         public string ApiUrl = "https://api.grsai.com/v1/";
-        public string ModelName = "gemini-2.5-flash";
+        public string ModelName = "gemini-3.1-flash-lite";
 
         public string ApiUrlNano = "https://grsai.dakka.com.cn/v1/";//draw/
         public string NanoName1 = "nano-banana-fast";
@@ -82,7 +82,7 @@ namespace Kugua.Integrations.AI
                 // 3. 调用 API
                 Logger.Log($"正在识别图片内容... 模型: {ModelName}");
                 var completion = await chatClient.CompleteChatAsync(messages);
-
+                //Logger.Log($"图片识别完成{completion.ToString()}");
                 // 4. 解析并返回结果
                 if (completion != null && completion.Value.Content.Count > 0)
                 {

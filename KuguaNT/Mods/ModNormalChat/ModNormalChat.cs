@@ -460,6 +460,7 @@ namespace Kugua.Mods.ModNormalChat
                         if (context.IsImage)
                         {
                             res =  LLM.Instance.ChatSingleWithImage($"{LLM.Instance.GetPrompt(context)}\r\n{context.Texts}", context.PNG1Base64, "png");
+                            answer.Add(res);
                             break;
                         }
                         else
@@ -475,6 +476,7 @@ namespace Kugua.Mods.ModNormalChat
                                 WaitNext(context, new ModCommand(null, chatWithImage, _needAsk: false, _useImage: true));
                             }
                         }
+                        
                         break;
 
                     case "小万邦":

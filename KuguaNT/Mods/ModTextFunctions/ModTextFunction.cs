@@ -50,8 +50,9 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^营销号[∶|:|：|\s]+(\S+)", RegexOptions.Singleline), handlePaper3));
             ModCommands.Add(new ModCommand(new Regex(@"^(.*)(.{1})什么$", RegexOptions.Singleline), handleEat));
             ModCommands.Add(new ModCommand(new Regex(@"^(解梦|梦到|梦见)(.+)$", RegexOptions.Singleline), handleDream));
+            ModCommands.Add(new ModCommand(new Regex(@"^(解码)(.+)$", RegexOptions.Singleline), handleDecode));
 
-            
+
 
 
             string PluginPath = Config.Instance.FullPath("Mode");
@@ -788,7 +789,7 @@ namespace Kugua.Mods
         {
             string keyword = param[1];
             string verb = param[2];
-            if (keyword.Length >= 20 || Filter.ContainsSymbol(keyword)) return "";
+            if (context.IsImage || keyword.Length >= 20 ||keyword.Contains(" ") || Filter.ContainsSymbol(keyword)) return "";
             var res = EatText.Get(keyword, verb);
 
             return res;
@@ -810,5 +811,37 @@ namespace Kugua.Mods
             return res;
         }
 
+        /// <summary>
+        /// 把01串解码utf8
+        /// 解码11100100 10111010 10111010
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        private string handleDecode(MessageContext context, string[] param)
+        {
+            string keyword = param[2];
+
+            string cleanBinary = keyword.Replace(" ", "")
+                                         .Replace("\r", "")
+                                         .Replace("\n", "");
+
+            // 2. 每 8 位转换成一个 byte
+            List<byte> byteList = new List<byte>();
+            for (int i = 0; i < cleanBinary.Length; i += 8)
+            {
+                string segment = cleanBinary.Substring(i, 8);
+                // 基数为 2，表示按二进制解析
+                byte b = Convert.ToByte(segment, 2);
+                byteList.Add(b);
+            }
+
+            byte[] utf8Bytes = byteList.ToArray();
+
+            // 3. 将字节数组转换为 UTF-8 字符串
+            string result = Encoding.UTF8.GetString(utf8Bytes);
+
+            return result;
+        }
     }
 }
