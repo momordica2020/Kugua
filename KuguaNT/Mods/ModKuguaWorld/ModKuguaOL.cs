@@ -30,7 +30,7 @@ namespace Kugua.Mods
             ModCommands.Add(new ModCommand(new Regex(@"^全部(吃|使用|熔炼|炼化|卖)$"), handleUseAll, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^与(.+)对战$"), handleDuizhan, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^与(.+)双修$"), handleShuangxiu, _needAsk: false));
-            ModCommands.Add(new ModCommand(new Regex(@"^恢复活力$"), handleHuoli, _needAsk: false));
+            ModCommands.Add(new ModCommand(new Regex(@"^(恢复活力|休养生息)$"), handleHuoli, _needAsk: false));
             ModCommands.Add(new ModCommand(new Regex(@"^恢复环境$"), handleZhongtian, _needAsk: false));
 
             TaskTimer = new(1000 * 60); //ms
