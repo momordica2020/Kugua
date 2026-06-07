@@ -9,10 +9,10 @@ namespace Kugua.Integrations.AI.Base
         public MessageContext LastMessageContext;
 
 
-        public static readonly string SystemRole = "system";
-        public static readonly string UserRole = "user";
-        public static readonly string AssistantRole = "assistant";
-        public static readonly string ToolRole = "tool";
+        public static readonly string RoleSystem = "system";
+        public static readonly string RoleUser = "user";
+        public static readonly string RoleAssistant = "assistant";
+        public static readonly string RoleTool = "tool";
 
 
         public ChatContext()
@@ -41,7 +41,7 @@ namespace Kugua.Integrations.AI.Base
             {
                 if(ChatNodeList==null) ChatNodeList = new List<dynamic>();
                 ChatNodeList.Clear();
-                ChatNodeList.Add(new { role = SystemRole, content = $"{LLM.DefaultPromptBegore}{value}" });
+                ChatNodeList.Add(new { role = RoleSystem, content = $"{LLM.DefaultPromptBegore}{value}" });
             }
         }
 
@@ -53,7 +53,7 @@ namespace Kugua.Integrations.AI.Base
                 for(int i=ChatNodeList.Count-1;i>=0;i--)
                 {
                     var node = ChatNodeList[i];
-                    if (node.role == UserRole)
+                    if (node.role == RoleUser)
                     {
                         return node.content;
                     }
@@ -70,19 +70,19 @@ namespace Kugua.Integrations.AI.Base
                 if (ChatNodeList == null) ChatNodeList = new List<dynamic>();
                 foreach(var node in ChatNodeList)
                 {
-                    if (node.role == SystemRole)
+                    if (node.role == RoleSystem)
                     {
                         messages.Add(ChatMessage.CreateSystemMessage((string)node.content));
                     }
-                    else if(node.role == AssistantRole)
+                    else if(node.role == RoleAssistant)
                     {
                         messages.Add(ChatMessage.CreateAssistantMessage((string)node.content));
                     }
-                    else if (node.role == UserRole)
+                    else if (node.role == RoleUser)
                     {
                         messages.Add(ChatMessage.CreateUserMessage((string)node.content));
                     }
-                    else if (node.role == ToolRole)
+                    else if (node.role == RoleTool)
                     {
                         messages.Add(ChatMessage.CreateToolMessage((string)node.content));
                     }
@@ -99,7 +99,7 @@ namespace Kugua.Integrations.AI.Base
         {
             if (ChatNodeList == null) ChatNodeList = new List<dynamic>();
             ChatNodeList.Clear();
-            ChatNodeList.Add(new { role = SystemRole, content = LLM.DefaultPrompt });
+            ChatNodeList.Add(new { role = RoleSystem, content = LLM.DefaultPrompt });
         }
 
         public void InitWithJson(string json)
@@ -113,17 +113,17 @@ namespace Kugua.Integrations.AI.Base
         public void AddUserText(MessageContext context)
         {
             LastMessageContext = context;
-            ChatNodeList.Add(new { role = UserRole, content = context.Texts });
+            ChatNodeList.Add(new { role = RoleUser, content = context.Texts });
         }
 
         public void AddUserText(string text)
         {
-            ChatNodeList.Add(new { role = UserRole, content = text });
+            ChatNodeList.Add(new { role = RoleUser, content = text });
         }
 
         public void AddAssistantText(string text)
         {
-            ChatNodeList.Add(new { role = AssistantRole, content = text });
+            ChatNodeList.Add(new { role = RoleAssistant, content = text });
         }
 
         public void DeleteLast()
@@ -136,7 +136,7 @@ namespace Kugua.Integrations.AI.Base
 
         public void Output()
         {
-            if(this.ChatNodeList!=null && ChatNodeList.Last().role == AssistantRole)
+            if(this.ChatNodeList!=null && ChatNodeList.Last().role == RoleAssistant)
             {
                 LLM.Instance.ChatOutput(this);
             }

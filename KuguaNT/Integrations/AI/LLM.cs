@@ -25,8 +25,6 @@ namespace Kugua.Integrations.AI
         private static readonly Lazy<LLM> instance = new Lazy<LLM>(() => new LLM());
         public static LLM Instance => instance.Value;
         private static object LockFileIO = new object();
-        //ChatGpt gptAgent;
-
 
         /// <summary>
         /// 长上下文的llm
@@ -55,7 +53,7 @@ namespace Kugua.Integrations.AI
         //LLMBase funcModel;
         LLMSpeech speechModel;
 
-        LoaderOptimization apiLoader = LoaderOptimization.MultiDomain;
+        //LoaderOptimization apiLoader = LoaderOptimization.MultiDomain;
 
         private LLM()
         {
@@ -83,11 +81,6 @@ namespace Kugua.Integrations.AI
         }
 
 
-
-
-
-
-
         public string AIResourceRootPath
         {
             get
@@ -100,7 +93,9 @@ namespace Kugua.Integrations.AI
 
         //public Dictionary<string, List<dynamic>> ChatMessageList = new Dictionary<string, List<dynamic>>();
 
-
+        /// <summary>
+        /// 用户的对话上下文，key是"群id_用户id"组成的唯一识别码，value是对话历史和prompt等信息
+        /// </summary>
         public Dictionary<string, ChatContext> Contexts = new Dictionary<string, ChatContext>();
 
         //private static readonly string ModelName = Config.Instance.App.Net.OllamaModel;//"qwen2:7b";//"ollama3c8bs:latest"; // "llama3.2-vision";      // "llama3bus:latest";
@@ -208,22 +203,18 @@ namespace Kugua.Integrations.AI
 
         }
 
-        public void SaveMemory()
+        public void SaveMemory( MessageContext mcontext)
         {
-            lock (LockFileIO)
+            try
             {
-                foreach (var context in Contexts)
-                {
-                    try
-                    {
-                        string fullPath = $"{AIResourceRootPath}{context.Key}.json";
-                        FileSystem.writeText(fullPath, JsonConvert.SerializeObject(context.Value.ChatNodeList, Formatting.Indented));
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(ex);
-                    }
-                }
+                var contextid = GetChatId(mcontext);
+                var context = GetChatContext(contextid);
+                string fullPath = $"{AIResourceRootPath}{contextid}.json";
+                FileSystem.writeText(fullPath, JsonConvert.SerializeObject(context.ChatNodeList, Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
             }
         }
 
@@ -280,6 +271,7 @@ namespace Kugua.Integrations.AI
                 string rawOutput = chatModel.ChatAsync(chatContext).Result;
                 string finalOutput = FixLineBreaks(rawOutput);
                 Logger.Log(finalOutput);
+                SaveMemory(context);
                 return finalOutput;
             }
             else
@@ -326,11 +318,17 @@ namespace Kugua.Integrations.AI
             return string.Empty;
         }
 
+
+        /// <summary>
+        /// 主动输出，暂时没用
+        /// </summary>
+        /// <param name="context"></param>
         public void ChatOutput(ChatContext context)
         {
             if (context.LastMessageContext != null)
             {
                 context.LastMessageContext.SendBackText(context.ChatNodeList.Last());
+                //SaveMemory(context);
             }
             else
             {

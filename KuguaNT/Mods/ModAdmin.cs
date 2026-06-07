@@ -139,7 +139,7 @@ namespace Kugua.Mods
             if (context.IsAdminUser)
             {
                 Config.Instance.Save();
-                LLM.Instance.SaveMemory();
+                //LLM.Instance.SaveMemory();
                 ModRoulette.Instance.Save();
                 ModRaceHorse.Instance.Save();
                 HistoryManager.Instance.SaveAllToLocal(true);

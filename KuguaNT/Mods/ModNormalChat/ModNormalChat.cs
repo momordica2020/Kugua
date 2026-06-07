@@ -371,7 +371,7 @@ namespace Kugua.Mods.ModNormalChat
         private string clearMemory(MessageContext context, string[] param)
         {
             LLM.Instance.ClearMemory(context);
-            LLM.Instance.SaveMemory();
+            LLM.Instance.SaveMemory(context);
             return $"*以清空AI模式下与你的聊天历史记录，并恢复默认prompt";
         }
 

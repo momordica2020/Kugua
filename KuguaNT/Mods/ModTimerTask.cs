@@ -184,6 +184,7 @@ namespace Kugua.Mods
             // 帮助配置文件一起定期存掉
             Config.Instance.Save();
 
+
             if (clientQQ != null)
             {
                 foreach (var g in Config.Instance.groups)
